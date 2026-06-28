@@ -1,4 +1,4 @@
-# 🚀 Builder is a teeny tiny tool for spec-driven engineering
+# 👷‍♂️ Builder 
 
 [![Test & Build](https://github.com/zeiss/builder/actions/workflows/main.yml/badge.svg)](https://github.com/zeiss/builder/actions/workflows/main.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zeiss/builder)](https://goreportcard.com/report/github.com/zeiss/builder)
