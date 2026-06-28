@@ -1,0 +1,111 @@
+version: 2
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: server
+    binary: builder-{{.Os}}-{{.Arch}}
+    main: server/main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    no_unique_dist_dir: true
+  - id: builder
+    binary: builder-{{.Os}}-{{.Arch}}
+    main: main.go
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    no_unique_dist_dir: true
+
+dockers:
+  - dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    ids:
+      - server
+    image_templates:
+      - "ghcr.io/zeiss/{{.ProjectName}}/server:latest"
+      - "ghcr.io/zeiss/{{.ProjectName}}/server:{{.Tag}}"
+      - "ghcr.io/zeiss/{{.ProjectName}}/server"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--build-arg=BINARY=waitfor-linux-amd64"
+      - "--platform=linux/amd64"
+  - dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    ids:
+      - builder
+    image_templates:
+      - "ghcr.io/zeiss/{{.ProjectName}}/builder:latest"
+      - "ghcr.io/zeiss/{{.ProjectName}}/builder:{{.Tag}}"
+      - "ghcr.io/zeiss/{{.ProjectName}}/builder"
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--build-arg=BINARY=runproc-linux-amd64"
+      - "--platform=linux/amd64"
+
+archives:
+  - id: server
+    builds:
+      - server
+    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
+  - id: builder
+    builds:
+      - builder
+    name_template: "client_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+release:
+  header: |
+    ## Changelog ({{ .Date }})
+
+    Welcome to this new release! We hope you enjoy the changes we've made.
+changelog:
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?bug(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - typo
+      - (?i)foo
+
+checksum:
+  name_template: "builder_checksums.txt"
