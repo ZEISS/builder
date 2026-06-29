@@ -5,7 +5,7 @@ before:
 
 builds:
   - id: server
-    binary: builder-{{.Os}}-{{.Arch}}
+    binary: server-{{.Os}}-{{.Arch}}
     main: server/main.go
     goos:
       - linux
