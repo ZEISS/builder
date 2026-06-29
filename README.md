@@ -8,6 +8,8 @@
 
 Builder is a tool that implements the builder specification. It is the specification to build and deploy software projects with agents. It focuses on speed and simplicity.
 
+🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify (♥️).
+
 ## Usage
 
 ```bash
