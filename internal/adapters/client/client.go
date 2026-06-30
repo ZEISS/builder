@@ -12,9 +12,7 @@ import (
 	"github.com/zeiss/builder/pkg/apis"
 )
 
-var (
-	ErrCreateSite = fmt.Errorf("failed to create the site")
-)
+var ErrCreateSite = fmt.Errorf("failed to create the site")
 
 var _ ports.SitesRepository = (*client)(nil)
 
