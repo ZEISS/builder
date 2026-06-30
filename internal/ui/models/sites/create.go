@@ -55,18 +55,16 @@ func (m *createSiteModel) Init() tea.Cmd {
 // Update handles incoming messages and updates the model accordingly.
 func (m *createSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg: // resize the window and progress bar
+	case tea.WindowSizeMsg:
 		return m, nil
 
-	case siteCheckErrorMsg: // handle deployment error
+	case createSiteErrorMsg:
 		m.err = msg.err
 		m.quitting = true
-
 		return m, tea.Quit
 
 	case createSiteMsg:
 		m.quitting = true
-
 		return m, tea.Quit
 
 	case tea.KeyPressMsg:

@@ -3,12 +3,17 @@ package client
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 	"github.com/zeiss/builder/pkg/apis"
+)
+
+var (
+	ErrCreateSite = fmt.Errorf("failed to create the site")
 )
 
 var _ ports.SitesRepository = (*client)(nil)
@@ -50,7 +55,11 @@ func (c *client) Create(ctx context.Context, site *models.Site) error {
 
 	defer resp.Body.Close()
 
-	return nil
+	if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	return ErrCreateSite
 }
 
 // Delete is a method that deletes a site.
