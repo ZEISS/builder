@@ -1,0 +1,120 @@
+services:
+  builder:
+    image: ghcr.io/zeiss/builder/server:latest
+    container_name: builder
+    depends_on:
+      - postgres
+    networks:
+      - builder
+    restart: unless-stopped
+    volumes:
+      - builder-data:/data
+    environment:
+      - BUILDER_DATABASE=builder
+      - BUILDER_DATABASE_USER=postgres
+      - BUILDER_DATABASE_PASS=password
+      - BUILDER_DATABASE_HOST=postgres
+      - BUILDER_DATABASE_PORT=5432
+      - BUILDER_DEX_CLIENT_SECRET=
+      - BUILDER_DEX_CLIENT_ID=
+      - BUILDER_OIDC_ISSUER=
+      - BUILDER_OIDC_AUDIENCE=
+      - BUILDER_DEX_LOGIN_URL=
+      - BUILDER_DOMAIN=
+      - BUILDER_DEX_CALLBACK_URL=
+      - BUILDER_ROOT=/data
+    labels:
+      traefik.docker.network: builder
+      traefik.enable: "true"
+      traefik.http.services.builder.loadbalancer.server.port: 3000
+      traefik.http.routers.quick.rule: Host(`*.builder.example.com`)
+      traefik.http.routers.quick.entrypoints: websecure
+      traefik.http.routers.quick.tls: "true"
+      traefik.http.routers.quick.tls.certResolver: myresolver
+      traefik.http.routers.builder.rule: Host(`builder.example.com`)
+      traefik.http.routers.builder.entrypoints: websecure
+      traefik.http.routers.builder.tls: "true"
+      traefik.http.routers.builder.tls.certResolver: myresolver
+
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    networks:
+      - builder
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=builder
+      - POSTGRES_HOST_AUTH_METHOD=
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  dex:
+    image: dexidp/dex:latest
+    depends_on:
+      - postgres
+    networks:
+      - builder
+    volumes:
+      - ./config-dex.yaml:/etc/dex/config.yaml
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    restart: unless-stopped
+    labels:
+      traefik.docker.network: builder
+      traefik.enable: "true"
+      traefik.http.services.dex.loadbalancer.server.port: 5556
+      traefik.http.routers.dex.rule: Host(`login.example.com`)
+      traefik.http.routers.dex.entrypoints: websecure
+      traefik.http.routers.dex.tls: "true"
+      traefik.http.routers.dex.tls.certResolver: myresolver
+
+  traefik:
+    depends_on:
+      - dex
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=false"
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.network=proxy"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.storage=/ssl/acme.json"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=azuredns"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.delaybeforecheck=0"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    environment:
+      - AZURE_RESOURCE_GROUP=
+      - AZURE_TENANT_ID=
+    image: traefik:latest
+    networks:
+      - proxy
+      - builder
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - acme-data:/ssl
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  builder:
+    external: True
+  proxy:
+    external: True
+
+volumes:
+  pg-data:
+  acme-data:
+  builder-data:
