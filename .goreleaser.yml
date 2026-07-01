@@ -39,20 +39,26 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     no_unique_dist_dir: true
 
-brews:
+homebrew_casks:
   - repository:
       owner: zeiss
       name: homebrew-builder-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    goarm: "7"
     homepage: https://github.com/zeiss/builder
-    directory: Formula
-    dependencies:
-      - name: go
-        type: optional
+    description: A teeny-tiny tool to build stuff
+    url:
+      verified: github.com/zeiss/builder
+    directory: Casks
+    name: builder
+    ids:
+      - builder
+    binaries:
+      - builder
+    hooks:
+      post:
+        install: |
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
     license: APACHE-2.0
-    install: |-
-      bin.install "builder"
 
 dockers:
   - dockerfile: Dockerfile
