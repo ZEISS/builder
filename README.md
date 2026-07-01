@@ -12,8 +12,18 @@ Builder is a tool that implements the builder specification. It is the specifica
 
 ## Usage
 
+* 👨‍🎨 Design
+* 🏗️ Build
+* 🚢 Ship
+
 ```bash
 builder help
+```
+
+## Installation
+
+```bash
+brew install katallaxie/csync-tap/csync
 ```
 
 ## Authentication

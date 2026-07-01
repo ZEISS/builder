@@ -21,7 +21,8 @@ func init() {
 }
 
 var TaskCmd = &cobra.Command{
-	Use: "task",
+	Use:   "task",
+	Short: "Manage tasks",
 }
 
 var TaskNewCmd = &cobra.Command{

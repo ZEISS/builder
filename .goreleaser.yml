@@ -39,6 +39,21 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     no_unique_dist_dir: true
 
+brews:
+  - repository:
+      owner: zeiss
+      name: homebrew-builder-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    goarm: "7"
+    homepage: https://github.com/zeiss/builder
+    directory: Formula
+    dependencies:
+      - name: go
+        type: optional
+    license: APACHE-2.0
+    install: |-
+      bin.install "builder"
+
 dockers:
   - dockerfile: Dockerfile
     goos: linux
@@ -86,10 +101,16 @@ archives:
     name_template: "client_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
+  name_template: "v{{ .Version }}"
   header: |
-    ## Changelog ({{ .Date }})
+    ## {{.Version}} Release ({{ .Date }})
 
-    Welcome to this new release! We hope you enjoy the changes we've made.
+    Welcome to this new release :rocket:!
+  footer: |
+    ## Thanks!
+
+    Those were the changes on {{ .Tag }}!
+
 changelog:
   groups:
     - title: Features
