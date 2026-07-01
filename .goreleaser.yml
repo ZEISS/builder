@@ -9,6 +9,7 @@ builds:
     main: server/main.go
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
       - arm
@@ -26,6 +27,7 @@ builds:
     main: main.go
     goos:
       - linux
+      - darwin
     goarch:
       - amd64
       - arm
