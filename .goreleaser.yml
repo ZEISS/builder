@@ -47,7 +47,7 @@ homebrew_casks:
     homepage: https://github.com/zeiss/builder
     description: A teeny-tiny tool to build stuff
     url:
-      verified: github.com/zeiss/builder
+      template: "https://github.com/zeiss/builder/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     directory: Casks
     name: builder
     ids:
