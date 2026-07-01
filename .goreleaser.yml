@@ -70,8 +70,6 @@ dockers_v2:
       - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
     tags:
       - "{{ .Version }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - "{{ .Major }}"
       - latest
     platforms:
       - linux/amd64
