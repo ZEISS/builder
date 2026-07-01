@@ -8,6 +8,7 @@ on:
       - "v*"
 
 env:
+  DOCKER_IMAGE_REPO: ghcr.io/${{ github.repository }}
   TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
 
 jobs:
