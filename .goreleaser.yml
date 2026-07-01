@@ -76,8 +76,6 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
-      - darwin/amd64
-      - darwin/arm64
     labels:
       "org.opencontainers.image.created": "{{.Date}}"
       "org.opencontainers.image.revision": "{{.FullCommit}}"
@@ -95,8 +93,6 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
-      - darwin/amd64
-      - darwin/arm64
     labels:
       "org.opencontainers.image.created": "{{.Date}}"
       "org.opencontainers.image.revision": "{{.FullCommit}}"
