@@ -1,9 +1,13 @@
+# https://goreleaser.com/docker/
+
 FROM gcr.io/distroless/static:nonroot
-ARG BINARY
+
+ARG BINARY=builder
+ARG TARGETPLATFORM
 
 WORKDIR /
-COPY ${BINARY} /main
+COPY $TARGETPLATFORM/$BINARY /main
 
 USER 65532:65532
 
-ENTRYPOINT ["/main"]
+CMD ["/main"]

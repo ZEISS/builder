@@ -3,6 +3,9 @@ before:
   hooks:
     - go mod tidy
 
+env:
+  - DOCKER_IMAGE_REPO={{ envOrDefault "DOCKER_IMAGE_REPO" "builder" }}
+
 builds:
   - id: server
     binary: server
@@ -60,41 +63,44 @@ homebrew_casks:
           system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
     license: APACHE-2.0
 
-dockers:
-  - dockerfile: Dockerfile
-    goos: linux
-    goarch: amd64
-    ids:
-      - server
-    image_templates:
-      - "ghcr.io/zeiss/{{.ProjectName}}/server:latest"
-      - "ghcr.io/zeiss/{{.ProjectName}}/server:{{.Tag}}"
-      - "ghcr.io/zeiss/{{.ProjectName}}/server"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--build-arg=BINARY=server_linux_amd64_v1/server"
-      - "--platform=linux/amd64"
-  - dockerfile: Dockerfile
-    goos: linux
-    goarch: amd64
-    ids:
-      - builder
-    image_templates:
-      - "ghcr.io/zeiss/{{.ProjectName}}/builder:latest"
-      - "ghcr.io/zeiss/{{.ProjectName}}/builder:{{.Tag}}"
-      - "ghcr.io/zeiss/{{.ProjectName}}/builder"
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.title={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--build-arg=BINARY=builder_linux_amd64_v1/builder"
-      - "--platform=linux/amd64"
+dockers_v2:
+  - id: builder
+    dockerfile: Dockerfile
+    images:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+      - darwin/amd64
+      - darwin/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+
+  - id: server
+    dockerfile: Dockerfile
+    images:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+      - darwin/amd64
+      - darwin/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
 
 archives:
   - id: server
