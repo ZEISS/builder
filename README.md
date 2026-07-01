@@ -23,7 +23,7 @@ builder help
 ## Installation
 
 ```bash
-brew install katallaxie/csync-tap/csync
+brew install zeiss/builder-tap/builder
 ```
 
 ## Authentication
