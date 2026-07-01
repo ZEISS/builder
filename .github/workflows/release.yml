@@ -7,6 +7,9 @@ on:
     tags:
       - "v*"
 
+env:
+  TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+
 jobs:
   test:
     permissions:
