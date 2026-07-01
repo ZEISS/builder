@@ -5,7 +5,7 @@ before:
 
 builds:
   - id: server
-    binary: server-{{.Os}}-{{.Arch}}
+    binary: server
     main: server/main.go
     goos:
       - linux
@@ -21,9 +21,8 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
-    no_unique_dist_dir: true
   - id: builder
-    binary: builder-{{.Os}}-{{.Arch}}
+    binary: builder
     main: main.go
     goos:
       - linux
@@ -39,7 +38,6 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
-    no_unique_dist_dir: true
 
 homebrew_casks:
   - repository:
@@ -78,7 +76,7 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--build-arg=BINARY=server-linux-amd64"
+      - "--build-arg=BINARY=server_linux_amd64_v1/server"
       - "--platform=linux/amd64"
   - dockerfile: Dockerfile
     goos: linux
@@ -95,7 +93,7 @@ dockers:
       - "--label=org.opencontainers.image.title={{.ProjectName}}"
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--build-arg=BINARY=builder-linux-amd64"
+      - "--build-arg=BINARY=builder_linux_amd64_v1/builder"
       - "--platform=linux/amd64"
 
 archives:
@@ -106,7 +104,7 @@ archives:
   - id: builder
     builds:
       - builder
-    name_template: "client_{{.Version}}_{{.Os}}_{{.Arch}}"
+    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
   name_template: "v{{ .Version }}"
