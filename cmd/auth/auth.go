@@ -18,5 +18,5 @@ func init() {
 
 var AuthCmd = &cobra.Command{
 	Use:   "auth",
-	Short: "Authenticate the builder (default: Microsoft Entra ID)",
+	Short: "Authenticate the builder (default: dex)",
 }
