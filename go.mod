@@ -16,7 +16,7 @@ replace github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d => github.
 require (
 	charm.land/bubbles/v2 v2.1.0
 	charm.land/bubbletea/v2 v2.0.8
-	charm.land/lipgloss/v2 v2.0.4
+	charm.land/lipgloss/v2 v2.0.5
 	github.com/MicahParks/keyfunc/v2 v2.1.0
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ultraviolet v0.0.0-20260703014108-f5a850f9c2b7
