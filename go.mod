@@ -34,7 +34,7 @@ require (
 	github.com/katallaxie/fiber-goth/v3 v3.0.5
 	github.com/katallaxie/pkg v0.7.11
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/oapi-codegen/oapi-codegen/v2 v2.7.1
+	github.com/oapi-codegen/oapi-codegen/v2 v2.7.2
 	github.com/oapi-codegen/runtime v1.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
