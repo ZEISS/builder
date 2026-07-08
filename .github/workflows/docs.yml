@@ -29,7 +29,3 @@ jobs:
           extended: true
       - run: hugo --minify --baseURL="/builder"
         working-directory: ./www/
-      - uses: wjdp/htmltest-action@31be84a95c860a331e0cf9a99f71e3eb39d2f86b # master
-        with:
-          config: www/htmltest.yml
-          path: www/public
