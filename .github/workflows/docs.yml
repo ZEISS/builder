@@ -30,7 +30,7 @@ jobs:
         with:
           hugo-version: "latest"
           extended: true
-      - run: hugo --minify --baseURL="/builder"
+      - run: hugo --minify
         working-directory: ./www/
       - uses: actions/upload-pages-artifact@v3
         with:
