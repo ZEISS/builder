@@ -1,0 +1,18 @@
+# Builder
+
+> Builder is a tool that implements the builder specification. It is the specification to build and deploy software projects with agents. It focuses on speed and simplicity.
+
+
+## Introduction
+
+### General
+- [Project Name](//localhost:1313/customization/general/name/): The project name is used in templates and other places where the project name is needed. It is …
+
+## Getting Started
+- [Introduction](//localhost:1313/getting-started/intro/): Putting it simply, Builder is a tool to build in the age of AI.
+- [How it works](//localhost:1313/getting-started/how-it-works/): Builder&rsquo;s goal is to make it easy to design, build, and release software in the age of AI. It …
+
+
+---
+Generated on 2026-07-08 12:43:24 UTC
+Site: //localhost:1313/
