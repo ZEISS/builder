@@ -1,4 +1,4 @@
-module github.com/goreleaser/goreleaser/hugo-docs
+module github.com/zeiss/builder/docs
 
 go 1.26.1
 
