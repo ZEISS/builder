@@ -147,11 +147,11 @@ func (m deployModel) View() tea.View {
 }
 
 func (m *deployModel) writeFiles() tea.Cmd {
-	files := utils.ScanDir(m.cfg.Spec.Deploy.Path, m.cfg.Spec.Deploy.Ignore)
+	files := utils.ScanDir(m.cfg.Spec.Sites.Path, m.cfg.Spec.Sites.Ignore)
 	cmds := make([]tea.Cmd, 0, len(files))
 	m.total = len(files)
 	site := &models.Site{
-		Name: m.cfg.Spec.Deploy.Site,
+		Name: m.cfg.Spec.Sites.Name,
 	}
 
 	for _, file := range files {

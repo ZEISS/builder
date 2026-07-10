@@ -83,7 +83,7 @@ func (m *createSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the current state of the deploy model.
 func (m createSiteModel) View() tea.View {
-	s := fmt.Sprintf("%s %s successfully created.\n", checkMark, m.cfg.Spec.Deploy.Site)
+	s := fmt.Sprintf("%s %s successfully created.\n", checkMark, m.cfg.Spec.Sites.Name)
 
 	if utilx.NotNil(m.err) {
 		s = fmt.Sprintf("%s %s\n", errorMark, m.err)
@@ -94,7 +94,7 @@ func (m createSiteModel) View() tea.View {
 
 func (m *createSiteModel) createSite() tea.Cmd {
 	return func() tea.Msg {
-		site := &models.Site{Name: m.cfg.Spec.Deploy.Site}
+		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
 		err := m.sitesCtrl.Create(m.ctx, site)
 		if utilx.NotNil(err) {
 			return createSiteErrorMsg{err: err}

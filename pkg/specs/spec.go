@@ -28,19 +28,30 @@ const (
 // This could be used in various contexts such as API specifications,
 // software design documents, etc.
 type Spec struct {
-	Version      int     `json:"version" yaml:"version"`
-	Name         string  `json:"name,omitempty" yaml:"name"`
-	Description  string  `json:"description,omitempty" yaml:"description,omitempty"`
-	Rules        Rules   `json:"rules" yaml:"rules"`
-	Constitution string  `json:"constitution" yaml:"constitution"`
-	Models       []Model `json:"models,omitempty" yaml:"models,omitempty"`
-	Deploy       *Deploy `json:"domain,omitempty" yaml:"domain,omitempty"`
-	Tasks        Tasks   `json:"tasks" yaml:"tasks"`
-	Root         string  `json:"root,omitempty" yaml:"root,omitempty"`
+	// Version is the version of the spec.
+	Version int `json:"version" yaml:"version"`
+	// Name is the name of the spec.
+	Name string `json:"name,omitempty" yaml:"name"`
+	// Root is the root directory of the spec.
+	Root string `json:"root,omitempty" yaml:"root,omitempty"`
+	// Description is the description of the spec.
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+	// Rules define the rules for the spec.
+	Rules Rules `json:"rules" yaml:"rules"`
+	// Constitution is the constitution of the spec.
+	Constitution string `json:"constitution" yaml:"constitution"`
+	// Models define the models for the spec.
+	Models []Model `json:"models,omitempty" yaml:"models,omitempty"`
+	// Sites defines the deployment configuration for the specification.
+	Sites *Sites `json:"sites,omitempty" yaml:"sites,omitempty"`
+	// Tasks define the tasks for the spec.
+	Tasks Tasks `json:"tasks" yaml:"tasks"`
 }
 
-// Deploy defines the deployment configuration for the specification.
-type Deploy struct {
+// Sites defines the deployment configuration for the specification.
+type Sites struct {
+	// Name is the name of the site.
+	Name string `json:"name" yaml:"name"`
 	// Path is the path to the deployment configuration file.
 	Path string `json:"path" yaml:"path"`
 	// Site is the name of the site to deploy to.
@@ -51,12 +62,18 @@ type Deploy struct {
 
 // Model specifies a model.
 type Model struct {
+	// RequestOptions are the request options for the model.
 	RequestOptions map[string]any `json:"requestOptions,omitempty" yaml:"requestOptions,omitempty"`
-	ID             string         `json:"id" yaml:"id"`
-	Name           string         `json:"name" yaml:"name"`
-	URL            string         `json:"url" yaml:"url"`
-	Provider       Provider       `json:"provider" yaml:"provider"`
-	Roles          []string       `json:"roles" yaml:"roles"`
+	// ID is the unique identifier for the model.
+	ID string `json:"id" yaml:"id"`
+	// Name is the name of the model.
+	Name string `json:"name" yaml:"name"`
+	// URL is the URL of the model.
+	URL string `json:"url" yaml:"url"`
+	// Provider is the provider of the model.
+	Provider Provider `json:"provider" yaml:"provider"`
+	// Roles are the roles of the model.
+	Roles []string `json:"roles" yaml:"roles"`
 }
 
 // Provider is a string that specifies the provider for a model.
@@ -151,7 +168,7 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 		Name         string  `yaml:"name"`
 		Models       []Model `yaml:"models"`
 		Version      int     `yaml:"version"`
-		Deploy       *Deploy `yaml:"deploy"`
+		Sites        *Sites  `yaml:"deploy"`
 		Root         string  `yaml:"root"`
 	}{
 		Version: DefaultVersion,
@@ -172,7 +189,7 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 	s.Constitution = spec.Constitution
 	s.Description = spec.Description
 	s.Tasks = spec.Tasks
-	s.Deploy = spec.Deploy
+	s.Sites = spec.Sites
 	s.Root = spec.Root
 
 	return nil

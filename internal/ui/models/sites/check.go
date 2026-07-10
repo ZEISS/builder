@@ -114,11 +114,11 @@ func (m checkSiteModel) View() tea.View {
 	}
 
 	if m.siteExists {
-		fmt.Fprintf(&s, "%s %s exists.\n", checkMark, m.cfg.Spec.Deploy.Site)
+		fmt.Fprintf(&s, "%s %s exists.\n", checkMark, m.cfg.Spec.Sites.Site)
 	}
 
 	if !m.siteExists {
-		fmt.Fprintf(&s, "%s %s does not exist.\n", errorMark, m.cfg.Spec.Deploy.Site)
+		fmt.Fprintf(&s, "%s %s does not exist.\n", errorMark, m.cfg.Spec.Sites.Name)
 	}
 
 	return tea.NewView(s.String())
@@ -126,7 +126,7 @@ func (m checkSiteModel) View() tea.View {
 
 func (m *checkSiteModel) checkSiteExists() tea.Cmd {
 	return func() tea.Msg {
-		site := &models.Site{Name: m.cfg.Spec.Deploy.Site}
+		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
 		exists, err := m.sitesCtrl.Exists(m.ctx, site)
 		if utilx.NotNil(err) {
 			return siteCheckErrorMsg{err: err}
