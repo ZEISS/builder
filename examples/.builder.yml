@@ -1,5 +1,17 @@
 version: 1
 name: example
+
+# Root directory for the builder configuration and output.
+root: .builder
+
+# Sites is a deployment target for the builder CLI.
+sites:
+  path: .
+  name: fizzy-buzzy
+  ignore:
+    - .builder
+
+# Rules define the builder's behavior and code generation rules.
 rules:
   design:
     - Document any platform-specific behavior or limitations
@@ -33,12 +45,6 @@ constitution: |
   - Never assume forward-slash path separators
   - Tests must use path.join() for expected path values, not hardcoded strings
   - Consider case sensitivity differences in file systems
-
-deploy:
-  path: .
-  ignore:
-    - .builder
-  site: fizzy-buzzy
 
 tasks:
   feature:
@@ -243,4 +249,3 @@ tasks:
 
             - [ ] 2.1 <!-- Task description -->
             - [ ] 2.2 <!-- Task description -->
-root: .builder
