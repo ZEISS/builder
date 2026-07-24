@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/builder/server/adapters/handlers"
-	"github.com/zeiss/builder/server/adapters/store"
 	"github.com/zeiss/builder/server/controllers"
 )
 
@@ -28,7 +27,7 @@ func main() {
 	cli := humacli.New(func(hooks humacli.Hooks, options *Options) {
 		app := fiber.New()
 
-		siteController := controllers.NewSitesController(store.NewFS(""))
+		siteController := controllers.NewSitesController(nil)
 		sitesHandler := handlers.NewSitesHandler(siteController)
 
 		apiConfig := huma.DefaultConfig("Builder API", "1.0.0")

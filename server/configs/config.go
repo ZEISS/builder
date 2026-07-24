@@ -7,24 +7,47 @@ import (
 // Flags contains the command line flags.
 type Flags struct {
 	Addr            string `envconfig:"BUILDER_ADDR" default:":3000"`
-	Root            string `envconfig:"BUILDER_ROOT" default:""`
 	Domain          string `envconfig:"BUILDER_DOMAIN" default:""`
-	Database        string `envconfig:"BUILDER_DATABASE" default:"example"`
-	DatabaseUser    string `envconfig:"BUILDER_DATABASE_USER" default:"example"`
-	DatabasePass    string `envconfig:"BUILDER_DATABASE_PASS" default:"example"`
-	DatabaseHost    string `envconfig:"BUILDER_DATABASE_HOST" default:"localhost"`
-	DatabasePort    int    `envconfig:"BUILDER_DATABASE_PORT" default:"5432"`
 	DexClientID     string `envconfig:"BUILDER_DEX_CLIENT_ID" default:""`
 	DexClientSecret string `envconfig:"BUILDER_DEX_CLIENT_SECRET" default:""`
 	DexCallbackURL  string `envconfig:"BUILDER_DEX_CALLBACK_URL" default:""`
 	DexLoginURL     string `envconfig:"BUILDER_DEX_LOGIN_URL" default:""`
 	OIDCIssuer      string `envconfig:"BUILDER_OIDC_ISSUER" default:""`
 	OIDCAudience    string `envconfig:"BUILDER_OIDC_AUDIENCE" default:""`
+	// FilesFlags contains the flags for the files directory.
+	FilesFlags FilesFlags
+	// SqliteFlags contains the SQLite flags.
+	SqliteFlags SqliteFlags
+}
+
+// FilesFlags contains the flags for the files directory.
+type FilesFlags struct {
+	// Path is the path to the files directory.
+	Path string `envconfig:"BUILDER_FILES_PATH" default:""`
+}
+
+// SqliteFlags returns the path to the SQLite database.
+type SqliteFlags struct {
+	// Enabled is a flag to enable SQLite.
+	Enabled bool `envconfig:"BUILDER_SQLITE_ENABLED" default:""`
+	// Path is the path to the SQLite database.
+	Path string `envconfig:"BUILDER_SQLITE_PATH" default:""`
+	// Database is the name of the SQLite database.
+	Database string `envconfig:"BUILDER_SQLITE_DATABASE" default:""`
 }
 
 // NewFlags returns a new instance of Flags.
 func NewFlags() *Flags {
-	return &Flags{}
+	return &Flags{
+		SqliteFlags: SqliteFlags{
+			Enabled:  true,
+			Path:     "builder.db",
+			Database: "builder",
+		},
+		FilesFlags: FilesFlags{
+			Path: "files",
+		},
+	}
 }
 
 // New returns a new instance of Config.

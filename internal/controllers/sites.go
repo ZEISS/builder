@@ -19,24 +19,9 @@ func NewSitesController(sitesRepo ports.SitesRepository) *SitesController {
 	}
 }
 
-// Get is a method that returns a site by ID.
-func (c *SitesController) Get(ctx context.Context, site *models.Site) error {
-	return c.sitesRepo.Get(ctx, site)
-}
-
 // Create is a method that creates a new site.
 func (c *SitesController) Create(ctx context.Context, site *models.Site) error {
 	return c.sitesRepo.Create(ctx, site)
-}
-
-// Delete is a method that deletes a site.
-func (c *SitesController) Delete(ctx context.Context, site *models.Site) error {
-	return c.sitesRepo.Delete(ctx, site)
-}
-
-// Exists is a method that returns true if a site exists.
-func (c *SitesController) Exists(ctx context.Context, site *models.Site) (bool, error) {
-	return c.sitesRepo.Exists(ctx, site)
 }
 
 // UploadFile is a method that uploads a file to a site.

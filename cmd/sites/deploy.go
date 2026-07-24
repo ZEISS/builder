@@ -8,14 +8,11 @@ import (
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/models/sites"
 	"github.com/zeiss/builder/pkg/apis"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/katallaxie/pkg/cast"
 	"github.com/katallaxie/pkg/filex"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -52,21 +49,26 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	accountStore := db.New(conn)
-	accountController := controllers.NewAccountController(accountStore)
+	// accountStore := db.New(conn)
+	// accountController := controllers.NewAccountController(accountStore)
 
-	account := &models.Account{}
-	err = accountController.GetCurrent(cmd.Context(), account)
-	if err != nil {
-		return err
-	}
+	// account := &models.Account{}
+	// err = accountController.GetCurrent(cmd.Context(), account)
+	// if err != nil {
+	// 	return err
+	// }
 
-	bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
-	if err != nil {
-		return err
-	}
+	// bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
+	// if err != nil {
+	// 	return err
+	// }
 
-	c, err := apis.NewClient(config.DefaultConfig.URL, apis.WithRequestEditorFn(bearer.Intercept))
+	// c, err := apis.NewClient(config.DefaultConfig.URL, apis.WithRequestEditorFn(bearer.Intercept))
+	// if err != nil {
+	// 	return err
+	// }
+
+	c, err := apis.NewClient(config.DefaultConfig.URL)
 	if err != nil {
 		return err
 	}
