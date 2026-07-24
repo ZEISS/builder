@@ -1,5 +1,33 @@
 components:
   schemas:
+    CreateSiteInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/CreateSiteInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        name:
+          description: The name of the site (e.g. fizzy-buzzy).
+          example: fizzy-buzzy
+          type: string
+      required:
+        - name
+      type: object
+    DeletedAt:
+      additionalProperties: false
+      properties:
+        Time:
+          format: date-time
+          type: string
+        Valid:
+          type: boolean
+      required:
+        - Time
+        - Valid
+      type: object
     ErrorDetail:
       additionalProperties: false
       properties:
@@ -15,12 +43,6 @@ components:
     ErrorModel:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          example: https://example.com/schemas/ErrorModel.json
-          format: uri
-          readOnly: true
-          type: string
         detail:
           description: A human-readable explanation specific to this occurrence of the problem.
           example: Property foo is required but is missing.
@@ -52,6 +74,36 @@ components:
           format: uri
           type: string
       type: object
+    Site:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/Site.json
+          format: uri
+          readOnly: true
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        deletedAt:
+          $ref: "#/components/schemas/DeletedAt"
+        id:
+          example: 6c785b65-e689-4653-ae78-81621226c48c
+          type: string
+        name:
+          example: fizzy-buzzy
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+        - deletedAt
+      type: object
   securitySchemes:
     openid:
       bearerFormat: JWT
@@ -70,78 +122,30 @@ info:
   version: 1.0.0
 openapi: 3.0.3
 paths:
-  /sites/{siteName}:
-    get:
-      description: Get a site by name.
-      operationId: getSite
-      parameters:
-        - in: path
-          name: siteName
-          required: true
-          schema:
-            example: fizz-buzz
-            type: string
-      responses:
-        "200":
-          description: The site exists
-        "404":
-          description: The site was not found
-      summary: Get a site
-      tags:
-        - Sites
+  /sites:
     post:
       description: Creates a new site in the builder. This will create a new site folder.
       operationId: createSite
-      parameters:
-        - in: path
-          name: siteName
-          required: true
-          schema:
-            example: fizz-buzz
-            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSiteInputBody"
+        required: true
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
           description: The site has been created.
+        "400":
+          description: The request was invalid.
+        "409":
+          description: The site already exists.
         "500":
           description: An internal server error occurred.
       summary: Create a new site
-      tags:
-        - Sites
-  /sites/{siteName}/files/{path}:
-    put:
-      description: Put a new file to the site.
-      operationId: putSiteFile
-      parameters:
-        - in: path
-          name: siteName
-          required: true
-          schema:
-            example: fizz-buzz
-            type: string
-        - in: path
-          name: path
-          required: true
-          schema:
-            example: index.html
-            type: string
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              format: binary
-              type: string
-              x-contentMediaType: application/octet-stream
-        required: true
-      responses:
-        "201":
-          description: The file was uploaded successfully.
-        default:
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Put a new file to the site
       tags:
         - Sites
 

@@ -16,7 +16,7 @@
       "version": "0.164.0",
     },
   },
-  "appPort": 1313,
+  "appPort": 3000,
   "customizations": {
     "vscode": {
       "extensions": [

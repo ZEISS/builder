@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := build
 
 # Go variables
-GO 						?= go
-GO_RELEASER 	?= $(GO_TOOL) github.com/goreleaser/goreleaser/v2
+GO 					?= go
+GO_RELEASER 		?= $(GO_TOOL) github.com/goreleaser/goreleaser/v2
 GO_LINT 			?= $(GO_TOOL) github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 GO_TOOL 			?= $(GO) tool
 GO_TEST 			?= $(GO_TOOL) gotest.tools/gotestsum --format pkgname
@@ -37,7 +37,7 @@ test: fmt vet ## Run tests.
 	$(GO_TEST) --junitfile .test/reports/unit-test.xml -- -race ./... -count=1 -short -cover -coverprofile .test/reports/unit-test-coverage.out
 
 .PHONY: lint
-lint: ## Run lint.
+lint: fmt ## Run lint.
 	$(GO_LINT) run --timeout 5m -c .golangci.yml
 
 .PHONY: fix

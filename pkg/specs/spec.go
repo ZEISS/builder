@@ -168,7 +168,7 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 		Name         string  `yaml:"name"`
 		Models       []Model `yaml:"models"`
 		Version      int     `yaml:"version"`
-		Sites        *Sites  `yaml:"deploy"`
+		Sites        *Sites  `yaml:"sites"`
 		Root         string  `yaml:"root"`
 	}{
 		Version: DefaultVersion,

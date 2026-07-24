@@ -7,7 +7,6 @@ import (
 
 	"github.com/katallaxie/pkg/utilx"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 
 	"charm.land/bubbles/v2/key"
@@ -70,7 +69,7 @@ func NewCheckSite(ctx context.Context, cfg *config.Config, sitesCtrl ports.Sites
 
 // Init initializes the deploy model.
 func (m *checkSiteModel) Init() tea.Cmd {
-	return tea.Batch(m.checkSiteExists())
+	return tea.Batch()
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -124,14 +123,14 @@ func (m checkSiteModel) View() tea.View {
 	return tea.NewView(s.String())
 }
 
-func (m *checkSiteModel) checkSiteExists() tea.Cmd {
-	return func() tea.Msg {
-		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
-		exists, err := m.sitesCtrl.Exists(m.ctx, site)
-		if utilx.NotNil(err) {
-			return siteCheckErrorMsg{err: err}
-		}
+// func (m *checkSiteModel) checkSiteExists() tea.Cmd {
+// 	return func() tea.Msg {
+// 		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
+// 		err := m.sitesCtrl.Create(m.ctx, site)
+// 		if utilx.NotNil(err) {
+// 			return siteCheckErrorMsg{err: err}
+// 		}
 
-		return checkSiteMsg{exists: exists}
-	}
-}
+// 		return checkSiteMsg{exists: exists}
+// 	}
+// }

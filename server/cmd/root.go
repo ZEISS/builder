@@ -2,31 +2,24 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
-
-	"github.com/zeiss/builder/server/adapters/handlers"
-	"github.com/zeiss/builder/server/adapters/store"
-	"github.com/zeiss/builder/server/configs"
-	"github.com/zeiss/builder/server/controllers"
-	"github.com/zeiss/builder/server/middlewares/auth/oidc"
-	"github.com/zeiss/builder/server/middlewares/static"
-	"gorm.io/gorm"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
+	"github.com/zeiss/builder/server/adapters/database"
+	"github.com/zeiss/builder/server/adapters/handlers"
+	"github.com/zeiss/builder/server/configs"
+	"github.com/zeiss/builder/server/controllers"
+
 	"github.com/gofiber/fiber/v3"
-	logger "github.com/gofiber/fiber/v3/middleware/logger"
-	requestid "github.com/gofiber/fiber/v3/middleware/requestid"
-	goth "github.com/katallaxie/fiber-goth/v3"
-	gorm_adapter "github.com/katallaxie/fiber-goth/v3/adapters/gorm"
-	"github.com/katallaxie/fiber-goth/v3/providers"
-	"github.com/katallaxie/fiber-goth/v3/providers/dex"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/server"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var cfg *configs.Config
@@ -42,19 +35,19 @@ func init() {
 	Root.PersistentFlags().StringVar(&cfg.Flags.Addr, "addr", cfg.Flags.Addr, "addr")
 	Root.PersistentFlags().StringVar(&cfg.Flags.OIDCIssuer, "oidc-issuer", cfg.Flags.OIDCIssuer, "OIDC Issuer")
 	Root.PersistentFlags().StringVar(&cfg.Flags.OIDCAudience, "oidc-audience", cfg.Flags.OIDCAudience, "OIDC Audience")
-	Root.PersistentFlags().StringVar(&cfg.Flags.Root, "root", cfg.Flags.Root, "root")
 	Root.PersistentFlags().StringVar(&cfg.Flags.Domain, "domain", cfg.Flags.Domain, "domain")
+
+	// Configure the files path
+	Root.PersistentFlags().StringVar(&cfg.Flags.FilesFlags.Path, "files-path", cfg.Flags.FilesFlags.Path, "Files Path")
 
 	Root.PersistentFlags().StringVar(&cfg.Flags.DexClientID, "dex-client-id", cfg.Flags.DexClientID, "Dex Client ID")
 	Root.PersistentFlags().StringVar(&cfg.Flags.DexClientSecret, "dex-client-secret", cfg.Flags.DexClientSecret, "Dex Client Secret")
 	Root.PersistentFlags().StringVar(&cfg.Flags.DexCallbackURL, "dex-callback-url", cfg.Flags.DexCallbackURL, "Dex Callback URL")
 	Root.PersistentFlags().StringVar(&cfg.Flags.DexLoginURL, "dex-login-url", cfg.Flags.DexLoginURL, "Dex Login URL")
 
-	Root.PersistentFlags().StringVar(&cfg.Flags.DatabaseHost, "db-host", cfg.Flags.DatabaseHost, "DB Host")
-	Root.PersistentFlags().StringVar(&cfg.Flags.DatabaseUser, "db-username", cfg.Flags.DatabaseUser, "DB Username")
-	Root.PersistentFlags().StringVar(&cfg.Flags.DatabasePass, "db-password", cfg.Flags.DatabasePass, "DB Password")
-	Root.PersistentFlags().StringVar(&cfg.Flags.Database, "db-database", cfg.Flags.Database, "DB Database")
-	Root.PersistentFlags().IntVar(&cfg.Flags.DatabasePort, "db-port", cfg.Flags.DatabasePort, "DB Port")
+	Root.PersistentFlags().BoolVar(&cfg.Flags.SqliteFlags.Enabled, "sqlite", cfg.Flags.SqliteFlags.Enabled, "SQLite Enabled")
+	Root.PersistentFlags().StringVar(&cfg.Flags.SqliteFlags.Database, "sqlite-database", cfg.Flags.SqliteFlags.Database, "SQLite Database")
+	Root.PersistentFlags().StringVar(&cfg.Flags.SqliteFlags.Path, "sqlite-path", cfg.Flags.SqliteFlags.Path, "SQLite Path")
 
 	Root.SilenceUsage = true
 }
@@ -90,22 +83,32 @@ type Host struct {
 // Start starts the server.
 func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.RunFunc) func() error {
 	return func() error {
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable", cfg.Flags.DatabaseHost, cfg.Flags.DatabaseUser, cfg.Flags.DatabasePass, cfg.Flags.Database, cfg.Flags.DatabasePort)
-		conn, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		// Create files folder if not exists
+		err := filex.MkdirAll(cfg.Flags.FilesFlags.Path, 0o755)
 		if err != nil {
 			return err
 		}
 
-		if err := gorm_adapter.RunMigrations(conn); err != nil {
+		conn, err := gorm.Open(sqlite.Open(cfg.Flags.SqliteFlags.Path), &gorm.Config{
+			TranslateError: true,
+		})
+		if err != nil {
 			return err
 		}
 
-		providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
+		err = database.RunMigrations(conn)
+		if err != nil {
+			return err
+		}
 
-		ga := gorm_adapter.New(conn)
+		db := database.NewDatabase(conn)
 
-		fs := store.NewFS(s.cfg.Flags.Root)
-		sitesCtrl := controllers.NewSitesController(fs)
+		// providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
+
+		// ga := gorm_adapter.New(conn)
+
+		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
+		sitesCtrl := controllers.NewSitesController(db)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl)
 
 		c := fiber.Config{}
@@ -114,27 +117,27 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		app.Use(requestid.New())
 		app.Use(logger.New())
 
-		gothConfig := goth.Config{
-			Adapter:        ga,
-			Secret:         goth.GenerateKey(),
-			CookieHTTPOnly: true,
-			LoginURL:       cfg.Flags.DexLoginURL,
-			CookieDomain:   cfg.Flags.Domain,
-		}
+		// gothConfig := goth.Config{
+		// 	Adapter:        ga,
+		// 	Secret:         goth.GenerateKey(),
+		// 	CookieHTTPOnly: true,
+		// 	LoginURL:       cfg.Flags.DexLoginURL,
+		// 	CookieDomain:   cfg.Flags.Domain,
+		// }
 
-		root := app.Domain(cfg.Flags.Domain)
-		root.Get("/session", goth.NewSessionHandler(gothConfig))
-		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
-		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
-		root.Get("/logout", goth.NewLogoutHandler(gothConfig))
+		// root := app.Domain(cfg.Flags.Domain)
+		// root.Get("/session", goth.NewSessionHandler(gothConfig))
+		// root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
+		// root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
+		// root.Get("/logout", goth.NewLogoutHandler(gothConfig))
 
-		sites := app.Domain(":site." + cfg.Flags.Domain)
-		config := static.Config{
-			Root: http.Dir(cfg.Flags.Root),
-		}
-		sites.Use(goth.Session(gothConfig))
-		sites.Use(goth.Protect(gothConfig))
-		sites.Use(static.New(config))
+		// sites := app.Domain(":site." + cfg.Flags.Domain)
+		// config := static.Config{
+		// 	Root: http.Dir(cfg.Flags.c),
+		// }
+		// sites.Use(goth.Session(gothConfig))
+		// sites.Use(goth.Protect(gothConfig))
+		// sites.Use(static.New(config))
 
 		api := app.Group("/api")
 		v1 := api.Group("/v1")
@@ -160,7 +163,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
-		spec.UseMiddleware(oidc.NewAuthMiddleware(spec, cfg.Flags.OIDCIssuer, cfg.Flags.OIDCAudience))
+		// spec.UseMiddleware(oidc.NewAuthMiddleware(spec, cfg.Flags.OIDCIssuer, cfg.Flags.OIDCAudience))
 		sitesHandler.Register(spec)
 
 		err = app.Listen(s.cfg.Flags.Addr)
