@@ -24,7 +24,7 @@ require (
 	github.com/charmbracelet/x/exp/strings v0.1.0
 	github.com/coreos/go-oidc/v3 v3.20.0
 	github.com/danielgtaylor/huma/v2 v2.39.0
-	github.com/getkin/kin-openapi v0.143.0
+	github.com/getkin/kin-openapi v0.144.0
 	github.com/go-openapi/testify/v2 v2.6.0
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/gofiber/utils v1.2.0
