@@ -1,16 +1,11 @@
 package models
 
 import (
-	"encoding/gob"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
-
-func init() {
-	gob.Register(&Account{})
-}
 
 // AccountType represents the type of an account.
 type AccountType string

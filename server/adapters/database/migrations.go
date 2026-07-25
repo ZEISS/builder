@@ -3,7 +3,7 @@ package database
 import (
 	"github.com/zeiss/builder/internal/models"
 
-	fiber_goth "github.com/zeiss/fiber-goth/adapters"
+	fiber_goth "github.com/zeiss/fiber-goth/v3/adapters"
 	"gorm.io/gorm"
 )
 
