@@ -35,14 +35,13 @@ require (
 	github.com/katallaxie/pkg v0.7.11
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.0
-	github.com/oapi-codegen/runtime v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
+	github.com/zeiss/fiber-goth/v3 v3.0.0-20260703141842-a0fa760b4373
 	github.com/zeiss/pkg v0.2.0
 	golang.org/x/oauth2 v0.36.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
 )
@@ -119,7 +118,6 @@ require (
 	github.com/alingse/nilnesserr v0.2.0 // indirect
 	github.com/anchore/go-macholibre v0.0.0-20250826193721-3cd206ca93aa // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
-	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.3.1 // indirect
 	github.com/ashanbrown/makezero/v2 v2.2.1 // indirect
@@ -341,10 +339,6 @@ require (
 	github.com/ipfs/go-log v1.0.5 // indirect
 	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/ipfs/go-metrics-interface v0.0.1 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.9.2 // indirect
-	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jbenet/goprocess v0.1.4 // indirect
 	github.com/jedisct1/go-minisign v0.0.0-20241212093149-d2f9f49435c7 // indirect
@@ -510,7 +504,6 @@ require (
 	github.com/yeya24/promlinter v0.3.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.5 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
-	github.com/zeiss/fiber-goth v1.2.16-0.20260724120431-e1ae2e32ccc2 // indirect
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	gitlab.com/gitlab-org/api/client-go v1.46.0 // indirect
@@ -520,9 +513,12 @@ require (
 	go.augendre.info/fatcontext v0.9.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.43.0 // indirect
+	go.opentelemetry.io/contrib/exporters/autoexport v0.69.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.68.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0 // indirect
 	go.opentelemetry.io/otel v1.44.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.44.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.44.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
