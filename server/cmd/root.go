@@ -4,16 +4,20 @@ import (
 	"context"
 	"log"
 
-	"github.com/danielgtaylor/huma/v2"
-	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
 
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	goth "github.com/katallaxie/fiber-goth/v3"
+	gorm_adapter "github.com/katallaxie/fiber-goth/v3/adapters/gorm"
+	"github.com/katallaxie/fiber-goth/v3/providers"
+	"github.com/katallaxie/fiber-goth/v3/providers/dex"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/filex"
@@ -103,9 +107,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		db := database.NewDatabase(conn)
 
-		// providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
-
-		// ga := gorm_adapter.New(conn)
+		providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
 
 		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
@@ -117,19 +119,21 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		app.Use(requestid.New())
 		app.Use(logger.New())
 
-		// gothConfig := goth.Config{
-		// 	Adapter:        ga,
-		// 	Secret:         goth.GenerateKey(),
-		// 	CookieHTTPOnly: true,
-		// 	LoginURL:       cfg.Flags.DexLoginURL,
-		// 	CookieDomain:   cfg.Flags.Domain,
-		// }
+		ga := gorm_adapter.New(conn)
 
-		// root := app.Domain(cfg.Flags.Domain)
-		// root.Get("/session", goth.NewSessionHandler(gothConfig))
-		// root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
-		// root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
-		// root.Get("/logout", goth.NewLogoutHandler(gothConfig))
+		gothConfig := goth.Config{
+			Adapter:        ga,
+			Secret:         goth.GenerateKey(),
+			CookieHTTPOnly: true,
+			LoginURL:       cfg.Flags.DexLoginURL,
+			CookieDomain:   cfg.Flags.Domain,
+		}
+
+		root := app.Domain(cfg.Flags.Domain)
+		root.Get("/session", goth.NewSessionHandler(gothConfig))
+		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
+		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
+		root.Get("/logout", goth.NewLogoutHandler(gothConfig))
 
 		// sites := app.Domain(":site." + cfg.Flags.Domain)
 		// config := static.Config{
