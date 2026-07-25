@@ -6,7 +6,7 @@ services:
       - builder
     restart: unless-stopped
     volumes:
-      - builder-data:/data
+      - ./tmp:/data
     environment:
       - BUILDER_FILES_PATH=/data/files
       - BUILDER_SQLITE_ENABLED=true
@@ -38,7 +38,7 @@ services:
       - builder
     volumes:
       - ./config-dex.yaml:/etc/dex/config.yaml
-      - dex-data:/var/lib/dex
+      - ./tmp/builder.db:/var/lib/dex/dex.db
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     restart: unless-stopped
     labels:
