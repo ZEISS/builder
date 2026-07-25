@@ -2,19 +2,16 @@ services:
   builder:
     image: ghcr.io/zeiss/builder/server:latest
     container_name: builder
-    depends_on:
-      - postgres
     networks:
       - builder
     restart: unless-stopped
     volumes:
       - builder-data:/data
     environment:
-      - BUILDER_DATABASE=builder
-      - BUILDER_DATABASE_USER=postgres
-      - BUILDER_DATABASE_PASS=password
-      - BUILDER_DATABASE_HOST=postgres
-      - BUILDER_DATABASE_PORT=5432
+      - BUILDER_FILES_PATH=/data/files
+      - BUILDER_SQLITE_ENABLED=true
+      - BUILDER_SQLITE_PATH=/data/builder.db
+      - BUILDER_SQLITE_DATABASE=builder
       - BUILDER_DEX_CLIENT_SECRET=
       - BUILDER_DEX_CLIENT_ID=
       - BUILDER_OIDC_ISSUER=
@@ -22,7 +19,6 @@ services:
       - BUILDER_DEX_LOGIN_URL=
       - BUILDER_DOMAIN=
       - BUILDER_DEX_CALLBACK_URL=
-      - BUILDER_ROOT=/data
     labels:
       traefik.docker.network: builder
       traefik.enable: "true"
@@ -42,6 +38,7 @@ services:
       - builder
     volumes:
       - ./config-dex.yaml:/etc/dex/config.yaml
+      - dex-data:/var/lib/dex
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     restart: unless-stopped
     labels:
@@ -95,6 +92,6 @@ networks:
     external: True
 
 volumes:
-  pg-data:
   acme-data:
   builder-data:
+  dex-data:
