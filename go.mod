@@ -35,6 +35,7 @@ require (
 	github.com/katallaxie/pkg v0.7.11
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.0
+	github.com/oapi-codegen/runtime v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
@@ -118,6 +119,7 @@ require (
 	github.com/alingse/nilnesserr v0.2.0 // indirect
 	github.com/anchore/go-macholibre v0.0.0-20250826193721-3cd206ca93aa // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/ashanbrown/forbidigo/v2 v2.3.1 // indirect
 	github.com/ashanbrown/makezero/v2 v2.2.1 // indirect

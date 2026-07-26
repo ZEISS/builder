@@ -28,52 +28,6 @@ components:
         - Time
         - Valid
       type: object
-    ErrorDetail:
-      additionalProperties: false
-      properties:
-        location:
-          description: Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
-          type: string
-        message:
-          description: Error message text
-          type: string
-        value:
-          description: The value at the given location
-      type: object
-    ErrorModel:
-      additionalProperties: false
-      properties:
-        detail:
-          description: A human-readable explanation specific to this occurrence of the problem.
-          example: Property foo is required but is missing.
-          type: string
-        errors:
-          description: Optional list of individual error details
-          items:
-            $ref: "#/components/schemas/ErrorDetail"
-          nullable: true
-          type: array
-        instance:
-          description: A URI reference that identifies the specific occurrence of the problem.
-          example: https://example.com/error-log/abc123
-          format: uri
-          type: string
-        status:
-          description: HTTP status code
-          example: 400
-          format: int64
-          type: integer
-        title:
-          description: A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
-          example: Bad Request
-          type: string
-        type:
-          default: about:blank
-          description: A URI reference to human-readable documentation for the error.
-          example: https://example.com/errors/example
-          format: uri
-          type: string
-      type: object
     Site:
       additionalProperties: false
       properties:
@@ -103,6 +57,33 @@ components:
         - createdAt
         - updatedAt
         - deletedAt
+      type: object
+    UploadFileInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/UploadFileInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        content_type:
+          description: The content type of the file.
+          example: text/plain
+          type: string
+        file:
+          description: The name of the site (e.g. fizzy-buzzy).
+          example: fizzy-buzzy
+          format: base64
+          type: string
+        name:
+          description: The name of the site (e.g. fizzy-buzzy).
+          example: fizzy-buzzy
+          type: string
+      required:
+        - name
+        - file
+        - content_type
       type: object
   securitySchemes:
     openid:
@@ -146,6 +127,47 @@ paths:
         "500":
           description: An internal server error occurred.
       summary: Create a new site
+      tags:
+        - Sites
+  /sites/{siteId}/files/upload:
+    post:
+      description: Upload a new file to the site.
+      operationId: uploadFile
+      parameters:
+        - description: The ID of the site.
+          example: 1bd3edd9-0310-4bca-b88a-2b16d8ca7116
+          in: path
+          name: siteId
+          required: true
+          schema:
+            type: string
+        - description: The name of the file.
+          in: query
+          name: fileName
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadFileInputBody"
+          application/octet-stream:
+            schema:
+              format: binary
+              type: string
+              x-contentMediaType: application/octet-stream
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: OK
+        "201":
+          description: The file was uploaded successfully.
+      summary: This endpoint uploads a new file to the site.
       tags:
         - Sites
 

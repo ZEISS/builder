@@ -111,7 +111,8 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
-		sitesHandler := handlers.NewSitesHandler(sitesCtrl)
+		filesCtrl := controllers.NewFilesController(db)
+		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
 
 		c := fiber.Config{}
 

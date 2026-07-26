@@ -1,9 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
@@ -47,5 +49,24 @@ func (c *client) Create(ctx context.Context, site *models.Site) error {
 
 // UploadFile is a method that uploads a file to a site.
 func (c *client) UploadFile(ctx context.Context, site *models.Site, file string) error {
-	return ErrUnimplemented
+	body, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(body)
+	contentType := http.DetectContentType(body)
+
+	params := &apis.UploadFileParams{
+		FileName: file,
+	}
+
+	resp, err := c.apis.UploadFileWithBody(ctx, site.Name, params, contentType, reader)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	return nil
 }
