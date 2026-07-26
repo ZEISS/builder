@@ -75,11 +75,20 @@ type UploadFileInputBody struct {
 	Name string `json:"name"`
 }
 
+// QuerySiteParams defines parameters for QuerySite.
+type QuerySiteParams struct {
+	// Name The name of the site.
+	Name string `form:"name" json:"name"`
+}
+
 // UploadFileParams defines parameters for UploadFile.
 type UploadFileParams struct {
 	// FileName The name of the file.
 	FileName string `form:"fileName" json:"fileName"`
 }
+
+// QuerySiteJSONRequestBody defines body for QuerySite for application/json ContentType.
+type QuerySiteJSONRequestBody = CreateSiteInputBody
 
 // CreateSiteJSONRequestBody defines body for CreateSite for application/json ContentType.
 type CreateSiteJSONRequestBody = CreateSiteInputBody
@@ -92,24 +101,25 @@ type UploadFileJSONRequestBody = UploadFileInputBody
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"1Fbfb9s2EP5XiFsfNkA/bCdxHL2lKQq425picbeHISgo8RSzoEiVpJIogf/3gaRiK5bapsUCtE8WyPvx",
-	"3d13H30PhapqJVFaA9k9mGKNFfWfZxqpxQtucSnrxr5UrHXHlDFuuZJUvNOqRm05GshKKgxGUPeO7uFF",
-	"iOY+GZpC89o5Qgan5P1ffxCriF0jeXNx/pZceEtSKk3smhui8o9Y2AQiwFta1QIhg7W1tcnStDtJClWl",
-	"Hd50BGzy0SgJEZRKV9RCBo3mEIFGys6laCGzusEIbFu74MZqLq9gE4GkFQ4hr9ZI3A1RpUdtuEXyKyZX",
-	"CSn53V0b583dXfvbY8S9Gxhk2jgsnxqukUH2b0h7ubUKDXB4XqFAi+zUfmP3VzzUsa2fUYuxdacjVf9N",
-	"BWfOvLvJlRJI5QDmKvgH8zG4bgY/Lk8cuu8lRuE51g3iaV1l/dm90FhCBr+ku5Xb4toNeRNBGMSuoHlx",
-	"vDjK50cxzhcn8eH86CCmeLyIF9P5bDqbzYvDRQFfYPITCRlBU7Nvq3CPHJxBl7XfrX7cfkvG2PO+Foqy",
-	"11z8DKIzAva7uaWkRWk/hIsx8eksiLN4EKGSC3wM1+KtTWtBuRybr7N/FmnblptTg/ND+MFktat8r81D",
-	"/m0iMFg0mtvWcyMwStUow0rmSDXq1w/Fvvln5UILdePtaGPXSvM76mo7UwzDg6rqEAYrygVkABGoshRc",
-	"4gdaFGhMd9Zlcd+1VmFUABsHirtWrZEy1LuCncOSnSkpA3ZvVyqv4dx675cNFww1OX23hAiuUZvQ9Wky",
-	"SSZuKC4GrTlkcJBMkgOXmtq1h5u6UfivWhk7nFx4cQ2hROJNmBuXfoZ5yJqQlVuqGy4ECWLQty2VtwmF",
-	"a9+yJduG9Y9IGCSarQp00/O9rmvBC++W+pXb/nf5mtKO/a3ZPGaN21F/YGolTWjCbDL53yD46nzO4TL4",
-	"5qypITmi7PrGEjerw4Bg6NJ1idxQQ7i8di9z53Ay7uBzUOFEqSV4y4013uFoLMOpJFxa1JIKYlBfoyao",
-	"tdJEFUWjtQfn9qapKqrb7QR7s3aUpVfGbeOF59Slcwj8Su/dz5JtUkd4kzZeUj/PuiC5XXDn8iDoLsyQ",
-	"TTuF9tTWtEKL2kEZ68vyVV+GHmvONGcHyNhJPDmYTuLDvKBxvljQeJZP52xR0OPpdA7dprodengIMwgF",
-	"wj7Boh5ZBhL2NZl8EH6f7lODut3lc3dvg+o9PePl8yzb2HPuht+PqAqLNjZWI60eR969KlxSPdT6CG7j",
-	"DuafyDhdhdvPBn+GNd/v42Cnz393mzWbTMdX0VPYLW4gPjJiGv8olI0Q7f5qeUFFyWrFpe1czBeWYbB2",
-	"m81/AQAA//8=",
+	"5Fbfb9s2EP5XiFsfNkDyrziOo7c0RQF3W9It7vZQBAUlnmIWNKmQVBIn8P8+HCn/iK21SdECGfYkgTwe",
+	"v7v77uM9QGHmldGovYPsAVwxwzkPv6cWuccL6XGiq9q/NmJBy1wI6aXRXL23pkLrJTrISq4cJlBtLT3A",
+	"q+iNfgW6wsqKDkIGJ+zDn78xb5ifIXt3cX7GLoIlK41lfiYdM/lnLHwHEsA7Pq8UQgYz7yuXdbvNSqcw",
+	"826Dt9sCtvPZGQ0JlMbOuYcMaishAYtcnGu1gMzbGhPwi4qcO2+lvoJlAprPcR/ydIaMdpgpA2onPbKf",
+	"sXPVYaW8v1+keX1/v/jlMeKtHdi7aUlYrmtpUUD2MV57ubaKCSA8b1ChR3Hin5n9qYxxrOMX3GPqabUl",
+	"6r+4koLMm53cGIVc78GcxvPRvA0u1eDl8oTQfSsxisCxphBPy6rYrt0riyVk8FN303JrXJsiLxOIhdgE",
+	"NCqOxof56DDF0fg4HY4OD1KOR+N03B8N+oPBqBiOC/gCk59IyATqSjwvwh1ySAHNrdvZ2va7nZI29nyo",
+	"lOHirVT/BdFpAfvN3DLao/af4kab+DQWjCxWIlRKhY/herzz3UpxqdvqS/Y/RNrW4ebc4WgIL0xWm8h3",
+	"0rzPv2UCDovaSr8I3IiMMhXq2JI5cov27SrYd39PybUyt8GO135mrLznFNupERgfVFNFNzjnUkEGkIAp",
+	"SyU1fuJFgc41a80t9F9ZE0sFsCRQklI1Qy7QbgKmAxNxarSO2INdaYKGSx9Ov66lEmjZyfsJJHCD1sWs",
+	"9zu9To+KQj54JSGDg06vc0BXcz8LcLtUivB3hX6/cH/UaCU6xpUKRXNM6lDBPN7ZiSHZkIyJaE4swutA",
+	"t1g+R4/WQfbxKZwgdyEL1+RlpTLZqrybisf+2mjALjsuozG6tbY0nAgVrColiwC5Gxp5PRF9Tb/bhqXl",
+	"Yy4SsrDgKqNdTO2g1/tuEEJqw5376YwVmvEbZDmiZteheqJDHBj2hvvlPTOxFUtT62h2GKHuaKpmUnu0",
+	"mivm0N6gZWitscwURW1tuIGaqp7PuV2sSBDhEJP5FREgzAwOLpcJVMa1kC1m1zHONN5GYDtsY1MS8Fup",
+	"FIsPz7ZtadoZuSka/G9ZwWbcRU40D3bDiV67VjdZYrecGv6GpsDmwHH7gXAHV/QALhjeSefdd6TT6W6t",
+	"W0i1TBot6z7QZyKWXRJX163D800o2lkXn/fGOR1ZDQ8rQXrMps008BSBm7zZlbfN+9bPxQEKcZz2Dvq9",
+	"dJgXPM3HY54O8v5IjAt+1O+PVnpIer2RwxjgswQx+Zr8roaMNvmlvbMXIsFtoyMVf9ujKTz61HmLfP7Y",
+	"82aCkZrb/bkigbu0gfk7Csmncfdfnf+ANt/N415Pn/9KnTXo9dtbMVCYGjcSHwVzdRhAylqpxW5rBUFF",
+	"LSojtW+OuC80w17bLZf/BAAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

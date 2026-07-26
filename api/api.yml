@@ -104,6 +104,36 @@ info:
 openapi: 3.0.3
 paths:
   /sites:
+    get:
+      description: Queries all sites in the builder.
+      operationId: querySite
+      parameters:
+        - description: The name of the site.
+          in: query
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSiteInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+          description: The sites have been queried.
+        "404":
+          description: No site found.
+        "500":
+          description: An internal server error occurred.
+      summary: Query sites
+      tags:
+        - Sites
     post:
       description: Creates a new site in the builder. This will create a new site folder.
       operationId: createSite
