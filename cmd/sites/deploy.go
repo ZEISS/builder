@@ -63,11 +63,6 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	// 	return err
 	// }
 
-	// c, err := apis.NewClient(config.DefaultConfig.URL, apis.WithRequestEditorFn(bearer.Intercept))
-	// if err != nil {
-	// 	return err
-	// }
-
 	c, err := apis.NewClient(config.DefaultConfig.URL)
 	if err != nil {
 		return err
@@ -79,7 +74,9 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	_, err = tea.NewProgram(sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController), tea.WithContext(cmd.Context())).Run()
+	model := sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController)
+
+	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err
 	}

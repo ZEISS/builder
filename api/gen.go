@@ -28,7 +28,8 @@ func main() {
 		app := fiber.New()
 
 		siteController := controllers.NewSitesController(nil)
-		sitesHandler := handlers.NewSitesHandler(siteController)
+		filesController := controllers.NewFilesController(nil)
+		sitesHandler := handlers.NewSitesHandler(siteController, filesController)
 
 		apiConfig := huma.DefaultConfig("Builder API", "1.0.0")
 		apiConfig.Components.SecuritySchemes = map[string]*huma.SecurityScheme{

@@ -21,12 +21,7 @@ func NewSitesController(db ports.Sites) *SitesController {
 
 // CreateSite creates a new site with the given name.
 func (c *SitesController) CreateSite(ctx context.Context, site *models.Site) error {
-	err := c.db.CreateSite(ctx, site)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.db.CreateSite(ctx, site)
 }
 
 // GetSite returns the site with the given name.
