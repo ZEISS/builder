@@ -90,6 +90,24 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
+	// QuerySiteWithBody Query sites
+	//
+	// Queries all sites in the builder.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with GET /sites (the `QuerySite` operationId).
+	QuerySiteWithBody(ctx context.Context, params *QuerySiteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// QuerySite Query sites
+	//
+	// Queries all sites in the builder.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with GET /sites (the `QuerySite` operationId).
+	QuerySite(ctx context.Context, params *QuerySiteParams, body QuerySiteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// CreateSiteWithBody Create a new site
 	//
 	// Creates a new site in the builder. This will create a new site folder.
@@ -125,6 +143,44 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFile(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+// QuerySiteWithBody Query sites
+//
+// Queries all sites in the builder.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with GET /sites (the `QuerySite` operationId).
+func (c *Client) QuerySiteWithBody(ctx context.Context, params *QuerySiteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQuerySiteRequestWithBody(c.Server, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// QuerySite Query sites
+//
+// Queries all sites in the builder.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with GET /sites (the `QuerySite` operationId).
+func (c *Client) QuerySite(ctx context.Context, params *QuerySiteParams, body QuerySiteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewQuerySiteRequest(c.Server, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 // CreateSiteWithBody Create a new site
@@ -201,6 +257,69 @@ func (c *Client) UploadFile(ctx context.Context, siteId string, params *UploadFi
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewQuerySiteRequest calls the generic QuerySite builder with application/json body
+func NewQuerySiteRequest(server string, params *QuerySiteParams, body QuerySiteJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewQuerySiteRequestWithBody(server, params, "application/json", bodyReader)
+}
+
+// NewQuerySiteRequestWithBody constructs an http.Request for the QuerySite method, with any body, and a specified content type
+func NewQuerySiteRequestWithBody(server string, params *QuerySiteParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sites")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+			return nil, err
+		} else {
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
+			}
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewCreateSiteRequest calls the generic CreateSite builder with application/json body
@@ -357,6 +476,24 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
+	// QuerySiteWithBodyWithResponse Query sites
+	//
+	// Queries all sites in the builder.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /sites (the `QuerySite` operationId).
+	QuerySiteWithBodyWithResponse(ctx context.Context, params *QuerySiteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QuerySiteResponse, error)
+
+	// QuerySiteWithResponse Query sites
+	//
+	// Queries all sites in the builder.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /sites (the `QuerySite` operationId).
+	QuerySiteWithResponse(ctx context.Context, params *QuerySiteParams, body QuerySiteJSONRequestBody, reqEditors ...RequestEditorFn) (*QuerySiteResponse, error)
+
 	// CreateSiteWithBodyWithResponse Create a new site
 	//
 	// Creates a new site in the builder. This will create a new site folder.
@@ -392,6 +529,47 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFileWithResponse(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
+}
+
+type QuerySiteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *Site
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r QuerySiteResponse) GetJSON200() *Site {
+	return r.JSON200
+}
+
+// GetBody returns the raw response body bytes
+func (r QuerySiteResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r QuerySiteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r QuerySiteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r QuerySiteResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type CreateSiteResponse struct {
@@ -476,6 +654,36 @@ func (r UploadFileResponse) ContentType() string {
 	return ""
 }
 
+// QuerySiteWithBodyWithResponse Query sites
+//
+// Queries all sites in the builder.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /sites (the `QuerySite` operationId).
+func (c *ClientWithResponses) QuerySiteWithBodyWithResponse(ctx context.Context, params *QuerySiteParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*QuerySiteResponse, error) {
+	rsp, err := c.QuerySiteWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQuerySiteResponse(rsp)
+}
+
+// QuerySiteWithResponse Query sites
+//
+// Queries all sites in the builder.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /sites (the `QuerySite` operationId).
+func (c *ClientWithResponses) QuerySiteWithResponse(ctx context.Context, params *QuerySiteParams, body QuerySiteJSONRequestBody, reqEditors ...RequestEditorFn) (*QuerySiteResponse, error) {
+	rsp, err := c.QuerySite(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseQuerySiteResponse(rsp)
+}
+
 // CreateSiteWithBodyWithResponse Create a new site
 //
 // Creates a new site in the builder. This will create a new site folder.
@@ -534,6 +742,38 @@ func (c *ClientWithResponses) UploadFileWithResponse(ctx context.Context, siteId
 		return nil, err
 	}
 	return ParseUploadFileResponse(rsp)
+}
+
+// ParseQuerySiteResponse parses an HTTP response from a QuerySiteWithResponse call
+func ParseQuerySiteResponse(rsp *http.Response) (*QuerySiteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &QuerySiteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Site
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case rsp.StatusCode == 404:
+		break // No content-type
+
+	case rsp.StatusCode == 500:
+		break // No content-type
+
+	}
+
+	return response, nil
 }
 
 // ParseCreateSiteResponse parses an HTTP response from a CreateSiteWithResponse call

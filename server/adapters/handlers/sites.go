@@ -93,6 +93,28 @@ func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (
 	return &UploadFileOutput{}, nil
 }
 
+// GetSiteInput is the input for the GetSite operation.
+type GetSiteInput struct {
+	// Name is the name of the site to retrieve.
+	Name string `json:"name" query:"name" example:"my-site"`
+}
+
+// GetSiteOutput is the output for the GetSite operation.
+type GetSiteOutput struct {
+	// Site is the site that was retrieved.
+	Site models.Site `json:"site" example:"my-site"`
+}
+
+// GetSite retrieves a site by its name.
+func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSiteOutput, error) {
+	site, err := h.sitesCtrl.GetSite(ctx, &models.Site{Name: input.Name})
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetSiteOutput{Site: site}, nil
+}
+
 // Register registers the sites handler with the given Fiber app.
 func (h *sitesHandler) Register(api huma.API) {
 	huma.Register(api, huma.Operation{
@@ -112,6 +134,39 @@ func (h *sitesHandler) Register(api huma.API) {
 			},
 			"409": {
 				Description: "The site already exists.",
+			},
+			"500": {
+				Description: "An internal server error occurred.",
+			},
+		},
+	}, h.CreateSite)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "querySite",
+		DefaultStatus: 200,
+		Method:        "GET",
+		Path:          "/sites",
+		Summary:       "Query sites",
+		Description:   "Queries all sites in the builder.",
+		Tags:          []string{"Sites"},
+		Parameters: []*huma.Param{
+			{
+
+				Name:        "name",
+				In:          "query",
+				Description: "The name of the site.",
+				Required:    true,
+				Schema: &huma.Schema{
+					Type: "string",
+				},
+			},
+		},
+		Responses: map[string]*huma.Response{
+			"200": {
+				Description: "The sites have been queried.",
+			},
+			"404": {
+				Description: "No site found.",
 			},
 			"500": {
 				Description: "An internal server error occurred.",
