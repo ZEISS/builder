@@ -28,6 +28,20 @@ components:
         - Time
         - Valid
       type: object
+    GetSiteOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/GetSiteOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        site:
+          $ref: "#/components/schemas/Site"
+      required:
+        - site
+      type: object
     Site:
       additionalProperties: false
       properties:
@@ -105,8 +119,8 @@ openapi: 3.0.3
 paths:
   /sites:
     get:
-      description: Queries all sites in the builder.
-      operationId: querySite
+      description: Gets a site by its name.
+      operationId: getSite
       parameters:
         - description: The name of the site.
           in: query
@@ -114,24 +128,18 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateSiteInputBody"
-        required: true
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Site"
+                $ref: "#/components/schemas/GetSiteOutputBody"
           description: The sites have been queried.
         "404":
           description: No site found.
         "500":
           description: An internal server error occurred.
-      summary: Query sites
+      summary: Get a site
       tags:
         - Sites
     post:

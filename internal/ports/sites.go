@@ -10,6 +10,8 @@ import (
 type SitesRepository interface {
 	// Create is a method that creates a new site.
 	Create(ctx context.Context, site *models.Site) error
+	// GetSite is a method that gets a site by name.
+	GetSite(ctx context.Context, name string) (models.Site, error)
 	// Deploy is a method that deploys a site.
 	UploadFile(ctx context.Context, site *models.Site, file string) error
 }
@@ -18,6 +20,8 @@ type SitesRepository interface {
 type SitesController interface {
 	// Create is a method that creates a new site.
 	Create(ctx context.Context, site *models.Site) error
+	// GetSite is a method that gets a site by name.
+	GetSite(ctx context.Context, name string) (models.Site, error)
 	// UploadFile is a method that uploads a file to a site.
 	UploadFile(ctx context.Context, site *models.Site, file string) error
 }

@@ -13,9 +13,7 @@ import (
 	"github.com/zeiss/builder/pkg/apis"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/katallaxie/pkg/cast"
 	"github.com/katallaxie/pkg/filex"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -61,12 +59,12 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
-	if err != nil {
-		return err
-	}
+	// bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
+	// if err != nil {
+	// 	return err
+	// }
 
-	c, err := apis.NewClient(config.DefaultConfig.URL, apis.WithRequestEditorFn(bearer.Intercept))
+	c, err := apis.NewClientWithResponses(config.DefaultConfig.URL)
 	if err != nil {
 		return err
 	}
@@ -77,7 +75,9 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	_, err = tea.NewProgram(sites.NewCheckSite(cmd.Context(), config.DefaultConfig, sitesController), tea.WithContext(cmd.Context())).Run()
+	siteCheck := sites.NewCheckSite(cmd.Context(), config.DefaultConfig, sitesController)
+
+	_, err = tea.NewProgram(siteCheck, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err
 	}

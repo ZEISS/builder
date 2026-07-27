@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"sync"
 
 	"github.com/katallaxie/pkg/filex"
 	"github.com/zeiss/builder/pkg/specs"
@@ -43,17 +42,16 @@ func NewFlags() Flags {
 
 // Config contains the configuration.
 type Config struct {
-	URL    string
-	Flags  *Flags
-	Store  string
-	Stdin  *os.File
-	Stdout *os.File
-	Stderr *os.File
-	Spec   *specs.Spec
-	File   string
-	Path   string
-	Plugin string
-	sync.RWMutex
+	URL      string
+	Flags    Flags
+	Store    string
+	Stdin    *os.File
+	Stdout   *os.File
+	Stderr   *os.File
+	Spec     *specs.Spec
+	File     string
+	Path     string
+	Plugin   string
 	FileMode os.FileMode
 	Verbose  bool
 	Task     TaskFlags
@@ -74,14 +72,14 @@ type AuthFlags struct {
 }
 
 // New returns a new config.
-func New() *Config {
-	return &Config{
+func New() Config {
+	return Config{
 		File:   ".builder.yml",
 		Store:  "~/.builder/session.db",
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags:  &Flags{},
+		Flags:  Flags{},
 		Spec:   specs.Default(),
 	}
 }

@@ -20,11 +20,11 @@ var (
 var _ ports.SitesRepository = (*client)(nil)
 
 type client struct {
-	apis *apis.Client
+	apis *apis.ClientWithResponses
 }
 
 // New creates a new client.
-func New(api *apis.Client) ports.SitesRepository {
+func New(api *apis.ClientWithResponses) ports.SitesRepository {
 	return &client{
 		apis: api,
 	}
@@ -45,6 +45,28 @@ func (c *client) Create(ctx context.Context, site *models.Site) error {
 	}
 
 	return nil
+}
+
+// GetSite is a method that gets a site by name.
+func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) {
+	params := &apis.GetSiteParams{Name: name}
+	site := models.Site{}
+
+	resp, err := c.apis.GetSiteWithResponse(ctx, params)
+	if err != nil {
+		return site, err
+	}
+
+	if resp.StatusCode() > http.StatusOK {
+		return site, err
+	}
+
+	site.Name = resp.JSON200.Site.Name
+	site.ID = resp.JSON200.Site.Id
+	site.CreatedAt = resp.JSON200.Site.CreatedAt
+	site.UpdatedAt = resp.JSON200.Site.UpdatedAt
+
+	return site, nil
 }
 
 // UploadFile is a method that uploads a file to a site.

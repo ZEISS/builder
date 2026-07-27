@@ -53,7 +53,7 @@ var deployKeys = keyMap{
 }
 
 type deployModel struct {
-	cfg       *config.Config
+	cfg       config.Config
 	completed int
 	ctx       context.Context
 	err       error
@@ -69,7 +69,7 @@ type deployModel struct {
 }
 
 // NewDeploy creates a new deploy model.
-func NewDeploy(ctx context.Context, cfg *config.Config, sitesCtrl ports.SitesController) *deployModel {
+func NewDeploy(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *deployModel {
 	return &deployModel{
 		keys:      deployKeys,
 		ctx:       ctx,
