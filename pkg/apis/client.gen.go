@@ -123,15 +123,6 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBody(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// UploadFile This endpoint uploads a new file to the site.
-	//
-	// Upload a new file to the site.
-	//
-	// Takes a body of the `application/json` content type.
-	//
-	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
-	UploadFile(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 // GetSite Get a site
@@ -198,25 +189,6 @@ func (c *Client) CreateSite(ctx context.Context, body CreateSiteJSONRequestBody,
 // Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 func (c *Client) UploadFileWithBody(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUploadFileRequestWithBody(c.Server, siteId, params, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// UploadFile This endpoint uploads a new file to the site.
-//
-// Upload a new file to the site.
-//
-// Takes a body of the `application/json` content type.
-//
-// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
-func (c *Client) UploadFile(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewUploadFileRequest(c.Server, siteId, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -315,17 +287,6 @@ func NewCreateSiteRequestWithBody(server string, contentType string, body io.Rea
 	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
-}
-
-// NewUploadFileRequest calls the generic UploadFile builder with application/json body
-func NewUploadFileRequest(server string, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewUploadFileRequestWithBody(server, siteId, params, "application/json", bodyReader)
 }
 
 // NewUploadFileRequestWithBody constructs an http.Request for the UploadFile method, with any body, and a specified content type
@@ -466,15 +427,6 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBodyWithResponse(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
-
-	// UploadFileWithResponse This endpoint uploads a new file to the site.
-	//
-	// Upload a new file to the site.
-	//
-	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
-	//
-	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
-	UploadFileWithResponse(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
 }
 
 type GetSiteResponse struct {
@@ -564,11 +516,18 @@ type UploadFileResponse struct {
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
 	JSON200 *string
+	// ApplicationproblemJSONDefault the response for an HTTP default `application/problem+json` response
+	ApplicationproblemJSONDefault *ErrorModel
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
 func (r UploadFileResponse) GetJSON200() *string {
 	return r.JSON200
+}
+
+// GetApplicationproblemJSONDefault returns the response for an HTTP default `application/problem+json` response
+func (r UploadFileResponse) GetApplicationproblemJSONDefault() *ErrorModel {
+	return r.ApplicationproblemJSONDefault
 }
 
 // GetBody returns the raw response body bytes
@@ -654,21 +613,6 @@ func (c *ClientWithResponses) CreateSiteWithResponse(ctx context.Context, body C
 // Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 func (c *ClientWithResponses) UploadFileWithBodyWithResponse(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadFileResponse, error) {
 	rsp, err := c.UploadFileWithBody(ctx, siteId, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseUploadFileResponse(rsp)
-}
-
-// UploadFileWithResponse This endpoint uploads a new file to the site.
-//
-// Upload a new file to the site.
-//
-// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
-//
-// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
-func (c *ClientWithResponses) UploadFileWithResponse(ctx context.Context, siteId string, params *UploadFileParams, body UploadFileJSONRequestBody, reqEditors ...RequestEditorFn) (*UploadFileResponse, error) {
-	rsp, err := c.UploadFile(ctx, siteId, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -763,8 +707,12 @@ func ParseUploadFileResponse(rsp *http.Response) (*UploadFileResponse, error) {
 		}
 		response.JSON200 = &dest
 
-	case rsp.StatusCode == 201:
-		break // No content-type
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSONDefault = &dest
 
 	}
 

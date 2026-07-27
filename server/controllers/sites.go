@@ -24,9 +24,14 @@ func (c *SitesController) CreateSite(ctx context.Context, site *models.Site) err
 	return c.db.CreateSite(ctx, site)
 }
 
-// GetSite returns the site with the given name.
-func (c *SitesController) GetSite(ctx context.Context, site *models.Site) (models.Site, error) {
-	return c.db.GetSite(ctx, site)
+// GetSiteByName returns the site with the given name.
+func (c *SitesController) GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error) {
+	return c.db.GetSiteByName(ctx, site)
+}
+
+// GetSiteById returns the site with the given id.
+func (c *SitesController) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
+	return c.db.GetSiteById(ctx, site)
 }
 
 // UpdateSite updates the site with the given name.

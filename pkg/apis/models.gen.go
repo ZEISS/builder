@@ -35,6 +35,54 @@ type DeletedAt struct {
 	Valid bool      `json:"Valid"`
 }
 
+// ErrorDetail defines model for ErrorDetail.
+type ErrorDetail struct {
+	// Location Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
+	Location *string `json:"location,omitempty"`
+
+	// Message Error message text
+	Message *string `json:"message,omitempty"`
+
+	// Value The value at the given location
+	Value interface{} `json:"value,omitempty"`
+}
+
+// ErrorModel defines model for ErrorModel.
+type ErrorModel struct {
+	// Schema A URL to the JSON Schema for this object.
+	//
+	// Example: https://example.com/schemas/ErrorModel.json
+	Schema *string `json:"$schema,omitempty"`
+
+	// Detail A human-readable explanation specific to this occurrence of the problem.
+	//
+	// Example: Property foo is required but is missing.
+	Detail *string `json:"detail,omitempty"`
+
+	// Errors Optional list of individual error details
+	Errors *[]ErrorDetail `json:"errors,omitempty"`
+
+	// Instance A URI reference that identifies the specific occurrence of the problem.
+	//
+	// Example: https://example.com/error-log/abc123
+	Instance *string `json:"instance,omitempty"`
+
+	// Status HTTP status code
+	//
+	// Example: 400
+	Status *int64 `json:"status,omitempty"`
+
+	// Title A short, human-readable summary of the problem type. This value should not change between occurrences of the error.
+	//
+	// Example: Bad Request
+	Title *string `json:"title,omitempty"`
+
+	// Type A URI reference to human-readable documentation for the error.
+	//
+	// Example: https://example.com/errors/example
+	Type *string `json:"type,omitempty"`
+}
+
 // GetSiteOutputBody defines model for GetSiteOutputBody.
 type GetSiteOutputBody struct {
 	// Schema A URL to the JSON Schema for this object.
@@ -61,29 +109,6 @@ type Site struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-// UploadFileInputBody defines model for UploadFileInputBody.
-type UploadFileInputBody struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Example: https://example.com/schemas/UploadFileInputBody.json
-	Schema *string `json:"$schema,omitempty"`
-
-	// ContentType The content type of the file.
-	//
-	// Example: text/plain
-	ContentType string `json:"content_type"`
-
-	// File The name of the site (e.g. fizzy-buzzy).
-	//
-	// Example: fizzy-buzzy
-	File string `json:"file"`
-
-	// Name The name of the site (e.g. fizzy-buzzy).
-	//
-	// Example: fizzy-buzzy
-	Name string `json:"name"`
-}
-
 // GetSiteParams defines parameters for GetSite.
 type GetSiteParams struct {
 	// Name The name of the site.
@@ -99,34 +124,37 @@ type UploadFileParams struct {
 // CreateSiteJSONRequestBody defines body for CreateSite for application/json ContentType.
 type CreateSiteJSONRequestBody = CreateSiteInputBody
 
-// UploadFileJSONRequestBody defines body for UploadFile for application/json ContentType.
-type UploadFileJSONRequestBody = UploadFileInputBody
-
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"1Fffb9s2EP5XiNseNkCSf8RxXb21KVq425JicbeHIigo8RSzkEmVpJI4gf/34Uj5Ryw1TYIEyJ4skMfj",
-	"3X3ffUffQK4XlVaonIX0Bmw+xwX3n0cGucNT6XCqqtq91WJJy1wI6aRWvPxkdIXGSbSQFry0GEG1s3QD",
-	"vwZv9CnQ5kZWdBBSeMM+//0nc5q5ObKPpyfH7NRbskIb5ubSMp19w9wlEAFe8UVVIqQwd66yaa/XrCS5",
-	"XvSaeHsdwSbfrFYQQaHNgjtIoTYSIjDIxYkql5A6U2MEblmRc+uMVOewikDxBbZDns2R0Q7ThY/aSofs",
-	"N0zOE1bI6+tlnNXX18vfb0e8swOtm1YUy/daGhSQfgnXnm2sQgEonndYokPxxj2w+jMZ8tjkL7jD2NFq",
-	"R9b/8FIKMm92Mq1L5KoV5iycD+Zd4X5ARzCc1O7Fk6YV6mMpQ2TwsRssIIVfetum2lxGN7Wq6Q92VfG0",
-	"8fgyC0fRPbZWue/Uhs7346bY7YC7arxtlVUEgc7bhMb5q8lhNj6McTx5HY/Ghwcxx1eTeDIYDwfD4Tgf",
-	"TXK4Qw/u2dYR1JV4WIZ7pJACmlt3q7Xrd7ckXez5XJWai/ey/D9Id0ewj+aWVg6V+xo2uiS8sWBksZby",
-	"QpZ4O1yHV65XlVyqLnzJ/lkGxCbdjFscj+CFDacm870yt/lHgoh5baRbem4ERukKVWjJDLlB836d7Md/",
-	"Z+S61Jfejtduro285pTbkRYYniW6Cm5wwWUJKUAEuihKqfArz3O0tllrbqHvyugAFcCKgpJUqjlygWab",
-	"MB2YiiOtVIjd2xXaT0Lp/Om3tSwFGvbm0xQiuEBjQ9UHST/pEyjkg1cSUjhI+skBXc3d3IfbIyj81zm6",
-	"NnAf0FnGA17ZkklnPY5JyMT4GkxFMPQjgVwbvkCHxkL65T5EIGc+9e81muVaWtI1pluYQ1NtG3+fEmdk",
-	"bCutbMho2O/TT8MGj11VlTL3Ufd8C29elD9T7varwUPRzs7Xk835BbIMUTFKSqJICIdRf9Qu8bEO5S10",
-	"rYLZYYh7T9cUk8qhUbxkFs0FGobGaMN0ntfG+BuI2PViwc0yINIgR2Ti5wSHH9sWzlYRVNp24B2eqQS5",
-	"wssQl1QeqSyQLGEz0tBLWZYsaP+ubaG9TYsd29dvAyjajeg/CTxd/wVWt0WC2LN6RoY076cfkoLNuQ2U",
-	"aGZmQ4l+t1w2VWKX3DKpLug52xx43X3A38FLmkFLhlfSOvuEbDrax7qDVKuokZPeDf1MxapH+mZ7tZ+g",
-	"FEU368KEbZzTkfX8XsvDbTZtB/J95Gb6bl9stiNmkIkDFOJ13D8Y9ONRlvM4m0x4PMwGYzHJ+avBYLxW",
-	"J5LMrTiFBB8kT9HPxHA957vEkPaOHyWIT99sXa83An/Xo84dutg6g3xx2/P2ESEVN+3RHsFV3IT5FwrJ",
-	"Z2H3h86foc3369jq6ZM/qLOG/UF3K3oKU+MG4qNgtvZvgKIuy+V+a3lBRSUqLZVrjtg7mqHVdqvVfwEA",
-	"AP//",
+	"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",
+	"/w==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

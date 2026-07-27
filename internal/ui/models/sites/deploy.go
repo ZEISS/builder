@@ -180,7 +180,7 @@ func (m *deploySiteModel) writeFiles() tea.Cmd {
 
 	for _, file := range files {
 		cmds = append(cmds, func() tea.Msg {
-			err := m.filesCtrl.UploadFile(m.ctx, m.site, file)
+			err := m.filesCtrl.UploadFile(m.ctx, m.site, path, filepath.Clean(strings.TrimPrefix(file, path)))
 			if err != nil {
 				return siteDeployErrorMsg{err: err}
 			}
