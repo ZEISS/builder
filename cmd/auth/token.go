@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/katallaxie/pkg/filex"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/ui/models/auth"
+	"github.com/zeiss/pkg/filex"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

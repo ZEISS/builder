@@ -12,8 +12,6 @@ type SitesRepository interface {
 	Create(ctx context.Context, site *models.Site) error
 	// GetSite is a method that gets a site by name.
 	GetSite(ctx context.Context, name string) (models.Site, error)
-	// Deploy is a method that deploys a site.
-	UploadFile(ctx context.Context, site *models.Site, file string) error
 }
 
 // SitesController contains the methods for sites operations.
@@ -22,6 +20,4 @@ type SitesController interface {
 	Create(ctx context.Context, site *models.Site) error
 	// GetSite is a method that gets a site by name.
 	GetSite(ctx context.Context, name string) (models.Site, error)
-	// UploadFile is a method that uploads a file to a site.
-	UploadFile(ctx context.Context, site *models.Site, file string) error
 }

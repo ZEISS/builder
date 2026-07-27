@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/katallaxie/pkg/utilx"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/pkg/utilx"
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
@@ -126,6 +126,7 @@ func (m checkSiteModel) View() tea.View {
 func (m *checkSiteModel) getSite() tea.Cmd {
 	return func() tea.Msg {
 		_, err := m.sitesCtrl.GetSite(m.ctx, m.cfg.Spec.Sites.Name)
+
 		if utilx.NotNil(err) {
 			return siteCheckErrorMsg{err: err}
 		}

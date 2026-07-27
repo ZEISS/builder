@@ -5,11 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/katallaxie/pkg/conv"
-	"github.com/katallaxie/pkg/filex"
-	"github.com/katallaxie/pkg/mapx"
-	"github.com/katallaxie/pkg/slices"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/conv"
+	"github.com/zeiss/pkg/filex"
+	"github.com/zeiss/pkg/mapx"
+	"github.com/zeiss/pkg/slices"
 )
 
 var ErrTaskNotExist = fmt.Errorf("task does not exist")

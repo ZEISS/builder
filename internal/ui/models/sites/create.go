@@ -4,27 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/katallaxie/pkg/utilx"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/pkg/utilx"
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 )
 
-var createSiteKeys = keyMap{
-	Quit: key.NewBinding(
-		key.WithKeys("q", "esc", "ctrl+c"),
-		key.WithHelp("q", "quit"),
-	),
-}
-
 type (
 	createSiteMsg      struct{}
-	createSiteErrorMsg struct {
-		err error
-	}
+	createSiteErrorMsg struct{ err error }
 )
 
 type createSiteModel struct {
@@ -35,21 +26,21 @@ type createSiteModel struct {
 	quitting  bool
 	keys      keyMap
 	sitesCtrl ports.SitesController
+	cancel    context.CancelFunc
 }
 
 // NewCreateSite creates a new create site model.
 func NewCreateSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *createSiteModel {
 	return &createSiteModel{
-		ctx:       ctx,
 		cfg:       cfg,
 		sitesCtrl: sitesCtrl,
-		keys:      createSiteKeys,
+		ctx:       ctx,
 	}
 }
 
 // Init initializes the deploy model.
 func (m *createSiteModel) Init() tea.Cmd {
-	return tea.Batch(m.createSite())
+	return tea.Sequence(m.createSite())
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -92,10 +83,12 @@ func (m createSiteModel) View() tea.View {
 	return tea.NewView(s)
 }
 
+// createSite creates a new site.
 func (m *createSiteModel) createSite() tea.Cmd {
 	return func() tea.Msg {
 		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
 		err := m.sitesCtrl.Create(m.ctx, site)
+
 		if utilx.NotNil(err) {
 			return createSiteErrorMsg{err: err}
 		}

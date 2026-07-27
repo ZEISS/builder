@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/katallaxie/pkg/filex"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/ports"
+	"github.com/zeiss/pkg/filex"
 )
 
 var _ ports.Files = (*Files)(nil)

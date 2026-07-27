@@ -13,8 +13,8 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 
-	"github.com/katallaxie/pkg/cast"
-	"github.com/katallaxie/pkg/conv"
+	"github.com/zeiss/pkg/cast"
+	"github.com/zeiss/pkg/conv"
 	"golang.org/x/oauth2"
 )
 
