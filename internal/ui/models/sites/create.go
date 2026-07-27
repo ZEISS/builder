@@ -28,7 +28,7 @@ type (
 )
 
 type createSiteModel struct {
-	cfg       *config.Config
+	cfg       config.Config
 	ctx       context.Context
 	err       error
 	lastKey   string
@@ -38,7 +38,7 @@ type createSiteModel struct {
 }
 
 // NewCreateSite creates a new create site model.
-func NewCreateSite(ctx context.Context, cfg *config.Config, sitesCtrl ports.SitesController) *createSiteModel {
+func NewCreateSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *createSiteModel {
 	return &createSiteModel{
 		ctx:       ctx,
 		cfg:       cfg,

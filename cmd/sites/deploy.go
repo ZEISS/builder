@@ -63,7 +63,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	// 	return err
 	// }
 
-	c, err := apis.NewClient(config.DefaultConfig.URL)
+	c, err := apis.NewClientWithResponses(config.DefaultConfig.URL)
 	if err != nil {
 		return err
 	}

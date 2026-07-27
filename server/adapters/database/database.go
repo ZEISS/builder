@@ -34,7 +34,7 @@ func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
 
 // GetSite returns the site with the given name.
 func (db *Database) GetSite(ctx context.Context, site *models.Site) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).First(ctx)
+	return gorm.G[models.Site](db.conn).Where("name = ?", site.Name).First(ctx)
 }
 
 // UpdateSite updates the site with the given name.

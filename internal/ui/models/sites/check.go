@@ -39,7 +39,7 @@ var checkSiteKeys = keyMap{
 
 type (
 	checkSiteMsg struct {
-		exists bool
+		siteExists bool
 	}
 	siteCheckErrorMsg struct {
 		err error
@@ -47,7 +47,7 @@ type (
 )
 
 type checkSiteModel struct {
-	cfg        *config.Config
+	cfg        config.Config
 	ctx        context.Context
 	err        error
 	siteExists bool
@@ -58,7 +58,7 @@ type checkSiteModel struct {
 }
 
 // NewCheckSite creates a new check site model.
-func NewCheckSite(ctx context.Context, cfg *config.Config, sitesCtrl ports.SitesController) *checkSiteModel {
+func NewCheckSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *checkSiteModel {
 	return &checkSiteModel{
 		ctx:       ctx,
 		cfg:       cfg,
@@ -69,7 +69,7 @@ func NewCheckSite(ctx context.Context, cfg *config.Config, sitesCtrl ports.Sites
 
 // Init initializes the deploy model.
 func (m *checkSiteModel) Init() tea.Cmd {
-	return tea.Batch()
+	return tea.Sequence(m.getSite())
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -85,8 +85,8 @@ func (m *checkSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case checkSiteMsg:
+		m.siteExists = msg.siteExists
 		m.quitting = true
-		m.siteExists = msg.exists
 
 		return m, tea.Quit
 
@@ -113,7 +113,7 @@ func (m checkSiteModel) View() tea.View {
 	}
 
 	if m.siteExists {
-		fmt.Fprintf(&s, "%s %s exists.\n", checkMark, m.cfg.Spec.Sites.Site)
+		fmt.Fprintf(&s, "%s %s exists.\n", checkMark, m.cfg.Spec.Sites.Name)
 	}
 
 	if !m.siteExists {
@@ -123,14 +123,13 @@ func (m checkSiteModel) View() tea.View {
 	return tea.NewView(s.String())
 }
 
-// func (m *checkSiteModel) checkSiteExists() tea.Cmd {
-// 	return func() tea.Msg {
-// 		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
-// 		err := m.sitesCtrl.Create(m.ctx, site)
-// 		if utilx.NotNil(err) {
-// 			return siteCheckErrorMsg{err: err}
-// 		}
+func (m *checkSiteModel) getSite() tea.Cmd {
+	return func() tea.Msg {
+		_, err := m.sitesCtrl.GetSite(m.ctx, m.cfg.Spec.Sites.Name)
+		if utilx.NotNil(err) {
+			return siteCheckErrorMsg{err: err}
+		}
 
-// 		return checkSiteMsg{exists: exists}
-// 	}
-// }
+		return checkSiteMsg{siteExists: true}
+	}
+}
