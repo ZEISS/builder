@@ -2,9 +2,10 @@ package sites
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 	"strings"
 
-	"github.com/katallaxie/pkg/conv"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/home"
 	"github.com/zeiss/builder/internal/models"
@@ -15,6 +16,8 @@ import (
 	"charm.land/bubbles/v2/progress"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/zeiss/pkg/conv"
+	"github.com/zeiss/pkg/utilx"
 )
 
 var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
@@ -25,10 +28,9 @@ const (
 )
 
 type (
-	progressDeployMsg struct{}
-	deployErrorMsg    struct {
-		err error
-	}
+	progressDeployMsg   struct{}
+	siteDeployExistsMsg struct{ site models.Site }
+	siteDeployErrorMsg  struct{ err error }
 )
 
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
@@ -52,7 +54,7 @@ var deployKeys = keyMap{
 	),
 }
 
-type deployModel struct {
+type deploySiteModel struct {
 	cfg       config.Config
 	completed int
 	ctx       context.Context
@@ -63,29 +65,32 @@ type deployModel struct {
 	progress  progress.Model
 	quitting  bool
 	sitesCtrl ports.SitesController
+	filesCtrl ports.FilesController
+	site      models.Site
 	total     int
 	height    int
 	width     int
 }
 
 // NewDeploy creates a new deploy model.
-func NewDeploy(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *deployModel {
-	return &deployModel{
+func NewDeploy(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController, filesCtrl ports.FilesController) *deploySiteModel {
+	return &deploySiteModel{
 		keys:      deployKeys,
 		ctx:       ctx,
 		cfg:       cfg,
 		sitesCtrl: sitesCtrl,
+		filesCtrl: filesCtrl,
 		progress:  progress.New(progress.WithDefaultBlend()),
 	}
 }
 
 // Init initializes the deploy model.
-func (m *deployModel) Init() tea.Cmd {
-	return tea.Sequence(m.writeFiles(), tea.Quit)
+func (m *deploySiteModel) Init() tea.Cmd {
+	return tea.Batch(m.getSite())
 }
 
 // Update handles incoming messages and updates the model accordingly.
-func (m *deployModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *deploySiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg: // resize the window and progress bar
 		m.width, m.height = msg.Width, msg.Height
@@ -97,12 +102,18 @@ func (m *deployModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
-	case deployErrorMsg: // handle deployment error
+	case siteDeployErrorMsg:
 		m.err = msg.err
 		m.quitting = true
-
 		return m, tea.Sequence(
 			tea.Printf("%s %s", errorMark, m.err),
+			tea.Quit,
+		)
+
+	case siteDeployExistsMsg:
+		m.site = msg.site
+		return m, tea.Sequence(
+			m.writeFiles(),
 			tea.Quit,
 		)
 
@@ -132,33 +143,46 @@ func (m *deployModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View renders the current state of the deploy model.
-func (m deployModel) View() tea.View {
+func (m deploySiteModel) View() tea.View {
 	var v tea.View
 	v.WindowTitle = "builder " + home.Short(m.cfg.Spec.Name)
 
-	pad := strings.Repeat(" ", padding)
-	v.Content = "\n" +
-		pad + "Deploying.." + "\n\n" +
-		pad + conv.String(m.total) + " files" + "\n\n" +
-		pad + m.progress.ViewAs(m.percent) + "\n\n" +
-		pad + helpStyle("Press q to quit")
+	var s strings.Builder
+	if utilx.NotNil(m.err) {
+		fmt.Fprintf(&s, "%s %s\n", errorMark, m.err)
+	}
 
+	if !m.quitting {
+		pad := strings.Repeat(" ", padding)
+		v.Content = "\n" +
+			pad + "Deploying.." + "\n\n" +
+			pad + conv.String(m.total) + " files" + "\n\n" +
+			pad + m.progress.ViewAs(m.percent) + "\n\n" +
+			pad + helpStyle("Press q to quit")
+	}
+
+	if m.quitting {
+		fmt.Fprintf(&s, "%s %d files uploaded\n", checkMark, m.total)
+	}
+
+	v.Content = s.String()
 	return v
 }
 
-func (m *deployModel) writeFiles() tea.Cmd {
-	files := utils.ScanDir(m.cfg.Spec.Sites.Path, m.cfg.Spec.Sites.Ignore)
+func (m *deploySiteModel) writeFiles() tea.Cmd {
+	cwd, _ := m.cfg.Cwd()
+
+	path := filepath.Join(cwd, m.cfg.Spec.Sites.Path)
+	files := utils.ScanDir(path, m.cfg.Spec.Sites.Ignore)
+
 	cmds := make([]tea.Cmd, 0, len(files))
 	m.total = len(files)
-	site := &models.Site{
-		Name: m.cfg.Spec.Sites.Name,
-	}
 
 	for _, file := range files {
 		cmds = append(cmds, func() tea.Msg {
-			err := m.sitesCtrl.UploadFile(m.ctx, site, file)
+			err := m.filesCtrl.UploadFile(m.ctx, m.site, file)
 			if err != nil {
-				return deployErrorMsg{err: err}
+				return siteDeployErrorMsg{err: err}
 			}
 
 			return progressDeployMsg{}
@@ -166,4 +190,16 @@ func (m *deployModel) writeFiles() tea.Cmd {
 	}
 
 	return tea.Sequence(cmds...)
+}
+
+func (m *deploySiteModel) getSite() tea.Cmd {
+	return func() tea.Msg {
+		site, err := m.sitesCtrl.GetSite(m.ctx, m.cfg.Spec.Sites.Name)
+
+		if utilx.NotNil(err) {
+			return siteDeployErrorMsg{err: err}
+		}
+
+		return siteDeployExistsMsg{site}
+	}
 }

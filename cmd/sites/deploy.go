@@ -12,8 +12,8 @@ import (
 	"github.com/zeiss/builder/pkg/apis"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/katallaxie/pkg/filex"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/filex"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -68,13 +68,14 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	sitesRepo := client.New(c)
-	sitesController := controllers.NewSitesController(sitesRepo)
+	client := client.New(c)
+	sitesController := controllers.NewSitesController(client)
+	filesController := controllers.NewFilesController(client)
 
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	model := sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController)
+	model := sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController, filesController)
 
 	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
 	if err != nil {

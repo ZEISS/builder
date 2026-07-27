@@ -5,9 +5,14 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/katallaxie/pkg/filex"
 	"github.com/zeiss/builder/pkg/specs"
+	"github.com/zeiss/pkg/filex"
 	// Sqlite driver based on CGO.
+)
+
+const (
+	// UnknownCwd is the unknown current working directory.
+	UnknownCwd = ""
 )
 
 // DefaultConfig is the default configuration.
@@ -84,11 +89,6 @@ func New() Config {
 	}
 }
 
-// Cwd returns the current working directory.
-func (c *Config) Cwd() (string, error) {
-	return os.Getwd()
-}
-
 // Vars returns the variables.
 func (c *Config) Vars() []string {
 	return c.Flags.Vars
@@ -114,6 +114,17 @@ func (c *Config) HomeDir() (string, error) {
 	}
 
 	return usr.HomeDir, err
+}
+
+// Cwd return the current working directory.
+// Which is the path in which the builder spec is located.
+func (c *Config) Cwd() (string, error) {
+	abs, err := filepath.Abs(filepath.Clean(c.File))
+	if err != nil {
+		return UnknownCwd, err
+	}
+
+	return filepath.Dir(abs), nil
 }
 
 // LoadSpec is a helper to load the spec from the config file.

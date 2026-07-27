@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 
-	"github.com/katallaxie/pkg/cast"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/pkg/cast"
 
 	tea "charm.land/bubbletea/v2"
 )

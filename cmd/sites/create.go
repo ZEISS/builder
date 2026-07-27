@@ -12,8 +12,8 @@ import (
 	"github.com/zeiss/builder/pkg/apis"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/katallaxie/pkg/filex"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/filex"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -45,6 +45,7 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	// run migrations, automatically
 	if err := db.RunMigrations(conn); err != nil {
 		return err
 	}

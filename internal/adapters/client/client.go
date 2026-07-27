@@ -18,13 +18,14 @@ var (
 )
 
 var _ ports.SitesRepository = (*client)(nil)
+var _ ports.FilesRepository = (*client)(nil)
 
 type client struct {
 	apis *apis.ClientWithResponses
 }
 
 // New creates a new client.
-func New(api *apis.ClientWithResponses) ports.SitesRepository {
+func New(api *apis.ClientWithResponses) *client {
 	return &client{
 		apis: api,
 	}
@@ -70,7 +71,7 @@ func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) 
 }
 
 // UploadFile is a method that uploads a file to a site.
-func (c *client) UploadFile(ctx context.Context, site *models.Site, file string) error {
+func (c *client) UploadFile(ctx context.Context, site models.Site, file string) error {
 	body, err := os.ReadFile(file)
 	if err != nil {
 		return err
@@ -83,8 +84,9 @@ func (c *client) UploadFile(ctx context.Context, site *models.Site, file string)
 		FileName: file,
 	}
 
-	resp, err := c.apis.UploadFileWithBody(ctx, site.Name, params, contentType, reader)
+	resp, err := c.apis.UploadFileWithBody(ctx, site.ID, params, contentType, reader)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 

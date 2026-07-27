@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/katallaxie/pkg/filex"
+	"github.com/zeiss/pkg/filex"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"

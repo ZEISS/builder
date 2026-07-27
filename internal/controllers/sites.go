@@ -24,11 +24,6 @@ func (c *SitesController) Create(ctx context.Context, site *models.Site) error {
 	return c.sitesRepo.Create(ctx, site)
 }
 
-// UploadFile is a method that uploads a file to a site.
-func (c *SitesController) UploadFile(ctx context.Context, site *models.Site, file string) error {
-	return c.sitesRepo.UploadFile(ctx, site, file)
-}
-
 // GetSite is a method that gets a site by name.
 func (c *SitesController) GetSite(ctx context.Context, name string) (models.Site, error) {
 	return c.sitesRepo.GetSite(ctx, name)
