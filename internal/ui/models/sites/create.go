@@ -26,7 +26,6 @@ type createSiteModel struct {
 	quitting  bool
 	keys      keyMap
 	sitesCtrl ports.SitesController
-	cancel    context.CancelFunc
 }
 
 // NewCreateSite creates a new create site model.

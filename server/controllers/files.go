@@ -11,13 +11,12 @@ var _ ports.Files = (*FilesController)(nil)
 
 // FilesController is a controller for managing files.
 type FilesController struct {
-	db ports.Sites
 	fs ports.Files
 }
 
 // NewFilesController creates a new files controller.
-func NewFilesController(db ports.Sites) *FilesController {
-	return &FilesController{db: db}
+func NewFilesController(fs ports.Files) *FilesController {
+	return &FilesController{fs: fs}
 }
 
 // UploadFile uploads a file to the site.

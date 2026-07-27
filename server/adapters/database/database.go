@@ -32,9 +32,14 @@ func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
 	})
 }
 
-// GetSite returns the site with the given name.
-func (db *Database) GetSite(ctx context.Context, site *models.Site) (models.Site, error) {
+// GetSiteByName returns the site with the given name.
+func (db *Database) GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error) {
 	return gorm.G[models.Site](db.conn).Where("name = ?", site.Name).First(ctx)
+}
+
+// GetSiteById returns the site with the given id.
+func (db *Database) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
+	return gorm.G[models.Site](db.conn).Where("id = ?", site.ID).First(ctx)
 }
 
 // UpdateSite updates the site with the given name.

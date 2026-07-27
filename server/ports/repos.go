@@ -10,8 +10,10 @@ import (
 type Sites interface {
 	// CreateSite creates a new site with the given name.
 	CreateSite(ctx context.Context, site *models.Site) error
-	// GetSite returns the site with the given name.
-	GetSite(ctx context.Context, site *models.Site) (models.Site, error)
+	// GetSiteByName returns the site with the given name.
+	GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error)
+	// GetSiteById returns the site with the given id.
+	GetSiteById(ctx context.Context, site *models.Site) (models.Site, error)
 	// UpdateSite updates the site with the given name.
 	UpdateSite(ctx context.Context, site *models.Site) error
 	// DeleteSite deletes the site with the given name.

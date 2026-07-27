@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/zeiss/builder/server/adapters/database"
+	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
@@ -106,12 +107,13 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		db := database.NewDatabase(conn)
+		fs := files.NewFiles(cfg)
 
 		providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
 
 		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
-		filesCtrl := controllers.NewFilesController(db)
+		filesCtrl := controllers.NewFilesController(fs)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
 
 		c := fiber.Config{}

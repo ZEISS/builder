@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
@@ -17,8 +18,10 @@ var (
 	ErrSiteExists    = fmt.Errorf("site already exists")
 )
 
-var _ ports.SitesRepository = (*client)(nil)
-var _ ports.FilesRepository = (*client)(nil)
+var (
+	_ ports.SitesRepository = (*client)(nil)
+	_ ports.FilesRepository = (*client)(nil)
+)
 
 type client struct {
 	apis *apis.ClientWithResponses
@@ -71,8 +74,8 @@ func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) 
 }
 
 // UploadFile is a method that uploads a file to a site.
-func (c *client) UploadFile(ctx context.Context, site models.Site, file string) error {
-	body, err := os.ReadFile(file)
+func (c *client) UploadFile(ctx context.Context, site models.Site, cwd, file string) error {
+	body, err := os.ReadFile(filepath.Clean(filepath.Join(cwd, file)))
 	if err != nil {
 		return err
 	}
@@ -84,13 +87,11 @@ func (c *client) UploadFile(ctx context.Context, site models.Site, file string) 
 		FileName: file,
 	}
 
-	resp, err := c.apis.UploadFileWithBody(ctx, site.ID, params, contentType, reader)
+	res, err := c.apis.UploadFileWithBody(ctx, site.ID, params, contentType, reader)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
 	return nil
 }

@@ -23,6 +23,7 @@ func NewFiles(cfg *configs.Config) *Files {
 	return &Files{cfg: cfg}
 }
 
+// UploadFile uploads a file to the filesystem.
 func (f *Files) UploadFile(ctx context.Context, site *models.Site, file *models.File) error {
 	path := filepath.Join(f.cfg.Flags.FilesFlags.Path, site.Name, file.Name)
 	if err := filex.MkdirAll(filepath.Dir(path), 0o755); err != nil {

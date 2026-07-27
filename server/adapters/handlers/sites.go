@@ -55,14 +55,9 @@ func (h *sitesHandler) CreateSite(ctx context.Context, input *CreateSiteInput) (
 
 // UploadFileInput is the input for the UploadFile operation.
 type UploadFileInput struct {
-	Site struct {
-		ID string `path:"siteId"`
-	} `json:"site"`
-	Body struct {
-		Name        string `body:"fileName" json:"name" example:"fizzy-buzzy" doc:"The name of the site (e.g. fizzy-buzzy)."`
-		File        []byte `body:"file" json:"file" example:"fizzy-buzzy" doc:"The name of the site (e.g. fizzy-buzzy)."`
-		ContentType string `body:"contentType" json:"content_type" example:"text/plain" doc:"The content type of the file."`
-	}
+	ID       string `path:"siteId" json:"siteId" example:"1bd3f34f-8d15-4818-816e-6fe6c0a3a847" doc:"The ID of the site."`
+	Filename string `query:"fileName" json:"fileName" example:"index.html" doc:"The filename of the file."`
+	RawBody  []byte
 }
 
 // UploadFileOutput is the output of the UploadFile operation.
@@ -73,13 +68,12 @@ type UploadFileOutput struct {
 // UploadFile handles the upload of a file to the site.
 func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error) {
 	file := &models.File{
-		Name:        input.Body.Name,
-		Data:        input.Body.File,
-		ContentType: input.Body.ContentType,
+		Name: input.Filename,
+		Data: input.RawBody,
 	}
 
-	site, err := h.sitesCtrl.GetSite(ctx, &models.Site{
-		ID: input.Site.ID,
+	site, err := h.sitesCtrl.GetSiteById(ctx, &models.Site{
+		ID: input.ID,
 	})
 	if err != nil {
 		return nil, err
@@ -111,7 +105,7 @@ type GetSiteOutputBody struct {
 
 // GetSite retrieves a site by its name.
 func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSiteOutput, error) {
-	site, err := h.sitesCtrl.GetSite(ctx, &models.Site{Name: input.Name})
+	site, err := h.sitesCtrl.GetSiteByName(ctx, &models.Site{Name: input.Name})
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +150,6 @@ func (h *sitesHandler) Register(api huma.API) {
 		Tags:          []string{"Sites"},
 		Parameters: []*huma.Param{
 			{
-
 				Name:        "name",
 				In:          "query",
 				Description: "The name of the site.",
@@ -220,7 +213,7 @@ func (h *sitesHandler) Register(api huma.API) {
 			},
 		},
 		Responses: map[string]*huma.Response{
-			"201": {
+			"200": {
 				Description: "The file was uploaded successfully.",
 			},
 		},
