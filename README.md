@@ -8,7 +8,7 @@
 
 Builder is a tool that implements the builder specification. It is the specification to build and deploy software projects with agents. It focuses on speed and simplicity.
 
-🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify (♥️).
+🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify and [Magic](https://engineering.wealthsimple.com/from-prompt-to-url-the-magic-behind-magic) by WealthSimple.
 
 ## Usage
 
@@ -26,6 +26,12 @@ builder help
 brew install zeiss/builder-tap/builder
 ```
 
+## Features
+
+* 🏛️ Static site hosting
+* 🧭 Spec-driven building
+* ...
+
 ## Authentication
 
 The builder authenticates to the server using OpenID Connect. The authentication flow is handled by the server. It supports [dex](https://github.com/dexidp/dex) as an OpenID Connect provider.
@@ -33,10 +39,29 @@ The builder authenticates to the server using OpenID Connect. The authentication
 To authenticate, the builder uses a [dex](https://github.com/dexidp/dex) client ID and secret. These are configured in the builder tool.
 
 ```bash
-builder auth login --dex-client-id <client-id> --dex-client-secret <client-secret> --dex-client-url
+builder auth login --url <builder-server>
 ```
 
-This logs in the builder using the configured [dex](https://github.com/dexidp/dex) client ID and secret.
+This logs you in to the builder server.
+
+```bash
+builder --help
+```
+
+There are a couple of basic features.
+
+```bash
+Usage:
+  builder [command]
+
+Available Commands:
+  auth        Authenticate the builder (default: dex)
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  init        Initialize a new config
+  sites       Manages sites
+  task        Manage tasks
+```
 
 ## Server
 
