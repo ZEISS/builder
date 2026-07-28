@@ -1,5 +1,8 @@
-# Created by https://www.toptal.com/developers/gitignore/api/go,intellij,webstorm,hugo
-# Edit at https://www.toptal.com/developers/gitignore?templates=go,intellij,webstorm,hugo
+# Created by https://www.toptal.com/developers/gitignore/api/go,hugo,intellij,webstorm,dotenv
+# Edit at https://www.toptal.com/developers/gitignore?templates=go,hugo,intellij,webstorm,dotenv
+
+### dotenv ###
+.env
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -20,9 +23,6 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-dist/
-*.db
-tmp
 
 # Go workspace file
 go.work
@@ -230,4 +230,4 @@ fabric.properties
 # Azure Toolkit for IntelliJ plugin
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 
-# End of https://www.toptal.com/developers/gitignore/api/go,intellij,webstorm,hugo
+# End of https://www.toptal.com/developers/gitignore/api/go,hugo,intellij,webstorm,dotenv
