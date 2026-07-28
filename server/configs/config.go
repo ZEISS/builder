@@ -4,6 +4,8 @@ import (
 	"os"
 )
 
+var DefaultConfig = New()
+
 // Flags contains the command line flags.
 type Flags struct {
 	Addr            string `envconfig:"BUILDER_ADDR" default:":3000"`

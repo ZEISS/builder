@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"log"
 
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
@@ -15,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/joho/godotenv"
 	goth "github.com/katallaxie/fiber-goth/v3"
 	gorm_adapter "github.com/katallaxie/fiber-goth/v3/adapters/gorm"
 	"github.com/katallaxie/fiber-goth/v3/providers"
@@ -27,39 +27,40 @@ import (
 	"gorm.io/gorm"
 )
 
-var cfg *configs.Config
-
 func init() {
-	cfg = configs.New()
+	cobra.OnInitialize(initConfig)
 
-	err := envconfig.Process("", cfg.Flags)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	Root.PersistentFlags().StringVar(&cfg.Flags.Addr, "addr", cfg.Flags.Addr, "addr")
-	Root.PersistentFlags().StringVar(&cfg.Flags.OIDCIssuer, "oidc-issuer", cfg.Flags.OIDCIssuer, "OIDC Issuer")
-	Root.PersistentFlags().StringVar(&cfg.Flags.OIDCAudience, "oidc-audience", cfg.Flags.OIDCAudience, "OIDC Audience")
-	Root.PersistentFlags().StringVar(&cfg.Flags.Domain, "domain", cfg.Flags.Domain, "domain")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.Addr, "addr", configs.DefaultConfig.Flags.Addr, "addr")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.OIDCIssuer, "oidc-issuer", configs.DefaultConfig.Flags.OIDCIssuer, "OIDC Issuer")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.OIDCAudience, "oidc-audience", configs.DefaultConfig.Flags.OIDCAudience, "OIDC Audience")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.Domain, "domain", configs.DefaultConfig.Flags.Domain, "domain")
 
 	// Configure the files path
-	Root.PersistentFlags().StringVar(&cfg.Flags.FilesFlags.Path, "files-path", cfg.Flags.FilesFlags.Path, "Files Path")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.FilesFlags.Path, "files-path", configs.DefaultConfig.Flags.FilesFlags.Path, "Files Path")
 
-	Root.PersistentFlags().StringVar(&cfg.Flags.DexClientID, "dex-client-id", cfg.Flags.DexClientID, "Dex Client ID")
-	Root.PersistentFlags().StringVar(&cfg.Flags.DexClientSecret, "dex-client-secret", cfg.Flags.DexClientSecret, "Dex Client Secret")
-	Root.PersistentFlags().StringVar(&cfg.Flags.DexCallbackURL, "dex-callback-url", cfg.Flags.DexCallbackURL, "Dex Callback URL")
-	Root.PersistentFlags().StringVar(&cfg.Flags.DexLoginURL, "dex-login-url", cfg.Flags.DexLoginURL, "Dex Login URL")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexClientID, "dex-client-id", configs.DefaultConfig.Flags.DexClientID, "Dex Client ID")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexClientSecret, "dex-client-secret", configs.DefaultConfig.Flags.DexClientSecret, "Dex Client Secret")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexCallbackURL, "dex-callback-url", configs.DefaultConfig.Flags.DexCallbackURL, "Dex Callback URL")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexLoginURL, "dex-login-url", configs.DefaultConfig.Flags.DexLoginURL, "Dex Login URL")
 
-	Root.PersistentFlags().BoolVar(&cfg.Flags.SqliteFlags.Enabled, "sqlite", cfg.Flags.SqliteFlags.Enabled, "SQLite Enabled")
-	Root.PersistentFlags().StringVar(&cfg.Flags.SqliteFlags.Database, "sqlite-database", cfg.Flags.SqliteFlags.Database, "SQLite Database")
-	Root.PersistentFlags().StringVar(&cfg.Flags.SqliteFlags.Path, "sqlite-path", cfg.Flags.SqliteFlags.Path, "SQLite Path")
+	Root.PersistentFlags().BoolVar(&configs.DefaultConfig.Flags.SqliteFlags.Enabled, "sqlite", configs.DefaultConfig.Flags.SqliteFlags.Enabled, "SQLite Enabled")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.SqliteFlags.Database, "sqlite-database", configs.DefaultConfig.Flags.SqliteFlags.Database, "SQLite Database")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.SqliteFlags.Path, "sqlite-path", configs.DefaultConfig.Flags.SqliteFlags.Path, "SQLite Path")
 
 	Root.SilenceUsage = true
 }
 
+func initConfig() {
+	err := godotenv.Load()
+	cobra.CheckErr(err)
+
+	err = envconfig.Process("", configs.DefaultConfig.Flags)
+	cobra.CheckErr(err)
+}
+
 var Root = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
-		srv := NewWebSrv(cfg)
+		srv := NewWebSrv(configs.DefaultConfig)
 
 		s, _ := server.WithContext(cmd.Context())
 		s.Listen(srv, false)
@@ -89,12 +90,12 @@ type Host struct {
 func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.RunFunc) func() error {
 	return func() error {
 		// Create files folder if not exists
-		err := filex.MkdirAll(cfg.Flags.FilesFlags.Path, 0o755)
+		err := filex.MkdirAll(s.cfg.Flags.FilesFlags.Path, 0o755)
 		if err != nil {
 			return err
 		}
 
-		conn, err := gorm.Open(sqlite.Open(cfg.Flags.SqliteFlags.Path), &gorm.Config{
+		conn, err := gorm.Open(sqlite.Open(s.cfg.Flags.SqliteFlags.Path), &gorm.Config{
 			TranslateError: true,
 		})
 		if err != nil {
@@ -107,9 +108,9 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		db := database.NewDatabase(conn)
-		fs := files.NewFiles(cfg)
+		fs := files.NewFiles(s.cfg)
 
-		providers.RegisterProvider(dex.New(cfg.Flags.DexClientID, cfg.Flags.DexClientSecret, cfg.Flags.OIDCIssuer, cfg.Flags.DexCallbackURL))
+		providers.RegisterProvider(dex.New(s.cfg.Flags.DexClientID, s.cfg.Flags.DexClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexCallbackURL))
 
 		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
@@ -128,11 +129,11 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 			Adapter:        ga,
 			Secret:         goth.GenerateKey(),
 			CookieHTTPOnly: true,
-			LoginURL:       cfg.Flags.DexLoginURL,
-			CookieDomain:   cfg.Flags.Domain,
+			LoginURL:       s.cfg.Flags.DexLoginURL,
+			CookieDomain:   s.cfg.Flags.Domain,
 		}
 
-		root := app.Domain(cfg.Flags.Domain)
+		root := app.Domain(s.cfg.Flags.Domain)
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
@@ -155,7 +156,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 				Type:             "openIdConnect",
 				In:               "header",
 				BearerFormat:     "JWT",
-				OpenIDConnectURL: cfg.Flags.OIDCIssuer,
+				OpenIDConnectURL: s.cfg.Flags.OIDCIssuer,
 				Flows: &huma.OAuthFlows{
 					AuthorizationCode: &huma.OAuthFlow{
 						Scopes: map[string]string{
