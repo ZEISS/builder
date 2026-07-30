@@ -1,97 +1,14 @@
 services:
-  builder:
-    image: ghcr.io/zeiss/builder/server:latest
-    container_name: builder
-    networks:
-      - builder
-    restart: unless-stopped
-    volumes:
-      - ./tmp:/data
-    environment:
-      - BUILDER_FILES_PATH=/data/files
-      - BUILDER_SQLITE_ENABLED=true
-      - BUILDER_SQLITE_PATH=/data/builder.db
-      - BUILDER_SQLITE_DATABASE=builder
-      - BUILDER_DEX_CLIENT_SECRET=
-      - BUILDER_DEX_CLIENT_ID=
-      - BUILDER_OIDC_ISSUER=
-      - BUILDER_OIDC_AUDIENCE=
-      - BUILDER_DEX_LOGIN_URL=
-      - BUILDER_DOMAIN=
-      - BUILDER_DEX_CALLBACK_URL=
-    labels:
-      traefik.docker.network: builder
-      traefik.enable: "true"
-      traefik.http.services.builder.loadbalancer.server.port: 3000
-      traefik.http.routers.quick.rule: Host(`*.builder.example.com`)
-      traefik.http.routers.quick.entrypoints: websecure
-      traefik.http.routers.quick.tls: "true"
-      traefik.http.routers.quick.tls.certResolver: myresolver
-      traefik.http.routers.builder.rule: Host(`builder.example.com`)
-      traefik.http.routers.builder.entrypoints: websecure
-      traefik.http.routers.builder.tls: "true"
-      traefik.http.routers.builder.tls.certResolver: myresolver
-
   dex:
     image: dexidp/dex:latest
-    networks:
-      - builder
+    ports:
+      - "5556:5556"
+      - "5555:5555"
     volumes:
       - ./config-dex.yaml:/etc/dex/config.yaml
-      - ./tmp/builder.db:/var/lib/dex/dex.db
+      - ./tmp/builder.db:/etc/dex/dex.db
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     restart: unless-stopped
-    labels:
-      traefik.docker.network: builder
-      traefik.enable: "true"
-      traefik.http.services.dex.loadbalancer.server.port: 5556
-      traefik.http.routers.dex.rule: Host(`login.example.com`)
-      traefik.http.routers.dex.entrypoints: websecure
-      traefik.http.routers.dex.tls: "true"
-      traefik.http.routers.dex.tls.certResolver: myresolver
-
-  traefik:
-    depends_on:
-      - dex
-    command:
-      - "--log.level=DEBUG"
-      - "--api.insecure=false"
-      - "--api.dashboard=false"
-      - "--providers.docker=true"
-      - "--providers.docker.network=proxy"
-      - "--providers.docker.exposedByDefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.storage=/ssl/acme.json"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=azuredns"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.delaybeforecheck=0"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-    environment:
-      - AZURE_RESOURCE_GROUP=
-      - AZURE_TENANT_ID=
-    image: traefik:latest
-    networks:
-      - proxy
-      - builder
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    restart: unless-stopped
-    volumes:
-      - acme-data:/ssl
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-networks:
-  builder:
-    external: True
-  proxy:
-    external: True
 
 volumes:
-  acme-data:
-  builder-data:
   dex-data:

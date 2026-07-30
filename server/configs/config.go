@@ -8,14 +8,12 @@ var DefaultConfig = New()
 
 // Flags contains the command line flags.
 type Flags struct {
-	Addr            string `envconfig:"BUILDER_ADDR" default:":3000"`
-	Domain          string `envconfig:"BUILDER_DOMAIN" default:""`
-	DexClientID     string `envconfig:"BUILDER_DEX_CLIENT_ID" default:""`
-	DexClientSecret string `envconfig:"BUILDER_DEX_CLIENT_SECRET" default:""`
-	DexCallbackURL  string `envconfig:"BUILDER_DEX_CALLBACK_URL" default:""`
-	DexLoginURL     string `envconfig:"BUILDER_DEX_LOGIN_URL" default:""`
-	OIDCIssuer      string `envconfig:"BUILDER_OIDC_ISSUER" default:""`
-	OIDCAudience    string `envconfig:"BUILDER_OIDC_AUDIENCE" default:""`
+	Addr         string `envconfig:"BUILDER_ADDR" default:":3000"`
+	Domain       string `envconfig:"BUILDER_DOMAIN" default:""`
+	OIDCIssuer   string `envconfig:"BUILDER_OIDC_ISSUER" default:""`
+	OIDCAudience string `envconfig:"BUILDER_OIDC_AUDIENCE" default:""`
+	// DexFlags contains the flags for the Dex authentication provider.
+	DexFlags DexFlags
 	// FilesFlags contains the flags for the files directory.
 	FilesFlags FilesFlags
 	// SqliteFlags contains the SQLite flags.
@@ -31,11 +29,25 @@ type FilesFlags struct {
 // SqliteFlags returns the path to the SQLite database.
 type SqliteFlags struct {
 	// Enabled is a flag to enable SQLite.
-	Enabled bool `envconfig:"BUILDER_SQLITE_ENABLED" default:""`
+	Enabled bool `envconfig:"BUILDER_SQLITE_ENABLED" default:"true"`
 	// Path is the path to the SQLite database.
 	Path string `envconfig:"BUILDER_SQLITE_PATH" default:""`
 	// Database is the name of the SQLite database.
 	Database string `envconfig:"BUILDER_SQLITE_DATABASE" default:""`
+}
+
+// DexFlags contains the flags for the Dex authentication provider.
+type DexFlags struct {
+	// Enabled is a flag to enable the Dex authentication provider.
+	Enabled bool `envconfig:"BUILDER_DEX_ENABLED" default:"true"`
+	// ClientID is the client ID for the Dex authentication provider.
+	ClientID string `envconfig:"BUILDER_DEX_CLIENT_ID" default:""`
+	// ClientSecret is the client secret for the Dex authentication provider.
+	ClientSecret string `envconfig:"BUILDER_DEX_CLIENT_SECRET" default:""`
+	// CallbackURL is the callback URL for the Dex authentication provider.
+	CallbackURL string `envconfig:"BUILDER_DEX_CALLBACK_URL" default:""`
+	// LoginURL is the login URL for the Dex authentication provider.
+	LoginURL string `envconfig:"BUILDER_DEX_LOGIN_URL" default:""`
 }
 
 // NewFlags returns a new instance of Flags.

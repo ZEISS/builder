@@ -4,7 +4,7 @@
 # The base path of dex and the external name of the OpenID Connect service.
 # This is the canonical URL that all clients MUST use to refer to dex. If a
 # path is provided, dex's HTTP service will listen at a non-root URL.
-issuer: http://localhost:5556/dex
+issuer: http://builder.internal:5556/dex
 
 # The storage configuration determines where dex stores its state. Supported
 # options include SQL flavors and Kubernetes third party resources.
@@ -13,7 +13,7 @@ issuer: http://localhost:5556/dex
 storage:
     type: sqlite3
     config:
-      file: /var/lib/dex/dex.db
+      file: /etc/dex/dex.db
 
 # Configuration for the HTTP endpoints.
 web:
@@ -42,9 +42,9 @@ oauth2:
 staticClients:
     - id: example-app
       redirectURIs:
-          - "http://localhost:3000/auth/dex/callback"
+          - "http://builder.internal:3000/auth/dex/callback"
       postLogoutRedirectURIs:
-          - "http://127.0.0.1:5555/"
+          - "http://builder.internal:5555/"
       name: "Demo"
       secret: ZXhhbXBsZS1hcHAtc2VjcmV0
 
@@ -60,7 +60,7 @@ connectors:
           # Credentials can be string literals or pulled from the environment.
           clientID:
           clientSecret:
-          redirectURI: http://localhost:5556/dex/callback
+          redirectURI: http://builder.internal:5556/dex/callback
 
           # Flag which indicates that all the user's orgs and teams should be loaded.
           # Only works if neither 'org' nor 'orgs' are specified in the config.
@@ -77,7 +77,7 @@ connectors:
           # Required ONLY for GitHub Enterprise.
           # This is the Hostname of the GitHub Enterprise account listed on the
           # management console. Ensure this domain is routable on your network.
-          hostName: zeiss.ghe.com
+          hostName:
 
           # ONLY for GitHub Enterprise. Optional field.
           # Used to support self-signed or untrusted CA root certificates.

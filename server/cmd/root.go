@@ -38,10 +38,10 @@ func init() {
 	// Configure the files path
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.FilesFlags.Path, "files-path", configs.DefaultConfig.Flags.FilesFlags.Path, "Files Path")
 
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexClientID, "dex-client-id", configs.DefaultConfig.Flags.DexClientID, "Dex Client ID")
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexClientSecret, "dex-client-secret", configs.DefaultConfig.Flags.DexClientSecret, "Dex Client Secret")
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexCallbackURL, "dex-callback-url", configs.DefaultConfig.Flags.DexCallbackURL, "Dex Callback URL")
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexLoginURL, "dex-login-url", configs.DefaultConfig.Flags.DexLoginURL, "Dex Login URL")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.CallbackURL, "dex-callback-url", configs.DefaultConfig.Flags.DexFlags.CallbackURL, "Dex Callback URL")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.ClientID, "dex-client-id", configs.DefaultConfig.Flags.DexFlags.ClientID, "Dex Client ID")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.ClientSecret, "dex-client-secret", configs.DefaultConfig.Flags.DexFlags.ClientSecret, "Dex Client Secret")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.LoginURL, "dex-login-url", configs.DefaultConfig.Flags.DexFlags.LoginURL, "Dex Login URL")
 
 	Root.PersistentFlags().BoolVar(&configs.DefaultConfig.Flags.SqliteFlags.Enabled, "sqlite", configs.DefaultConfig.Flags.SqliteFlags.Enabled, "SQLite Enabled")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.SqliteFlags.Database, "sqlite-database", configs.DefaultConfig.Flags.SqliteFlags.Database, "SQLite Database")
@@ -110,7 +110,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		db := database.NewDatabase(conn)
 		fs := files.NewFiles(s.cfg)
 
-		providers.RegisterProvider(dex.New(s.cfg.Flags.DexClientID, s.cfg.Flags.DexClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexCallbackURL))
+		providers.RegisterProvider(dex.New(s.cfg.Flags.DexFlags.ClientID, s.cfg.Flags.DexFlags.ClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexFlags.CallbackURL))
 
 		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
@@ -129,7 +129,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 			Adapter:        ga,
 			Secret:         goth.GenerateKey(),
 			CookieHTTPOnly: true,
-			LoginURL:       s.cfg.Flags.DexLoginURL,
+			LoginURL:       s.cfg.Flags.DexFlags.LoginURL,
 			CookieDomain:   s.cfg.Flags.Domain,
 		}
 
