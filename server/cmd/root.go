@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
+	"github.com/zeiss/builder/server/middlewares/static"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
@@ -15,12 +17,12 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/joho/godotenv"
-	goth "github.com/katallaxie/fiber-goth/v3"
-	gorm_adapter "github.com/katallaxie/fiber-goth/v3/adapters/gorm"
-	"github.com/katallaxie/fiber-goth/v3/providers"
-	"github.com/katallaxie/fiber-goth/v3/providers/dex"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
+	goth "github.com/zeiss/fiber-goth/v3"
+	gorm_adapter "github.com/zeiss/fiber-goth/v3/adapters/gorm"
+	"github.com/zeiss/fiber-goth/v3/providers"
+	"github.com/zeiss/fiber-goth/v3/providers/dex"
 	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/server"
 	"gorm.io/driver/sqlite"
@@ -134,18 +136,20 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		root := app.Domain(s.cfg.Flags.Domain)
+		root.Use(goth.Session(gothConfig))
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
 		root.Get("/logout", goth.NewLogoutHandler(gothConfig))
 
-		// sites := app.Domain(":site." + cfg.Flags.Domain)
-		// config := static.Config{
-		// 	Root: http.Dir(cfg.Flags.c),
-		// }
-		// sites.Use(goth.Session(gothConfig))
-		// sites.Use(goth.Protect(gothConfig))
-		// sites.Use(static.New(config))
+		sites := app.Domain(":site." + s.cfg.Flags.Domain)
+		config := static.Config{
+			Root: http.Dir(s.cfg.Flags.FilesFlags.Path),
+		}
+
+		sites.Use(goth.Session(gothConfig))
+		sites.Use(goth.Protect(gothConfig))
+		sites.Use(static.New(config))
 
 		api := app.Group("/api")
 		v1 := api.Group("/v1")

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/katallaxie/fiber-goth/v3/providers"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/fiber-goth/v3/providers"
 
 	"github.com/zeiss/pkg/cast"
 	"github.com/zeiss/pkg/conv"
