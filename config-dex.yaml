@@ -35,18 +35,29 @@ oauth2:
         #     - "password"
         - "urn:ietf:params:oauth:grant-type:device_code"
         - "urn:ietf:params:oauth:grant-type:token-exchange"
+    responseTypes:
+        - "code"
+        - "token"
+        - "id_token"
 
 # Instead of reading from an external storage, use this list of clients.
 #
 # If this option isn't chosen clients may be added through the gRPC API.
 staticClients:
-    - id: example-app
+    - id: builder-app
       redirectURIs:
           - "http://builder.internal:3000/auth/dex/callback"
       postLogoutRedirectURIs:
           - "http://builder.internal:5555/"
-      name: "Demo"
-      secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+      name: "Builder App"
+      secret: "66b2319d155f8b83b3414ebed6bb0eb717c65e97"
+    - id: builder-cli
+      redirectURIs:
+          - "/dex/device/callback"
+      postLogoutRedirectURIs:
+          - "http://builder.internal:5555/"
+      name: "Builder CLI"
+      public: true # PKCE flow
 
 connectors:
     - type: github
@@ -82,21 +93,6 @@ connectors:
           # ONLY for GitHub Enterprise. Optional field.
           # Used to support self-signed or untrusted CA root certificates.
           # rootCA: /etc/dex/ca.crt
-
-#  grantTypes:
-#  - "authorization_code"
-#  - "refresh_token"
-# - type: google
-#   id: google
-#   name: Google
-#   config:
-#     issuer: https://accounts.google.com
-#     # Connector config values starting with a "$" will read from the environment.
-#     clientID: $GOOGLE_CLIENT_ID
-#     clientSecret: $GOOGLE_CLIENT_SECRET
-#     redirectURI: http://127.0.0.1:5556/dex/callback
-#     hostedDomains:
-#     - $GOOGLE_HOSTED_DOMAIN
 
 # Let dex keep a list of passwords which can be used to login to dex.
 enablePasswordDB: false

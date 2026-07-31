@@ -1,4 +1,4 @@
-package dex
+package oidc
 
 import (
 	"context"
@@ -19,11 +19,11 @@ import (
 )
 
 var (
-	ErrNoVerifiedPrimaryEmail = errors.New("goth: no verified primary email found")
-	ErrFailedFetchUser        = errors.New("goth: no failed to fetch user")
-	ErrNotAllowedOrg          = errors.New("goth: user not in allowed org")
-	ErrNoName                 = errors.New("goth: user has no display name set")
-	ErrMissingIDToken         = errors.New("goth: no id token found")
+	ErrNoVerifiedPrimaryEmail = errors.New("builder: no verified primary email found")
+	ErrFailedFetchUser        = errors.New("builder: no failed to fetch user")
+	ErrNotAllowedOrg          = errors.New("builder: user not in allowed org")
+	ErrNoName                 = errors.New("builder: user has no display name set")
+	ErrMissingIDToken         = errors.New("builder: no id token found")
 )
 
 // DefaultClient is the default HTTP client used.
@@ -37,16 +37,15 @@ var DefaultClient = &http.Client{
 
 const NoopEmail = ""
 
-var _ ports.DeviceAuthRepository = (*dexProvider)(nil)
+var _ ports.DeviceAuthRepository = (*oidcProvider)(nil)
 
 // DefaultScopes holds the default scopes used for GitHub.
 var DefaultScopes = []string{"openid", "profile", "email", "offline_access"}
 
-type dexProvider struct {
+type oidcProvider struct {
 	id           string
 	name         string
 	clientID     string
-	clientSecret string
 	callbackURL  string
 	url          string
 	allowedOrgs  []string
@@ -57,28 +56,26 @@ type dexProvider struct {
 }
 
 // Opt is a function that configures the GitHub provider.
-type Opt func(*dexProvider)
+type Opt func(*oidcProvider)
 
 // WithScopes sets the scopes for the GitHub provider.
 func WithScopes(scopes ...string) Opt {
-	return func(p *dexProvider) {
+	return func(p *oidcProvider) {
 		p.config.Scopes = scopes
 	}
 }
 
 // New creates a new GitHub provider.
-func New(url, clientID, clientSecret, callbackURL string, opts ...Opt) *dexProvider {
-	p := &dexProvider{
-		id:           "dex",
-		name:         "Dex",
-		clientID:     clientID,
-		clientSecret: clientSecret,
-		url:          url,
-		callbackURL:  callbackURL,
-		providerType: models.AuthProviderTypeOAuth2,
-		client:       DefaultClient,
+func New(url, clientID string, opts ...Opt) *oidcProvider {
+	p := &oidcProvider{
 		allowedOrgs:  []string{},
+		client:       DefaultClient,
+		clientID:     clientID,
+		id:           "oidc",
+		name:         "ODIC",
+		providerType: models.AuthProviderTypeOAuth2,
 		scopes:       DefaultScopes,
+		url:          url,
 	}
 
 	for _, opt := range opts {
@@ -91,8 +88,8 @@ func New(url, clientID, clientSecret, callbackURL string, opts ...Opt) *dexProvi
 }
 
 // Begin is a method that begins the device authentication process.
-func (d *dexProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
-	resp, err := d.config.DeviceAuth(ctx, oauth2.SetAuthURLParam("client_secret", d.clientSecret))
+func (d *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
+	resp, err := d.config.DeviceAuth(ctx) // PKCE flow
 	if err != nil {
 		return nil, err
 	}
@@ -108,13 +105,13 @@ func (d *dexProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
 }
 
 // Finish is a method that finishes the device authentication process.
-func (d *dexProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth) (*models.Account, error) {
+func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth) (*models.Account, error) {
 	code := &oauth2.DeviceAuthResponse{
 		DeviceCode: deviceAuth.DeviceCode,
 		Expiry:     deviceAuth.ExpiresIn,
 	}
 
-	token, err := d.config.DeviceAccessToken(ctx, code, oauth2.SetAuthURLParam("client_secret", d.clientSecret))
+	token, err := o.config.DeviceAccessToken(ctx, code)
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +121,12 @@ func (d *dexProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth)
 		return nil, ErrMissingIDToken
 	}
 
-	provider, err := oidc.NewProvider(ctx, d.url)
+	provider, err := oidc.NewProvider(ctx, o.url)
 	if err != nil {
 		return nil, err
 	}
 
-	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: d.clientID})
+	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: o.clientID})
 	idToken, err := idTokenVerifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, providers.ErrFailedVerifyToken
@@ -149,7 +146,7 @@ func (d *dexProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth)
 		Type:         models.AccountTypeOAuth2,
 		Email:        claims.Email,
 		Name:         claims.Name,
-		Provider:     d.id, // this is an internal reference
+		Provider:     o.id, // this is an internal reference
 		AccessToken:  cast.Ptr(token.AccessToken),
 		RefreshToken: cast.Ptr(token.RefreshToken),
 		ExpiresAt:    cast.Ptr(token.Expiry),
@@ -160,13 +157,12 @@ func (d *dexProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth)
 	return account, nil
 }
 
-func newConfig(d *dexProvider, scopes ...string) *oauth2.Config {
+func newConfig(o *oidcProvider, scopes ...string) *oauth2.Config {
 	c := &oauth2.Config{
-		ClientID:     d.clientID,
-		ClientSecret: d.clientSecret,
-		RedirectURL:  d.callbackURL,
-		Endpoint:     urlEndpointConfig(d.url),
-		Scopes:       append(DefaultScopes, scopes...),
+		ClientID:    o.clientID,
+		RedirectURL: o.callbackURL,
+		Endpoint:    urlEndpointConfig(o.url),
+		Scopes:      append(DefaultScopes, scopes...),
 	}
 
 	return c
