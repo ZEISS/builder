@@ -10,6 +10,9 @@ import (
 	// Sqlite driver based on CGO.
 )
 
+// DefaultClientID is the default client ID using the PKCE flow.
+const DefaultClientID = "builder-cli"
+
 const (
 	// UnknownCwd is the unknown current working directory.
 	UnknownCwd = ""
@@ -70,10 +73,10 @@ type TaskFlags struct {
 
 // AuthFlags contains the flags for the authentication.
 type AuthFlags struct {
-	Dex             bool   `envconfig:"DEX" default:"true"`
-	DexClientID     string `envconfig:"DEX_CLIENT_ID"`
-	DexClientSecret string `envconfig:"DEX_CLIENT_SECRET"`
-	DexClientURL    string `envconfig:"DEX_CLIENT_URL"`
+	// ClientID is the client ID for the OIDC provider.
+	ClientID string `envconfig:"CLIENT_ID" default:"builder-cli"`
+	// ClientURL is the URL of the OIDC provider.
+	ClientURL string `envconfig:"CLIENT_URL" default:"http://builder.internal:5556/dex"`
 }
 
 // New returns a new config.

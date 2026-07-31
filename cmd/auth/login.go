@@ -8,7 +8,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/dex"
+	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/ui/models/auth"
@@ -49,10 +49,10 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	store := db.New(conn)
-	dexProvider := dex.New(config.DefaultConfig.Flags.AuthFlags.DexClientURL, config.DefaultConfig.Flags.AuthFlags.DexClientID, config.DefaultConfig.Flags.AuthFlags.DexClientSecret, "")
+	oidcProvider := oidc.New(config.DefaultConfig.Flags.AuthFlags.ClientURL, config.DefaultConfig.Flags.AuthFlags.ClientID)
 
 	accountCtrl := controllers.NewAccountController(store)
-	authCtrl := controllers.NewDeviceAuthController(dexProvider, store)
+	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
