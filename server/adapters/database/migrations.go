@@ -15,7 +15,6 @@ func RunMigrations(db *gorm.DB) error {
 		&fiber_goth.GothUser{},
 		&fiber_goth.GothCsrfToken{},
 		&fiber_goth.GothVerificationToken{},
-		&models.Deployment{},
 		&models.Site{},
 	)
 }
