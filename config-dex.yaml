@@ -11,9 +11,15 @@ issuer: http://builder.internal:5556/dex
 #
 # See the documentation (https://dexidp.io/docs/storage/) for further information.
 storage:
-    type: sqlite3
+    type: postgres
     config:
-      file: /etc/dex/dex.db
+      host: postgres
+      port: 5432
+      database: default
+      user: postgres
+      password: password
+      ssl:
+        mode: 'disable'
 
 # Configuration for the HTTP endpoints.
 web:

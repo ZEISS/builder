@@ -1,6 +1,30 @@
 services:
+
+  postgres:
+      image: postgres:17
+      container_name: postgres
+      networks:
+        - builder
+      ports:
+        - "5432:5432"
+      environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_DB=default
+      volumes:
+        - pg-data:/var/lib/postgresql/data
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+
   dex:
     image: dexidp/dex:latest
+    depends_on:
+      - postgres
+    networks:
+      - builder
     ports:
       - "5556:5556"
       - "5555:5555"
@@ -10,5 +34,9 @@ services:
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     restart: unless-stopped
 
+networks:
+  builder:
+
 volumes:
+  pg-data:
   dex-data:
