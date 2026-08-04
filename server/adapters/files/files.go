@@ -2,35 +2,32 @@ package files
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/ports"
-	"github.com/zeiss/pkg/filex"
+
+	"github.com/gofiber/fiber/v3"
 )
 
 var _ ports.Files = (*Files)(nil)
 
-// Files is the database adapter for the builder server.
+// Files is a wrapper around the fiber storage to provide context aware storage.
 type Files struct {
-	cfg *configs.Config
+	storage fiber.Storage
 }
 
-// NewFiles creates a new Files instance.
-func NewFiles(cfg *configs.Config) *Files {
-	return &Files{cfg: cfg}
+// New creates a new Azure Blob Storage instance.
+func New(storage fiber.Storage) *Files {
+	return &Files{storage: storage}
 }
 
 // UploadFile uploads a file to the filesystem.
 func (f *Files) UploadFile(ctx context.Context, site *models.Site, file *models.File) error {
-	path := filepath.Join(f.cfg.Flags.FilesFlags.Path, site.Name, file.Name)
-	if err := filex.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
+	key := filepath.Join(site.Name, file.Name)
 
-	if err := os.WriteFile(path, file.Data, 0o644); err != nil {
+	err := f.storage.SetWithContext(ctx, key, file.Data, 0)
+	if err != nil {
 		return err
 	}
 

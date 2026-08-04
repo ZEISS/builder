@@ -120,12 +120,25 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		db := database.NewDatabase(conn)
-		fs := files.NewFiles(s.cfg)
-
 		providers.RegisterProvider(dex.New(s.cfg.Flags.DexFlags.ClientID, s.cfg.Flags.DexFlags.ClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexFlags.CallbackURL))
 
+		// This is one and only option that we have to use right now.
+		storage := azureblob.New(
+			azureblob.Config{
+				Account:   s.cfg.Flags.AzureBlobFlags.AccountName,
+				Container: s.cfg.Flags.AzureBlobFlags.ContainerName,
+				Endpoint:  s.cfg.Flags.AzureBlobFlags.Endpoint,
+				Credentials: azureblob.Credentials{
+					Account: s.cfg.Flags.AzureBlobFlags.CredentialsAccount,
+					Key:     s.cfg.Flags.AzureBlobFlags.CredentialsKey,
+				},
+			},
+		)
+
+		files := files.New(storage)
+
 		sitesCtrl := controllers.NewSitesController(db)
-		filesCtrl := controllers.NewFilesController(fs)
+		filesCtrl := controllers.NewFilesController(files)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
 
 		c := fiber.Config{}
@@ -150,19 +163,6 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
 		root.Get("/logout", goth.NewLogoutHandler(gothConfig))
-
-		// This is one and only option that we have to use right now.
-		storage := azureblob.New(
-			azureblob.Config{
-				Account:   s.cfg.Flags.AzureBlobFlags.AccountName,
-				Container: s.cfg.Flags.AzureBlobFlags.ContainerName,
-				Endpoint:  s.cfg.Flags.AzureBlobFlags.Endpoint,
-				Credentials: azureblob.Credentials{
-					Account: s.cfg.Flags.AzureBlobFlags.CredentialsAccount,
-					Key:     s.cfg.Flags.AzureBlobFlags.CredentialsKey,
-				},
-			},
-		)
 
 		sites := app.Domain(":site." + s.cfg.Flags.Domain)
 		config := sites_middleware.Config{
