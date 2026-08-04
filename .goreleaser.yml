@@ -65,8 +65,7 @@ homebrew_casks:
 
 dockers_v2:
   - id: builder
-    dockerfile: Dockerfile
-    templated_dockerfile: Dockerfile.tmpl
+    dockerfile: Dockerfile.builder
     images:
       - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
     tags:
@@ -83,8 +82,7 @@ dockers_v2:
       "org.opencontainers.image.version": "{{.Version}}"
 
   - id: server
-    dockerfile: Dockerfile
-    templated_dockerfile: Dockerfile.tmpl
+    dockerfile: Dockerfile.server
     images:
       - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
     tags:
