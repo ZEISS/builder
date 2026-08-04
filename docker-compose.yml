@@ -30,7 +30,6 @@ services:
       - "5555:5555"
     volumes:
       - ./config-dex.yaml:/etc/dex/config.yaml
-      - ./tmp/builder.db:/etc/dex/dex.db
     command: ["dex", "serve", "/etc/dex/config.yaml"]
     restart: unless-stopped
 
