@@ -2,11 +2,10 @@
 
 FROM gcr.io/distroless/static:nonroot
 
-ARG BINARY=builder
 ARG TARGETPLATFORM
 
 WORKDIR /
-COPY $TARGETPLATFORM/$BINARY /main
+COPY $TARGETPLATFORM/{{ .Binary }} /main
 
 USER 65532:65532
 

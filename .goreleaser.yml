@@ -66,11 +66,14 @@ homebrew_casks:
 dockers_v2:
   - id: builder
     dockerfile: Dockerfile
+    templated_dockerfile: Dockerfile.tmpl
     images:
       - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
     tags:
       - "{{ .Version }}"
       - latest
+    ids:
+      - builder
     platforms:
       - linux/amd64
       - linux/arm64
@@ -81,6 +84,7 @@ dockers_v2:
 
   - id: server
     dockerfile: Dockerfile
+    templated_dockerfile: Dockerfile.tmpl
     images:
       - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
     tags:
@@ -88,6 +92,8 @@ dockers_v2:
       - "{{ .Major }}.{{ .Minor }}"
       - "{{ .Major }}"
       - latest
+    ids:
+      - server
     platforms:
       - linux/amd64
       - linux/arm64
