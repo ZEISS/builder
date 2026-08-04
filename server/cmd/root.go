@@ -23,9 +23,10 @@ import (
 	gorm_adapter "github.com/zeiss/fiber-goth/v3/adapters/gorm"
 	"github.com/zeiss/fiber-goth/v3/providers"
 	"github.com/zeiss/fiber-goth/v3/providers/dex"
+	"github.com/zeiss/pkg/dbx/pg"
 	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/server"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -45,9 +46,12 @@ func init() {
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.ClientSecret, "dex-client-secret", configs.DefaultConfig.Flags.DexFlags.ClientSecret, "Dex Client Secret")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.LoginURL, "dex-login-url", configs.DefaultConfig.Flags.DexFlags.LoginURL, "Dex Login URL")
 
-	Root.PersistentFlags().BoolVar(&configs.DefaultConfig.Flags.SqliteFlags.Enabled, "sqlite", configs.DefaultConfig.Flags.SqliteFlags.Enabled, "SQLite Enabled")
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.SqliteFlags.Database, "sqlite-database", configs.DefaultConfig.Flags.SqliteFlags.Database, "SQLite Database")
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.SqliteFlags.Path, "sqlite-path", configs.DefaultConfig.Flags.SqliteFlags.Path, "SQLite Path")
+	Root.PersistentFlags().BoolVar(&configs.DefaultConfig.Flags.PostgresFlags.Enabled, "postgres", configs.DefaultConfig.Flags.PostgresFlags.Enabled, "PostgreSQL Enabled")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.Host, "postgres-host", configs.DefaultConfig.Flags.PostgresFlags.Host, "PostgreSQL Host")
+	Root.PersistentFlags().IntVar(&configs.DefaultConfig.Flags.PostgresFlags.Port, "postgres-port", configs.DefaultConfig.Flags.PostgresFlags.Port, "PostgreSQL Port")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.Database, "postgres-database", configs.DefaultConfig.Flags.PostgresFlags.Database, "PostgreSQL Database")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.User, "postgres-user", configs.DefaultConfig.Flags.PostgresFlags.User, "PostgreSQL User")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.Password, "postgres-password", configs.DefaultConfig.Flags.PostgresFlags.Password, "PostgreSQL Password")
 
 	Root.SilenceUsage = true
 }
@@ -97,7 +101,14 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 			return err
 		}
 
-		conn, err := gorm.Open(sqlite.Open(s.cfg.Flags.SqliteFlags.Path), &gorm.Config{
+		dsn := pg.NewConfig()
+		dsn.Database = s.cfg.Flags.PostgresFlags.Database
+		dsn.Host = s.cfg.Flags.PostgresFlags.Host
+		dsn.Port = s.cfg.Flags.PostgresFlags.Port
+		dsn.User = s.cfg.Flags.PostgresFlags.User
+		dsn.Password = s.cfg.Flags.PostgresFlags.Password
+
+		conn, err := gorm.Open(postgres.Open(dsn.FormatDSN()), &gorm.Config{
 			TranslateError: true,
 		})
 		if err != nil {
@@ -114,7 +125,6 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		providers.RegisterProvider(dex.New(s.cfg.Flags.DexFlags.ClientID, s.cfg.Flags.DexFlags.ClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexFlags.CallbackURL))
 
-		// fs := store.NewFS(s.cfg.Flags.FilesFlags.Path)
 		sitesCtrl := controllers.NewSitesController(db)
 		filesCtrl := controllers.NewFilesController(fs)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)

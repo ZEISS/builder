@@ -20,8 +20,8 @@ type Flags struct {
 	DexFlags DexFlags
 	// FilesFlags contains the flags for the files directory.
 	FilesFlags FilesFlags
-	// SqliteFlags contains the SQLite flags.
-	SqliteFlags SqliteFlags
+	// PostgresFlags contains the flags for the PostgreSQL database.
+	PostgresFlags PostgresFlags
 }
 
 // FilesFlags contains the flags for the files directory.
@@ -30,14 +30,20 @@ type FilesFlags struct {
 	Path string `envconfig:"BUILDER_FILES_PATH" default:""`
 }
 
-// SqliteFlags returns the path to the SQLite database.
-type SqliteFlags struct {
-	// Enabled is a flag to enable SQLite.
-	Enabled bool `envconfig:"BUILDER_SQLITE_ENABLED" default:"true"`
-	// Path is the path to the SQLite database.
-	Path string `envconfig:"BUILDER_SQLITE_PATH" default:""`
-	// Database is the name of the SQLite database.
-	Database string `envconfig:"BUILDER_SQLITE_DATABASE" default:""`
+// PostgresFlags contains the flags for the PostgreSQL database.
+type PostgresFlags struct {
+	// Enabled is a flag to enable PostgreSQL.
+	Enabled bool `envconfig:"BUILDER_POSTGRES_ENABLED" default:"true"`
+	// Host is the host of the PostgreSQL database.
+	Host string `envconfig:"BUILDER_POSTGRES_HOST" default:""`
+	// Port is the port of the PostgreSQL database.
+	Port int `envconfig:"BUILDER_POSTGRES_PORT" default:""`
+	// Database is the name of the PostgreSQL database.
+	Database string `envconfig:"BUILDER_POSTGRES_DATABASE" default:""`
+	// User is the username for the PostgreSQL database.
+	User string `envconfig:"BUILDER_POSTGRES_USER" default:""`
+	// Password is the password for the PostgreSQL database.
+	Password string `envconfig:"BUILDER_POSTGRES_PASSWORD" default:""`
 }
 
 // DexFlags contains the flags for the Dex authentication provider.
@@ -59,10 +65,11 @@ type DexFlags struct {
 // NewFlags returns a new instance of Flags.
 func NewFlags() *Flags {
 	return &Flags{
-		SqliteFlags: SqliteFlags{
+		PostgresFlags: PostgresFlags{
 			Enabled:  true,
-			Path:     "builder.db",
-			Database: "builder",
+			Host:     "localhost",
+			Port:     5432,
+			Database: "default",
 		},
 		FilesFlags: FilesFlags{
 			Path: "files",
