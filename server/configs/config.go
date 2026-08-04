@@ -22,6 +22,8 @@ type Flags struct {
 	FilesFlags FilesFlags
 	// PostgresFlags contains the flags for the PostgreSQL database.
 	PostgresFlags PostgresFlags
+	// AzureBlobFlags contains the flags for the Azure Blob storage.
+	AzureBlobFlags AzureBlobFlags
 }
 
 // FilesFlags contains the flags for the files directory.
@@ -44,6 +46,20 @@ type PostgresFlags struct {
 	User string `envconfig:"BUILDER_POSTGRES_USER" default:""`
 	// Password is the password for the PostgreSQL database.
 	Password string `envconfig:"BUILDER_POSTGRES_PASSWORD" default:""`
+}
+
+// AzureBlobFlags contains the flags for the Azure Blob storage.
+type AzureBlobFlags struct {
+	// AccountName is the name of the Azure Blob storage account.
+	AccountName string `envconfig:"BUILDER_AZURE_BLOB_ACCOUNT_NAME" default:""`
+	// ContainerName is the name of the Azure Blob storage container.
+	ContainerName string `envconfig:"BUILDER_AZURE_BLOB_CONTAINER_NAME" default:""`
+	// Endpoint is the endpoint for the Azure Blob storage.
+	Endpoint string `envconfig:"BUILDER_AZURE_BLOB_ENDPOINT" default:""`
+	// CredentialsAccount is the account name for the Azure Blob storage credentials.
+	CredentialsAccount string `envconfig:"BUILDER_AZURE_BLOB_CREDENTIALS_ACCOUNT" default:""`
+	// CredentialsKey is the key for the Azure Blob storage credentials.
+	CredentialsKey string `envconfig:"BUILDER_AZURE_BLOB_CREDENTIALS_KEY" default:""`
 }
 
 // DexFlags contains the flags for the Dex authentication provider.

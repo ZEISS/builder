@@ -2,20 +2,20 @@ package cmd
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
-	"github.com/zeiss/builder/server/middlewares/static"
+	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
+	"github.com/gofiber/storage/azureblob/v2"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
@@ -151,14 +151,27 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
 		root.Get("/logout", goth.NewLogoutHandler(gothConfig))
 
+		// This is one and only option that we have to use right now.
+		storage := azureblob.New(
+			azureblob.Config{
+				Account:   s.cfg.Flags.AzureBlobFlags.AccountName,
+				Container: s.cfg.Flags.AzureBlobFlags.ContainerName,
+				Endpoint:  s.cfg.Flags.AzureBlobFlags.Endpoint,
+				Credentials: azureblob.Credentials{
+					Account: s.cfg.Flags.AzureBlobFlags.CredentialsAccount,
+					Key:     s.cfg.Flags.AzureBlobFlags.CredentialsKey,
+				},
+			},
+		)
+
 		sites := app.Domain(":site." + s.cfg.Flags.Domain)
-		config := static.Config{
-			Root: http.Dir(s.cfg.Flags.FilesFlags.Path),
+		config := sites_middleware.Config{
+			Storage: storage,
 		}
 
 		sites.Use(goth.Session(gothConfig))
 		sites.Use(goth.Protect(gothConfig))
-		sites.Use(static.New(config))
+		sites.Use(sites_middleware.New(config))
 
 		api := app.Group("/api")
 		v1 := api.Group("/v1")
