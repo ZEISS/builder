@@ -18,18 +18,10 @@ type Flags struct {
 	OIDCAudience string `envconfig:"BUILDER_OIDC_AUDIENCE" default:""`
 	// DexFlags contains the flags for the Dex authentication provider.
 	DexFlags DexFlags
-	// FilesFlags contains the flags for the files directory.
-	FilesFlags FilesFlags
 	// PostgresFlags contains the flags for the PostgreSQL database.
 	PostgresFlags PostgresFlags
 	// AzureBlobFlags contains the flags for the Azure Blob storage.
 	AzureBlobFlags AzureBlobFlags
-}
-
-// FilesFlags contains the flags for the files directory.
-type FilesFlags struct {
-	// Path is the path to the files directory.
-	Path string `envconfig:"BUILDER_FILES_PATH" default:""`
 }
 
 // PostgresFlags contains the flags for the PostgreSQL database.
@@ -86,9 +78,6 @@ func NewFlags() *Flags {
 			Host:     "localhost",
 			Port:     5432,
 			Database: "default",
-		},
-		FilesFlags: FilesFlags{
-			Path: "files",
 		},
 	}
 }

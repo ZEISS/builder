@@ -24,7 +24,6 @@ import (
 	"github.com/zeiss/fiber-goth/v3/providers"
 	"github.com/zeiss/fiber-goth/v3/providers/dex"
 	"github.com/zeiss/pkg/dbx/pg"
-	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/server"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -37,9 +36,6 @@ func init() {
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.OIDCIssuer, "oidc-issuer", configs.DefaultConfig.Flags.OIDCIssuer, "OIDC Issuer")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.OIDCAudience, "oidc-audience", configs.DefaultConfig.Flags.OIDCAudience, "OIDC Audience")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.Domain, "domain", configs.DefaultConfig.Flags.Domain, "domain")
-
-	// Configure the files path
-	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.FilesFlags.Path, "files-path", configs.DefaultConfig.Flags.FilesFlags.Path, "Files Path")
 
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.CallbackURL, "dex-callback-url", configs.DefaultConfig.Flags.DexFlags.CallbackURL, "Dex Callback URL")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.DexFlags.ClientID, "dex-client-id", configs.DefaultConfig.Flags.DexFlags.ClientID, "Dex Client ID")
@@ -94,12 +90,6 @@ type Host struct {
 // Start starts the server.
 func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.RunFunc) func() error {
 	return func() error {
-		// Create files folder if not exists
-		err := filex.MkdirAll(s.cfg.Flags.FilesFlags.Path, 0o755)
-		if err != nil {
-			return err
-		}
-
 		dsn := pg.NewConfig()
 		dsn.Database = s.cfg.Flags.PostgresFlags.Database
 		dsn.Host = s.cfg.Flags.PostgresFlags.Host
@@ -136,13 +126,11 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		)
 
 		files := files.New(storage)
-
 		sitesCtrl := controllers.NewSitesController(db)
 		filesCtrl := controllers.NewFilesController(files)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
 
 		c := fiber.Config{}
-
 		app := fiber.New(c)
 		app.Use(requestid.New())
 		app.Use(logger.New())
