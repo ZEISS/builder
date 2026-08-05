@@ -75,8 +75,8 @@ connectors:
           # Required fields. Dex must be pre-registered with GitHub Enterprise
           # to get the following values.
           # Credentials can be string literals or pulled from the environment.
-          clientID: Ov23f891ZTbq8dtumKG8
-          clientSecret: 66b2319d155f8b83b3414ebed6bb0eb717c65e97
+          clientID: "{{ .Env.DEX_GITHUB_CLIENT_ID }}"
+          clientSecret: "{{ .Env.DEX_GITHUB_CLIENT_SECRET }}"
           redirectURI: http://builder.internal:5556/dex/callback
 
           # Flag which indicates that all the user's orgs and teams should be loaded.
@@ -94,7 +94,7 @@ connectors:
           # Required ONLY for GitHub Enterprise.
           # This is the Hostname of the GitHub Enterprise account listed on the
           # management console. Ensure this domain is routable on your network.
-          hostName: zeiss.ghe.com
+          hostName: "{{ .Env.DEX_GITHUB_HOSTNAME }}"
 
           # ONLY for GitHub Enterprise. Optional field.
           # Used to support self-signed or untrusted CA root certificates.
