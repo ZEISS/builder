@@ -19,8 +19,11 @@ import (
 
 var jwkRefreshInterval = 48 * time.Hour
 
+// Config holds the OIDC configuration.
 type Config struct {
-	Issuer  string `json:"issuer"`
+	// Issuer is the OIDC issuer URL.
+	Issuer string `json:"issuer"`
+	// JWKsURI is the URI of the JWKS.
 	JWKsURI string `json:"jwks_uri"`
 }
 
@@ -37,6 +40,7 @@ func GetKeys(client *http.Client, jwksURI string) (*keyfunc.JWKS, error) {
 	return jwks, nil
 }
 
+// NewAuthMiddleware returns a middleware that validates OIDC tokens.
 func NewAuthMiddleware(api huma.API, issuer, audience string) func(ctx huma.Context, next func(huma.Context)) {
 	client := retryablehttp.NewClient()
 	client.Logger = nil
