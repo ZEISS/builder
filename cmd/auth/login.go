@@ -4,14 +4,15 @@ import (
 	"os"
 	"path/filepath"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/kelseyhightower/envconfig"
-	"github.com/spf13/cobra"
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/ui/models/auth"
+
+	tea "charm.land/bubbletea/v2"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/filex"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -49,7 +50,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	}
 
 	store := db.New(conn)
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.AuthFlags.ClientURL, config.DefaultConfig.Flags.AuthFlags.ClientID)
+	oidcProvider := oidc.New(config.DefaultConfig.URL, config.DefaultConfig.Flags.AuthFlags.ClientID)
 
 	accountCtrl := controllers.NewAccountController(store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)

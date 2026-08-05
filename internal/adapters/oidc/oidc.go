@@ -40,7 +40,7 @@ const NoopEmail = ""
 var _ ports.DeviceAuthRepository = (*oidcProvider)(nil)
 
 // DefaultScopes holds the default scopes used for GitHub.
-var DefaultScopes = []string{"openid", "profile", "email", "offline_access"}
+var DefaultScopes = []string{"email", "offline_access"}
 
 type oidcProvider struct {
 	id           string
