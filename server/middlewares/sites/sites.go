@@ -8,11 +8,14 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/utils"
+	"github.com/zeiss/pkg/utilx"
 )
 
 const (
 	// EmptyPrefix is the empty prefix for the key.
 	EmptyPrefix = ""
+	// DefaultIndexFile is the default index file to return if path is not found.
+	DefaultIndexFile = "index.html"
 )
 
 // Config defines the config for middleware.
@@ -40,15 +43,22 @@ type Config struct {
 	//
 	// Optional. Default: ""
 	ContentTypeCharset string `json:"content_type_charset"`
+	// File that is served if the path is not a file.
+	//
+	// Optional. Default: "index.html"
+	IndexFile string `json:"index_file"`
 }
 
-// ConfigDefault is the default config.
-var ConfigDefault = Config{
-	Next:               nil,
-	Storage:            nil,
-	Prefix:             "",
-	MaxAge:             0,
-	ContentTypeCharset: "",
+// DefaultConfig returns the default config.
+func DefaultConfig() Config {
+	return Config{
+		Next:               nil,
+		IndexFile:          DefaultIndexFile,
+		Storage:            nil,
+		Prefix:             EmptyPrefix,
+		MaxAge:             0,
+		ContentTypeCharset: "",
+	}
 }
 
 // New creates a new middleware handler.
@@ -58,7 +68,7 @@ var ConfigDefault = Config{
 // in fiber.Config.
 func New(config ...Config) fiber.Handler {
 	// Set default config
-	cfg := ConfigDefault
+	cfg := DefaultConfig()
 
 	// Override config if provided
 	if len(config) > 0 {
@@ -66,6 +76,14 @@ func New(config ...Config) fiber.Handler {
 
 		if cfg.NotFoundFile != "" && !strings.HasPrefix(cfg.NotFoundFile, "/") {
 			cfg.NotFoundFile = "/" + cfg.NotFoundFile
+		}
+
+		if cfg.IndexFile == "" {
+			cfg.IndexFile = DefaultIndexFile
+		}
+
+		if cfg.Prefix == "" {
+			cfg.Prefix = EmptyPrefix
 		}
 	}
 
@@ -92,6 +110,11 @@ func New(config ...Config) fiber.Handler {
 
 		if len(path) > 1 {
 			path = utils.TrimRight(path, '/')
+		}
+
+		ext := filepath.Ext(path)
+		if utilx.Empty(ext) {
+			path = filepath.Join(path, cfg.IndexFile)
 		}
 
 		file, err := storage.GetWithContext(c.Context(), path)
