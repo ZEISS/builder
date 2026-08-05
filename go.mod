@@ -25,7 +25,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.20.0
 	github.com/danielgtaylor/huma/v2 v2.38.0
 	github.com/getkin/kin-openapi v0.144.0
-	github.com/go-openapi/testify/v2 v2.5.1
+	github.com/go-openapi/testify/v2 v2.6.0
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/gofiber/storage/azureblob/v2 v2.3.1
 	github.com/gofiber/utils v1.2.0
