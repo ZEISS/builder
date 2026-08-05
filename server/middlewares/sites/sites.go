@@ -13,7 +13,7 @@ import (
 
 const (
 	// EmptyPrefix is the empty prefix for the key.
-	DefaEmptyPrefix = ""
+	EmptyPrefix = ""
 	// DefaultIndexFile is the default index file to return if path is not found.
 	DefaultIndexFile = "index.html"
 )
@@ -55,7 +55,7 @@ func DefaultConfig() Config {
 		Next:               nil,
 		IndexFile:          DefaultIndexFile,
 		Storage:            nil,
-		Prefix:             "",
+		Prefix:             EmptyPrefix,
 		MaxAge:             0,
 		ContentTypeCharset: "",
 	}
@@ -80,6 +80,10 @@ func New(config ...Config) fiber.Handler {
 
 		if cfg.IndexFile == "" {
 			cfg.IndexFile = DefaultIndexFile
+		}
+
+		if cfg.Prefix == "" {
+			cfg.Prefix = EmptyPrefix
 		}
 	}
 
