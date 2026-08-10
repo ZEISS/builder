@@ -1159,8 +1159,8 @@ github.com/sigstore/rekor-tiles/v2 v2.2.2-0.20260601073857-5d098a2b6443 h1:/CO8F
 github.com/sigstore/rekor-tiles/v2 v2.2.2-0.20260601073857-5d098a2b6443/go.mod h1:w1h8wF8vq9lHjmtRdwJiEaoVxhP+WHIMpj4M39pkzp0=
 github.com/sigstore/sigstore v1.10.8 h1:1Mgkxvkw4AXMfIP1DOjc6kw0GkUgA8pGVpveN/EfOq4=
 github.com/sigstore/sigstore v1.10.8/go.mod h1:f9+B/4iaYimvUkySyb2mvc73n3RLqNn24grHZM/ET8M=
-github.com/sigstore/sigstore-go v1.2.0 h1:8k8sGMVUUWwZ/KA+s4Q66yEPEzcC1xZ8UsTgI46J9Fc=
-github.com/sigstore/sigstore-go v1.2.0/go.mod h1:I8BqVwAb/SaQJ5pBu5IDFY+ksq8O/1/kCag8XUgrsko=
+github.com/sigstore/sigstore-go v1.2.1 h1:YWP/rDbBaEBvtbkj6xtwsSj38ZCFEhTVVadNOXjVe3A=
+github.com/sigstore/sigstore-go v1.2.1/go.mod h1:I8BqVwAb/SaQJ5pBu5IDFY+ksq8O/1/kCag8XUgrsko=
 github.com/sigstore/sigstore/pkg/signature/kms/aws v1.10.8 h1:tofVQ+UWJgad/69I5zbqxdFCN5gpIn9tRQP7iBzIpBw=
 github.com/sigstore/sigstore/pkg/signature/kms/aws v1.10.8/go.mod h1:73AfJE8H6w5KGCFPBu4x/OG+i1Yxgmh0L/FtV7prd88=
 github.com/sigstore/sigstore/pkg/signature/kms/azure v1.10.8 h1:8Mt7J36GcUEmbiJaiFhz2tud5ZIgkfVVCe2H/WJCHmw=
@@ -1353,8 +1353,8 @@ github.com/zalando/go-keyring v0.2.6 h1:r7Yc3+H+Ux0+M72zacZoItR3UDxeWfKTcabvkI8u
 github.com/zalando/go-keyring v0.2.6/go.mod h1:2TCrxYrbUNYfNS/Kgy/LSrkSQzZ5UPVH85RwfczwvcI=
 github.com/zeiss/fiber-goth/v3 v3.0.7-0.20260805072402-7691df1b7091 h1:VovxNtwTRqf4LCcE4j7O83Qw84syBeBF3hisFPuZqYA=
 github.com/zeiss/fiber-goth/v3 v3.0.7-0.20260805072402-7691df1b7091/go.mod h1:x+FucnlmY0vX0/0tGAe9O0bPiijoCge2WoZ6ZzLDcYk=
-github.com/zeiss/pkg v0.2.0 h1:7AejcJjQWqbd0MVrnPFUg6XLh2EStlaWR+Z5nPKCECE=
-github.com/zeiss/pkg v0.2.0/go.mod h1:lQBmtY5JhMvHs/bZxWnvy3G54/vOZerfUMPH+se1YjY=
+github.com/zeiss/pkg v0.2.1 h1:hLcQcUQG4LBbaBLQd9TpqY1xCuUqEqfehRzCi94sxv8=
+github.com/zeiss/pkg v0.2.1/go.mod h1:VkqYcxdLO+jJWyE+0FiDvMe/aZzI4UXR8POabG9Nmuc=
 gitlab.com/bosi/decorder v0.4.2 h1:qbQaV3zgwnBZ4zPMhGLW4KZe7A7NwxEhJx39R3shffo=
 gitlab.com/bosi/decorder v0.4.2/go.mod h1:muuhHoaJkA9QLcYHq4Mj8FJUwDZ+EirSHRiaTcTf6T8=
 gitlab.com/digitalxero/go-conventional-commit v1.0.7 h1:8/dO6WWG+98PMhlZowt/YjuiKhqhGlOCwlIV8SqqGh8=
