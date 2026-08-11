@@ -36,7 +36,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          dockerfile: Dockerfile.dex
+          file: Dockerfile.dex
           push: true
           tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:latest
       - run: make release
