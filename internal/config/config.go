@@ -59,7 +59,6 @@ type Config struct {
 	Spec     *specs.Spec
 	File     string
 	Path     string
-	Plugin   string
 	FileMode os.FileMode
 	Verbose  bool
 	Task     TaskFlags
@@ -107,6 +106,21 @@ func (c *Config) InitDefaultConfig() error {
 	c.File = folder
 
 	return nil
+}
+
+// ConfigFolder creates the store folder.
+func (c *Config) ConfigFolder() (string, error) {
+	path, err := filex.ExpandHomeFolder(c.Store)
+	if err != nil {
+		return "", err
+	}
+
+	err = os.MkdirAll(filepath.Dir(path), 0o777)
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
 
 // HomeDir returns the home directory.

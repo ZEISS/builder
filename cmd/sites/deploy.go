@@ -2,7 +2,6 @@ package sites
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
@@ -16,7 +15,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/filex"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -33,12 +31,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
-	if err != nil {
-		return err
-	}
-
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	path, err := config.DefaultConfig.ConfigFolder()
 	if err != nil {
 		return err
 	}

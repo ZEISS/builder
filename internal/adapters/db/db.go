@@ -5,8 +5,40 @@ import (
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+
+	"github.com/zeiss/pkg/dbx"
 	"gorm.io/gorm"
 )
+
+var _ ports.ReadTx = (*readTxImpl)(nil)
+
+type readTxImpl struct {
+	conn *gorm.DB
+}
+
+// NewReadTx ...
+func NewReadTx() dbx.ReadTxFactory[ports.ReadTx] {
+	return func(db *gorm.DB) (ports.ReadTx, error) {
+		return &readTxImpl{conn: db}, nil
+	}
+}
+
+// Get implements the ReadTx interface.
+func (r *readTxImpl) Get(ctx context.Context, account *models.Account) error {
+	return r.conn.WithContext(ctx).First(account).Error
+}
+
+type writeTxImpl struct {
+	conn       *gorm.DB
+	readTxImpl //nolint:unused
+}
+
+// NewWriteTx ...
+func NewWriteTx() dbx.ReadWriteTxFactory[ports.ReadWriteTx] {
+	return func(db *gorm.DB) (ports.ReadWriteTx, error) {
+		return &writeTxImpl{conn: db}, nil
+	}
+}
 
 // Database is a struct that represents the database adapter.
 type Database struct {

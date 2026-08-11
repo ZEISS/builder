@@ -33,6 +33,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          dockerfile: Dockerfile.dex
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:latest
       - run: make release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
