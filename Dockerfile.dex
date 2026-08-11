@@ -1,0 +1,9 @@
+FROM dexidp/dex:latest
+
+# Copy the config file to the container, overriding the default config
+COPY config-dex.yaml /etc/dex/config.docker.yaml
+
+USER dex:dex
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+CMD ["dex", "serve", "/etc/dex/config.docker.yaml"]
