@@ -1,0 +1,10 @@
+apiVersion: v2
+appVersion: 0.0.0
+description: A helm chart for Builder
+name: builder
+keywords:
+  - productivity
+version: 0.0.0
+sources:
+  - https://github.com/zeiss/builder
+home: http://github.com/zeiss/builder
