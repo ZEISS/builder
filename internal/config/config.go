@@ -108,21 +108,6 @@ func (c *Config) InitDefaultConfig() error {
 	return nil
 }
 
-// ConfigFolder creates the store folder.
-func (c *Config) ConfigFolder() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.Store)
-	if err != nil {
-		return "", err
-	}
-
-	err = os.MkdirAll(filepath.Dir(path), 0o777)
-	if err != nil {
-		return "", err
-	}
-
-	return path, nil
-}
-
 // HomeDir returns the home directory.
 func (c *Config) HomeDir() (string, error) {
 	usr, err := user.Current()
@@ -152,4 +137,19 @@ func (c *Config) LoadSpec() error {
 	}
 
 	return c.Spec.UnmarshalYAML(f)
+}
+
+// ExpandConfigPath expands the config path and creates the store folder.
+func ExpandConfigPath(path string) (string, error) {
+	path, err := filex.ExpandHomeFolder(path)
+	if err != nil {
+		return "", err
+	}
+
+	err = os.MkdirAll(filepath.Dir(path), 0o777)
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
 }

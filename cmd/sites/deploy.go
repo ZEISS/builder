@@ -31,7 +31,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	path, err := config.DefaultConfig.ConfigFolder()
+	path, err := config.ExpandConfigPath(config.DefaultConfig.Store)
 	if err != nil {
 		return err
 	}

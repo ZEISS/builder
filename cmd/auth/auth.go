@@ -9,6 +9,7 @@ func init() {
 	AuthCmd.AddCommand(AuthLoginCmd)
 	AuthCmd.AddCommand(AuthSwitchCmd)
 	AuthCmd.AddCommand(AuthTokenCmd)
+	AuthCmd.AddCommand(AuthResetCmd)
 
 	AuthCmd.PersistentFlags().StringVar(&config.DefaultConfig.Flags.AuthFlags.ClientID, "client-id", "", "OIDC client id")
 	AuthCmd.PersistentFlags().StringVar(&config.DefaultConfig.Flags.AuthFlags.ClientURL, "client-url", "", "OIDC client url")
