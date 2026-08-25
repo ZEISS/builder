@@ -1,6 +1,9 @@
 name: docs
 
 on:
+  workflow_call:
+  release:
+    types: [published]
   push:
     branches:
       - "main"
@@ -32,7 +35,12 @@ jobs:
           extended: true
       - run: hugo --minify
         working-directory: ./www/
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go tool github.com/zeiss/pkg/cmd/helm/index --repo ${{ github.repository }} --index www/public/index.yaml
       - uses: actions/upload-pages-artifact@v5
+        id: deployment
         with:
           path: ./www/public
 
