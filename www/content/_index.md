@@ -9,3 +9,13 @@ cascade:
       kind: section
     type: docs
 ---
+
+# Helm Charts
+
+You can add the Builder Helm repository to your local Helm configuration and search for available charts.
+
+```bash
+helm repo add builder https://zeiss.github.io/builder
+helm repo update
+helm search repo builder
+```
