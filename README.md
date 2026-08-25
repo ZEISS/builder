@@ -67,6 +67,14 @@ Available Commands:
 
 The server implements the deployment features of the builder specification.
 
+Using [Helm](https://helm.sh) to run the builder on Kubernetes.
+
+```bash
+helm repo add builder https://zeiss.github.io/builder
+helm repo update
+helm search repo builder
+```
+
 ## License
 
 [Apache 2.0](/LICENSE)
