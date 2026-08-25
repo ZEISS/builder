@@ -45,8 +45,8 @@ jobs:
       - run: |
           go tool github.com/zeiss/pkg/cmd/helm/update --file helm/Chart.yaml --version ${{ github.ref_name }}
           go tool github.com/zeiss/pkg/cmd/helm/package --package-path tmp --path helm
-          go tool github.com/zeiss/pkg/cmd/helm/release --package-path tmp --owner ${{ github.repository_owner }} --repo ${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
-          go tool github.com/zeiss/pkg/cmd/helm/index --owner ${{ github.repository_owner }} --repo ${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }} --index public/index.yaml
+          go tool github.com/zeiss/pkg/cmd/helm/release --package-path tmp --repo ${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
+          go tool github.com/zeiss/pkg/cmd/helm/index --owner ${{ github.repository_owner }} --repo ${{ github.repository}} --index public/index.yaml
       - uses: actions/upload-pages-artifact@v3
         id: deployment
         with:
