@@ -48,6 +48,7 @@ func init() {
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.Database, "postgres-database", configs.DefaultConfig.Flags.PostgresFlags.Database, "PostgreSQL Database")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.User, "postgres-user", configs.DefaultConfig.Flags.PostgresFlags.User, "PostgreSQL User")
 	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.Password, "postgres-password", configs.DefaultConfig.Flags.PostgresFlags.Password, "PostgreSQL Password")
+	Root.PersistentFlags().StringVar(&configs.DefaultConfig.Flags.PostgresFlags.SSLMode, "postgres-ssl-mode", configs.DefaultConfig.Flags.PostgresFlags.SSLMode, "PostgreSQL SSL Mode")
 
 	Root.SilenceUsage = true
 }
@@ -96,6 +97,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		dsn.Port = s.cfg.Flags.PostgresFlags.Port
 		dsn.User = s.cfg.Flags.PostgresFlags.User
 		dsn.Password = s.cfg.Flags.PostgresFlags.Password
+		dsn.SslMode = s.cfg.Flags.PostgresFlags.SSLMode
 
 		conn, err := gorm.Open(postgres.Open(dsn.FormatDSN()), &gorm.Config{
 			TranslateError: true,
