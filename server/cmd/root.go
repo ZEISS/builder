@@ -8,6 +8,7 @@ import (
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
+	"github.com/zeiss/builder/server/middlewares/healthz"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -136,6 +137,8 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		app := fiber.New(c)
 		app.Use(requestid.New())
 		app.Use(logger.New())
+
+		app.Get("/healthz", healthz.New())
 
 		ga := gorm_adapter.New(conn)
 
