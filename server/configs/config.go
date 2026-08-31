@@ -38,6 +38,8 @@ type PostgresFlags struct {
 	User string `envconfig:"BUILDER_POSTGRES_USER" default:""`
 	// Password is the password for the PostgreSQL database.
 	Password string `envconfig:"BUILDER_POSTGRES_PASSWORD" default:""`
+	// SSLMode is the SSL mode for the PostgreSQL database.
+	SSLMode string `envconfig:"BUILDER_POSTGRES_SSL_MODE" default:""`
 }
 
 // AzureBlobFlags contains the flags for the Azure Blob storage.
@@ -78,6 +80,7 @@ func NewFlags() *Flags {
 			Host:     "localhost",
 			Port:     5432,
 			Database: "default",
+			SSLMode:  "disabled",
 		},
 	}
 }
