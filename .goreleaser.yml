@@ -20,8 +20,6 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
   - id: builder
@@ -37,8 +35,6 @@ builds:
     ignore:
       - goos: darwin
         goarch: 386
-    env:
-      - CGO_ENABLED=0
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
