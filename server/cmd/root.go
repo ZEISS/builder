@@ -2,12 +2,14 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
+	"github.com/zeiss/builder/server/middlewares/auth/oidc"
 	"github.com/zeiss/builder/server/middlewares/healthz"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
@@ -28,6 +30,16 @@ import (
 	"github.com/zeiss/pkg/server"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+)
+
+const (
+	versionFmt = "%s (%s %s)"
+)
+
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func init() {
@@ -62,6 +74,8 @@ func initConfig() {
 }
 
 var Root = &cobra.Command{
+	Short:   "Server is the backend to the Builder CLI",
+	Version: fmt.Sprintf(versionFmt, version, commit, date),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		srv := NewWebSrv(configs.DefaultConfig)
 
@@ -152,6 +166,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		root := app.Domain(s.cfg.Flags.Domain)
 		root.Use(goth.Session(gothConfig))
+
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
@@ -166,7 +181,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		sites.Use(goth.Protect(gothConfig))
 		sites.Use(sites_middleware.New(config))
 
-		api := app.Group("/api")
+		api := root.Group("/api")
 		v1 := api.Group("/v1")
 
 		apiConfig := huma.DefaultConfig("Builder API", "1.0.0")
@@ -190,7 +205,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
-		// spec.UseMiddleware(oidc.NewAuthMiddleware(spec, cfg.Flags.OIDCIssuer, cfg.Flags.OIDCAudience))
+		spec.UseMiddleware(oidc.NewAuthMiddleware(spec, configs.DefaultConfig.Flags.OIDCIssuer, configs.DefaultConfig.Flags.OIDCAudience))
 		sitesHandler.Register(spec)
 
 		err = app.Listen(s.cfg.Flags.Addr)
