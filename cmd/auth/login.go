@@ -11,10 +11,10 @@ import (
 	"github.com/zeiss/builder/internal/ui/models/auth"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/glebarez/sqlite"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/filex"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
