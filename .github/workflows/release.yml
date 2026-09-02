@@ -33,6 +33,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          sudo apt update
+          sudo apt install build-essential
       - uses: docker/build-push-action@v7
         with:
           context: .
