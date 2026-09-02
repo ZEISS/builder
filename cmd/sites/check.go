@@ -14,10 +14,10 @@ import (
 	"github.com/zeiss/builder/pkg/apis"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
 	"github.com/zeiss/pkg/filex"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 

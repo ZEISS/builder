@@ -38,7 +38,7 @@ builds:
       - goos: darwin
         goarch: 386
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     ldflags:
       - -s -w -X github.com/zeiss/builder/cmd.version={{.Version}} -X github.com/zeiss/builder/cmd.commit={{.Commit}} -X github.com/zeiss/builder/cmd.date={{.Date}}
 
