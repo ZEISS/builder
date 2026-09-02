@@ -38,10 +38,10 @@ oauth2:
 staticClients:
     - id: builder-app
       redirectURIs:
-          - {{ gentenv "DEX_APP_REDIRECT_URI" "http://builder.internal:3000/auth/dex/callback" }}
+          - {{ getenv "DEX_APP_REDIRECT_URI" "http://builder.internal:3000/auth/dex/callback" }}
       postLogoutRedirectURIs:
           - "http://builder.internal:5555/"
-      name: {{ gentenv "DEX_APP_NAME" "Builder App }}
+      name: {{ getenv "DEX_APP_NAME" "Builder App }}
       secret: {{ .Env.DEX_APP_SECRET }}
     - id: builder-cli
       redirectURIs:
