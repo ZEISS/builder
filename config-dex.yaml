@@ -2,19 +2,19 @@ issuer: {{ getenv "DEX_ISSUER" "http://builder.internal:5556/dex" }}
 
 storage:
   {{- if getenv "DEX_POSTGRES_ENABLED" "" }}
-    type: postgres
-    config:
-      host: {{ getenv "DEX_POSTGRES_HOST" "postgres" }}
-      port: {{ getenv "DEX_POSTGRES_PORT" "5432" }}
-      database: {{ getenv "DEX_POSTGRES_DATABASE" "default" }}
-      user: {{ getenv "DEX_POSTGRES_USER" "postgres" }}
-      password: {{ getenv "DEX_POSTGRES_PASSWORD" "password" }}
-      ssl:
-        mode: {{ getenv "DEX_POSTGRES_SSL_MODE" "disable" }}
+  type: postgres
+  config:
+    host: {{ getenv "DEX_POSTGRES_HOST" "postgres" }}
+    port: {{ getenv "DEX_POSTGRES_PORT" "5432" }}
+    database: {{ getenv "DEX_POSTGRES_DATABASE" "default" }}
+    user: {{ getenv "DEX_POSTGRES_USER" "postgres" }}
+    password: {{ getenv "DEX_POSTGRES_PASSWORD" "password" }}
+    ssl:
+      mode: {{ getenv "DEX_POSTGRES_SSL_MODE" "disable" }}
   {{- end }}
 
 web:
-    http: {{ getenv "DEX_WEB_HTTP" "0.0.0.0:5556" }}
+  http: {{ getenv "DEX_WEB_HTTP" "0.0.0.0:5556" }}
 
 {{- if getenv "DEX_TELEMETRY_HTTP" }}
 telemetry:
@@ -22,82 +22,82 @@ telemetry:
 {{- end }}
 
 oauth2:
-    # grantTypes determines the allowed set of authorization flows.
-    grantTypes:
-        - "authorization_code"
-        - "client_credentials"
-        - "refresh_token"
-        #     - "implicit"
-        #     - "password"
-        - "urn:ietf:params:oauth:grant-type:device_code"
-        - "urn:ietf:params:oauth:grant-type:token-exchange"
-    responseTypes:
-        - "code"
-        - "token"
-        - "id_token"
+  # grantTypes determines the allowed set of authorization flows.
+  grantTypes:
+    - "authorization_code"
+    - "client_credentials"
+    - "refresh_token"
+    - "urn:ietf:params:oauth:grant-type:device_code"
+    - "urn:ietf:params:oauth:grant-type:token-exchange"
+  responseTypes:
+    - "code"
+    - "token"
+    - "id_token"
 staticClients:
-    - id: builder-app
-      redirectURIs:
-          - {{ getenv "DEX_APP_REDIRECT_URI" "http://builder.internal:3000/auth/dex/callback" }}
-      postLogoutRedirectURIs:
-          - "http://builder.internal:5555/"
-      name: {{ getenv "DEX_APP_NAME" "Builder App" }}
-      secret: {{ .Env.DEX_APP_SECRET }}
-    - id: builder-cli
-      redirectURIs:
-          - "/dex/device/callback"
-      postLogoutRedirectURIs:
-          - "http://builder.internal:5555/"
-      name: "Builder CLI"
-      public: true # PKCE flow
+  - id: builder-app
+    redirectURIs:
+      - {{ getenv "DEX_APP_REDIRECT_URI" "http://builder.internal:3000/auth/dex/callback" }}
+    postLogoutRedirectURIs:
+      - {{ getenv "DEX_APP_POST_LOGOUT_REDIRECT_URI" "http://builder.internal:3000/auth/dex/callback" }}
+    name: {{ getenv "DEX_APP_NAME" "Builder App" }}
+    secret: {{ .Env.DEX_APP_SECRET }}
+  - id: builder-cli
+    redirectURIs:
+      - "/dex/device/callback"
+    postLogoutRedirectURIs:
+      - "http://builder.internal:5555/"
+    name: {{ getenv "DEX_CLI_NAME" "Builder CLI" }}
+    public: true # PKCE flow
 
 connectors:
-    {{- if getenv "DEX_GITHUB" }}
-    - type: github
-      # Required field for connector id.
-      id: github
-      # Required field for connector name.
-      name: GitHub
-      config:
-          # Required fields. Dex must be pre-registered with GitHub Enterprise
-          # to get the following values.
-          # Credentials can be string literals or pulled from the environment.
-          clientID: {{ .Env.DEX_GITHUB_CLIENT_ID }}
-          clientSecret: {{ .Env.DEX_GITHUB_CLIENT_SECRET }}
-          redirectURI: {{ getenv "DEX_GITHUB_REDIRECT_URI" "http://builder.internal:5556/dex/callback" }}
+  {{- if getenv "DEX_GITHUB" }}
+  - type: github
+    # Required field for connector id.
+    id: github
+    # Required field for connector name.
+    name: GitHub
+    config:
+      # Required fields. Dex must be pre-registered with GitHub Enterprise
+      # to get the following values.
+      # Credentials can be string literals or pulled from the environment.
+      clientID: {{ .Env.DEX_GITHUB_CLIENT_ID }}
+      clientSecret: {{ .Env.DEX_GITHUB_CLIENT_SECRET }}
+      redirectURI: {{ getenv "DEX_GITHUB_REDIRECT_URI" "http://builder.internal:5556/dex/callback" }}
 
-          # Flag which indicates that all the user's orgs and teams should be loaded.
-          # Only works if neither 'org' nor 'orgs' are specified in the config.
-          loadAllGroups: false
+      # Flag which indicates that all the user's orgs and teams should be loaded.
+      # Only works if neither 'org' nor 'orgs' are specified in the config.
+      loadAllGroups: false
 
-          # How the team names are formatted
-          #  - Options: 'name' (default), 'slug', 'both'.
-          #  - Examples:
-          #    - 'name': 'acme:Site Reliability Engineers'
-          #    - 'slug': 'acme:site-reliability-engineers'
-          #    - 'both': 'acme:Site Reliability Engineers', 'acme:site-reliability-engineers'
-          # teamNameField: slug
+      # How the team names are formatted
+      #  - Options: 'name' (default), 'slug', 'both'.
+      #  - Examples:
+      #    - 'name': 'acme:Site Reliability Engineers'
+      #    - 'slug': 'acme:site-reliability-engineers'
+      #    - 'both': 'acme:Site Reliability Engineers', 'acme:site-reliability-engineers'
+      # teamNameField: slug
 
-          # Required ONLY for GitHub Enterprise.
-          # This is the Hostname of the GitHub Enterprise account listed on the
-          # management console. Ensure this domain is routable on your network.
-          hostName: {{ .Env.DEX_GITHUB_HOSTNAME }}
+      # Required ONLY for GitHub Enterprise.
+      # This is the Hostname of the GitHub Enterprise account listed on the
+      # management console. Ensure this domain is routable on your network.
+      hostName: {{ .Env.DEX_GITHUB_HOSTNAME }}
 
-          # ONLY for GitHub Enterprise. Optional field.
-          # Used to support self-signed or untrusted CA root certificates.
-          # rootCA: /etc/dex/ca.crt
-    {{- end }}
-    {{- if getenv "DEX_MICROSOFT" }}
-    - type: microsoft
-      id: microsoft
-      name: Microsoft
-      config:
-        # Credentials can be string literals or pulled from the environment.
-        clientID: {{ .Env.DEX_MICROSOFT_CLIENT_ID }}
-        clientSecret: {{ .Env.DEX_MICROSOFT_CLIENT_SECRET }}
-        redirectURI: {{ getenv "DEX_MICROSOFT_REDIRECT_URI" "http://builder.internal:5556/dex/callback" }}
-        tenant: {{ .Env.DEX_MICROSOFT_TENANT }}
-    {{- end }}
+      # ONLY for GitHub Enterprise. Optional field.
+      # Used to support self-signed or untrusted CA root certificates.
+      # rootCA: /etc/dex/ca.crt
+  {{- end }}
+  {{- if getenv "DEX_MICROSOFT" }}
+  - type: microsoft
+    id: microsoft
+    name: Microsoft
+    config:
+      # Credentials can be string literals or pulled from the environment.
+      clientID: {{ .Env.DEX_MICROSOFT_CLIENT_ID }}
+      clientSecret: {{ .Env.DEX_MICROSOFT_CLIENT_SECRET }}
+      redirectURI: {{ getenv "DEX_MICROSOFT_REDIRECT_URI" "http://builder.internal:5556/dex/callback" }}
+      {{- if getenv "DEX_MICROSOFT_TENANT" }}
+      tenant: {{ .Env.DEX_MICROSOFT_TENANT }}
+      {{- end }}
+  {{- end }}
 
 # Let dex keep a list of passwords which can be used to login to dex.
 enablePasswordDB: {{ getenv "DEX_ENABLE_PASSWORD_DB" "false" }}
@@ -106,7 +106,7 @@ enablePasswordDB: {{ getenv "DEX_ENABLE_PASSWORD_DB" "false" }}
 # - "local": use local keys (supports RS256 (default) and ES256)
 # - "vault": use Vault Transit backend (supports RSA, ECDSA, and Ed25519)
 signer:
-    type: local
-    config:
-      keysRotationPeriod: {{ getenv "DEX_EXPIRY_SIGNING_KEYS" "6h" }}
-      algorithm: {{ getenv "DEX_SIGNER_LOCAL_ALGORITHM" "RS256" }}
+  type: local
+  config:
+    keysRotationPeriod: {{ getenv "DEX_EXPIRY_SIGNING_KEYS" "6h" }}
+    algorithm: {{ getenv "DEX_SIGNER_LOCAL_ALGORITHM" "RS256" }}
