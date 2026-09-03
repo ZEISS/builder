@@ -32,6 +32,22 @@ brew install zeiss/builder-tap/builder
 * 🧭 Spec-driven building
 * ...
 
+## 🗺️ Discovery 
+
+The configuration for the authentication provider and 
+the API can be served on a `.well-known/builder-configuration` endpoint.
+
+```
+GET /.well-known/builder-configuration
+
+{
+  "oidc_issuer": "http://builder.internal:5556/dex",
+  "api_url": "http://builder.internal:5556"
+}
+```
+
+This is a way to simplify the configuration.
+
 ## Authentication
 
 The builder authenticates to the server using OpenID Connect. The authentication flow is handled by the server. It supports [dex](https://github.com/dexidp/dex) as an OpenID Connect provider.

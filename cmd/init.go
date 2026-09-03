@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// InitCmd is the command to initialize a new config.
 var InitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new config",
