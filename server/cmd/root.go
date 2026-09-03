@@ -10,6 +10,7 @@ import (
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
 	"github.com/zeiss/builder/server/middlewares/auth/oidc"
+	"github.com/zeiss/builder/server/middlewares/discovery"
 	"github.com/zeiss/builder/server/middlewares/healthz"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
@@ -174,6 +175,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root := app.Domain(s.cfg.Flags.Domain)
 		root.Use(goth.Session(gothConfig))
 
+		root.Get(discovery.WellKnownConfigurationURL, discovery.New())
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))

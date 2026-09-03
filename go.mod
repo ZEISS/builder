@@ -31,6 +31,7 @@ require (
 	github.com/getkin/kin-openapi v0.149.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-openapi/testify/v2 v2.7.0
+	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/fiber/v3 v3.5.0
 	github.com/gofiber/storage/azureblob/v2 v2.3.2
 	github.com/gofiber/utils v1.2.0
@@ -47,7 +48,6 @@ require (
 	github.com/zeiss/fiber-goth/v3 v3.0.8
 	github.com/zeiss/pkg v0.2.4
 	golang.org/x/oauth2 v0.36.0
-	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.6.2
 	gorm.io/gorm v1.31.2
 )
@@ -597,6 +597,7 @@ require (
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.13.0 // indirect
 	helm.sh/helm v2.17.0+incompatible // indirect
 	helm.sh/helm/v3 v3.21.4 // indirect

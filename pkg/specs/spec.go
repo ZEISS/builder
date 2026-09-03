@@ -8,12 +8,12 @@ import (
 
 	"github.com/zeiss/pkg/filex"
 
+	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 )
 
 //go:embed example.yml
-var Files embed.FS
+var Examples embed.FS
 
 const (
 	// Default values for the spec.
@@ -145,12 +145,13 @@ func Default() *Spec {
 // Example returns a default instance of an example.
 func Example() (*Spec, error) {
 	s := Default()
-	data, err := Files.ReadFile("example.yml")
+
+	data, err := Examples.ReadFile("example.yml")
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.UnmarshalYAML(data)
+	err = yaml.Unmarshal(data, s)
 	if err != nil {
 		return nil, err
 	}

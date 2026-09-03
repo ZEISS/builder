@@ -49,18 +49,18 @@ func NewFlags() Flags {
 
 // Config contains the configuration.
 type Config struct {
-	URL      string
+	File     string
+	FileMode os.FileMode
 	Flags    Flags
-	Store    string
+	Path     string
+	Spec     *specs.Spec
+	Stderr   *os.File
 	Stdin    *os.File
 	Stdout   *os.File
-	Stderr   *os.File
-	Spec     *specs.Spec
-	File     string
-	Path     string
-	FileMode os.FileMode
-	Verbose  bool
+	Store    string
 	Task     TaskFlags
+	URL      string
+	Verbose  bool
 }
 
 // TaskFlags contains the flags for a task.
