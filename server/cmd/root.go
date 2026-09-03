@@ -127,7 +127,14 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		db := database.NewDatabase(conn)
-		providers.RegisterProvider(dex.New(s.cfg.Flags.DexFlags.ClientID, s.cfg.Flags.DexFlags.ClientSecret, s.cfg.Flags.OIDCIssuer, s.cfg.Flags.DexFlags.CallbackURL))
+		dex := dex.New(
+			s.cfg.Flags.DexFlags.ClientID,
+			s.cfg.Flags.DexFlags.ClientSecret,
+			s.cfg.Flags.OIDCIssuer,
+			s.cfg.Flags.DexFlags.CallbackURL,
+			dex.WithScopes("openid", "profile", "email"),
+		)
+		providers.RegisterProvider(dex)
 
 		// This is one and only option that we have to use right now.
 		storage := azureblob.New(
