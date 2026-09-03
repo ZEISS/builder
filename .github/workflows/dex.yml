@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "main"
+      - main
     paths:
-      - "config-dex.yaml"
+      - config-dex.yaml
 
 env:
   DOCKER_IMAGE_REPO: ghcr.io/zeiss/builder
@@ -33,5 +33,5 @@ jobs:
           context: .
           file: Dockerfile.dex
           push: true
-          tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:${{ github.sha }}
+          tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:latest
           platforms: linux/amd64,linux/arm64
