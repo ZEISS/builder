@@ -97,6 +97,10 @@ connectors:
       {{- if getenv "DEX_MICROSOFT_TENANT" }}
       tenant: {{ .Env.DEX_MICROSOFT_TENANT }}
       {{- end }}
+      scopes:
+        - openid
+        - email
+        - profile
   {{- end }}
 
 # Let dex keep a list of passwords which can be used to login to dex.
