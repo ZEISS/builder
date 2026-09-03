@@ -33,5 +33,5 @@ jobs:
           context: .
           file: Dockerfile.dex
           push: true
-          tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:latest
+          tags: ${{ env.DOCKER_IMAGE_REPO }}/dex:${{ github.sha }}
           platforms: linux/amd64,linux/arm64
