@@ -7,7 +7,6 @@ import (
 
 	"github.com/zeiss/builder/pkg/specs"
 	"github.com/zeiss/pkg/filex"
-	// Sqlite driver based on CGO.
 )
 
 // DefaultClientID is the default client ID using the PKCE flow.
