@@ -1465,6 +1465,8 @@ github.com/zalando/go-keyring v0.2.6 h1:r7Yc3+H+Ux0+M72zacZoItR3UDxeWfKTcabvkI8u
 github.com/zalando/go-keyring v0.2.6/go.mod h1:2TCrxYrbUNYfNS/Kgy/LSrkSQzZ5UPVH85RwfczwvcI=
 github.com/zeiss/fiber-goth/v3 v3.0.7 h1:x1a+Vsyedz23TM73hg09b4xcOXpR6kxHOlRtwylFeoM=
 github.com/zeiss/fiber-goth/v3 v3.0.7/go.mod h1:Zh/9k5l0zpmqsYEvS2HMlOZO1bUN8e897i9iX2ug58E=
+github.com/zeiss/fiber-goth/v3 v3.0.8 h1:S/xK3KF53zYNHTX+/TkWkL7cjM6TXIKc3hPtzBgWU+A=
+github.com/zeiss/fiber-goth/v3 v3.0.8/go.mod h1:Zh/9k5l0zpmqsYEvS2HMlOZO1bUN8e897i9iX2ug58E=
 github.com/zeiss/pkg v0.2.4 h1:tXg9WFj+YajXHsck2CCVH6+Gjct8DyVIYXeh6akdEaM=
 github.com/zeiss/pkg v0.2.4/go.mod h1:XLGpvkYhJ74f/ZPgHsu1ZoK5bCBZ/o48pteDM2lkLiA=
 gitlab.com/bosi/decorder v0.4.2 h1:qbQaV3zgwnBZ4zPMhGLW4KZe7A7NwxEhJx39R3shffo=
