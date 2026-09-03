@@ -61,7 +61,7 @@ type Opt func(*oidcProvider)
 // WithScopes sets the scopes for the GitHub provider.
 func WithScopes(scopes ...string) Opt {
 	return func(p *oidcProvider) {
-		p.config.Scopes = scopes
+		p.scopes = scopes
 	}
 }
 
@@ -162,7 +162,7 @@ func newConfig(o *oidcProvider, scopes ...string) *oauth2.Config {
 		ClientID:    o.clientID,
 		RedirectURL: o.callbackURL,
 		Endpoint:    urlEndpointConfig(o.url),
-		Scopes:      append(DefaultScopes, scopes...),
+		Scopes:      scopes,
 	}
 
 	return c
