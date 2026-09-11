@@ -30,7 +30,7 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.39.1
 	github.com/getkin/kin-openapi v0.149.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/go-openapi/testify/v2 v2.7.0
+	github.com/go-openapi/testify/v2 v2.8.0
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/fiber/v3 v3.5.0
 	github.com/gofiber/storage/azureblob/v2 v2.4.0
