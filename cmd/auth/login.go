@@ -52,7 +52,7 @@ func runAuthLogin(cmd *cobra.Command, args []string) error {
 	store := db.New(conn)
 	oidcProvider := oidc.New(config.DefaultConfig.URL, config.DefaultConfig.Flags.AuthFlags.ClientID)
 
-	accountCtrl := controllers.NewAccountController(store)
+	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 
 	// clear all the stdout output

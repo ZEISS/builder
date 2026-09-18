@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 )
@@ -11,12 +12,14 @@ var _ ports.AccountController = (*AccountController)(nil)
 
 // AccountController is a controller for managing accounts.
 type AccountController struct {
+	cfg     config.Config
 	account ports.AccountRepository
 }
 
 // NewAccountController creates a new AccountController.
-func NewAccountController(account ports.AccountRepository) *AccountController {
+func NewAccountController(cfg config.Config, account ports.AccountRepository) *AccountController {
 	return &AccountController{
+		cfg:     cfg,
 		account: account,
 	}
 }
@@ -49,4 +52,9 @@ func (c *AccountController) Delete(ctx context.Context, account *models.Account)
 // List is a method that returns a list of accounts.
 func (c *AccountController) List(ctx context.Context, accounts *[]models.Account) error {
 	return c.account.List(ctx, accounts)
+}
+
+// Reset is a method that resets all accounts.
+func (c *AccountController) Reset(ctx context.Context) error {
+	return c.cfg.DeleteStore()
 }

@@ -102,7 +102,7 @@ func New(ctx context.Context, authCtrl ports.DeviceAuthController, accountCtrl p
 }
 
 func (m loginModel) Init() tea.Cmd {
-	return tea.Batch(m.beginAuth())
+	return tea.Sequence(m.beginAuth())
 }
 
 func (m loginModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

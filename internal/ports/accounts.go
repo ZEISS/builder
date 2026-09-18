@@ -36,4 +36,6 @@ type AccountController interface {
 	Update(ctx context.Context, account *models.Account) error
 	// List is a method that returns a list of accounts.
 	List(ctx context.Context, accounts *[]models.Account) error
+	// Reset is a method that resets all accounts.
+	Reset(ctx context.Context) error
 }

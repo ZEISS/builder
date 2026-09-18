@@ -24,9 +24,11 @@ var (
 
 func init() {
 	RootCmd.AddCommand(InitCmd)
+	RootCmd.AddCommand(ResetCmd)
 	RootCmd.AddCommand(TaskCmd)
 	RootCmd.AddCommand(sites.SitesCmd)
 	RootCmd.AddCommand(auth.AuthCmd)
+	RootCmd.AddCommand(AccountCmd)
 
 	RootCmd.PersistentFlags().StringVarP(&config.DefaultConfig.URL, "url", "u", config.DefaultConfig.URL, "URL")
 	RootCmd.PersistentFlags().StringVarP(&config.DefaultConfig.File, "config", "c", config.DefaultConfig.File, "config file")

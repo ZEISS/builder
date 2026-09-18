@@ -49,7 +49,7 @@ func runAuthSwitch(cmd *cobra.Command, _ []string) error {
 	}
 
 	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(store)
+	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")

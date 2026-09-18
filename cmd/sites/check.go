@@ -53,7 +53,7 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 	}
 
 	accountStore := db.New(conn)
-	accountController := controllers.NewAccountController(accountStore)
+	accountController := controllers.NewAccountController(config.DefaultConfig, accountStore)
 
 	account := &models.Account{}
 	err = accountController.GetCurrent(cmd.Context(), account)

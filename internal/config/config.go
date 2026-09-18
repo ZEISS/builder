@@ -81,7 +81,7 @@ type AuthFlags struct {
 func New() Config {
 	return Config{
 		File:   ".builder.yml",
-		Store:  "~/.builder/session.db",
+		Store:  "~/.builder/builder.db",
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
@@ -136,6 +136,16 @@ func (c *Config) LoadSpec() error {
 	}
 
 	return c.Spec.UnmarshalYAML(f)
+}
+
+// DeleteStore deletes the session store.
+func (c *Config) DeleteStore() error {
+	path, err := filex.ExpandHomeFolder(c.Store)
+	if err != nil {
+		return err
+	}
+
+	return os.RemoveAll(path)
 }
 
 // ExpandConfigPath expands the config path and creates the store folder.
