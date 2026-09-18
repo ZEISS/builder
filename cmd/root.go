@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/zeiss/builder/cmd/auth"
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
 
@@ -27,7 +26,6 @@ func init() {
 	RootCmd.AddCommand(ResetCmd)
 	RootCmd.AddCommand(TaskCmd)
 	RootCmd.AddCommand(sites.SitesCmd)
-	RootCmd.AddCommand(auth.AuthCmd)
 	RootCmd.AddCommand(AccountCmd)
 
 	RootCmd.PersistentFlags().StringVarP(&config.DefaultConfig.URL, "url", "u", config.DefaultConfig.URL, "URL")

@@ -1,23 +1,22 @@
 package account
 
 import (
-	"os"
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ui/models/auth"
+	"github.com/zeiss/builder/internal/ui/models/account"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/glebarez/sqlite"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/filex"
 	"gorm.io/gorm"
 )
 
+// LoginCmd is the command for logging in to builder.
 var LoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to builder",
@@ -25,10 +24,7 @@ var LoginCmd = &cobra.Command{
 }
 
 func runLoginCmd(cmd *cobra.Command, args []string) error {
-	err := envconfig.Process("", &config.DefaultConfig.Flags.AuthFlags)
-	if err != nil {
-		return err
-	}
+	ctx := cmd.Context()
 
 	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
 	if err != nil {
@@ -55,10 +51,10 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 
-	// clear all the stdout output
-	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
+	app := account.New(ctx, authCtrl, accountCtrl)
+	program := tea.NewProgram(app, tea.WithContext(cmd.Context()))
 
-	_, err = tea.NewProgram(auth.New(cmd.Context(), authCtrl, accountCtrl), tea.WithContext(cmd.Context())).Run()
+	_, err = program.Run()
 	if err != nil {
 		return err
 	}

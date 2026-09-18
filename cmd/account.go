@@ -8,6 +8,7 @@ import (
 
 func init() {
 	AccountCmd.AddCommand(account.LoginCmd)
+	AccountCmd.AddCommand(account.SwitchCmd)
 }
 
 // AccountCmd is the command to manage accounts.
