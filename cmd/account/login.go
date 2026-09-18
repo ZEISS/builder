@@ -1,0 +1,67 @@
+package account
+
+import (
+	"os"
+	"path/filepath"
+
+	"github.com/zeiss/builder/internal/adapters/db"
+	"github.com/zeiss/builder/internal/adapters/oidc"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/controllers"
+	"github.com/zeiss/builder/internal/ui/models/auth"
+
+	tea "charm.land/bubbletea/v2"
+	"github.com/glebarez/sqlite"
+	"github.com/kelseyhightower/envconfig"
+	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/filex"
+	"gorm.io/gorm"
+)
+
+var LoginCmd = &cobra.Command{
+	Use:   "login",
+	Short: "Login to builder",
+	RunE:  runLoginCmd,
+}
+
+func runLoginCmd(cmd *cobra.Command, args []string) error {
+	err := envconfig.Process("", &config.DefaultConfig.Flags.AuthFlags)
+	if err != nil {
+		return err
+	}
+
+	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
+	if err != nil {
+		return err
+	}
+
+	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	if err != nil {
+		return err
+	}
+
+	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+
+	if err := db.RunMigrations(conn); err != nil {
+		return err
+	}
+
+	store := db.New(conn)
+	oidcProvider := oidc.New(config.DefaultConfig.URL, config.DefaultConfig.Flags.AuthFlags.ClientID)
+
+	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
+	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
+
+	// clear all the stdout output
+	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
+
+	_, err = tea.NewProgram(auth.New(cmd.Context(), authCtrl, accountCtrl), tea.WithContext(cmd.Context())).Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
