@@ -1,7 +1,9 @@
 package cmd
 
 import (
-	"github.com/zeiss/builder/pkg/specs"
+	tea "charm.land/bubbletea/v2"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/ui/models"
 
 	"github.com/spf13/cobra"
 )
@@ -13,13 +15,12 @@ var InitCmd = &cobra.Command{
 	RunE:  runInit,
 }
 
-func runInit(_ *cobra.Command, _ []string) error {
-	example, err := specs.Example()
-	if err != nil {
-		return err
-	}
+func runInit(cmd *cobra.Command, _ []string) error {
+	ctx := cmd.Context()
+	app := models.NewInit(ctx, config.DefaultConfig)
 
-	if err := specs.Write(example, cfg.File, cfg.Flags.Force); err != nil {
+	_, err := tea.NewProgram(app, tea.WithContext(ctx)).Run()
+	if err != nil {
 		return err
 	}
 
