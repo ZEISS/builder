@@ -29,6 +29,13 @@ type discoveryClient struct {
 // Option is a function that configures the discovery client.
 type Option func(*discoveryClient)
 
+// WithClient returns an Option that sets the HTTP client for the discovery client.
+func WithClient(client *http.Client) Option {
+	return func(c *discoveryClient) {
+		c.client = client
+	}
+}
+
 // NewClient returns a new discovery client.
 func NewClient(opts ...Option) Client {
 	c := &discoveryClient{
