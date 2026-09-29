@@ -176,6 +176,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root.Use(goth.Session(gothConfig))
 
 		root.Get(discovery.WellKnownConfigurationURL, discovery.New())
+
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
 		root.Get("/auth/:provider/callback", goth.NewCompleteAuthHandler(gothConfig))
@@ -215,7 +216,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
 		spec.UseMiddleware(oidc.NewAuthMiddleware(spec, configs.DefaultConfig.Flags.OIDCIssuer, configs.DefaultConfig.Flags.OIDCAudience))
-		sitesHandler.Register(spec)
+		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)
 		if err != nil {

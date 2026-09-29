@@ -78,11 +78,11 @@ func New(config ...Config) fiber.Handler {
 			cfg.NotFoundFile = "/" + cfg.NotFoundFile
 		}
 
-		if cfg.IndexFile == "" {
+		if utilx.Empty(cfg.IndexFile) {
 			cfg.IndexFile = DefaultIndexFile
 		}
 
-		if cfg.Prefix == "" {
+		if utilx.Empty(cfg.Prefix) {
 			cfg.Prefix = EmptyPrefix
 		}
 	}

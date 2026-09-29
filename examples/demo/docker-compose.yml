@@ -8,7 +8,6 @@ services:
     volumes:
       - ./tmp:/data
     environment:
-      - BUILDER_FILES_PATH=/data/files
       - BUILDER_SQLITE_ENABLED=true
       - BUILDER_SQLITE_PATH=/data/builder.db
       - BUILDER_SQLITE_DATABASE=builder

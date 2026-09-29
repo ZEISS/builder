@@ -114,8 +114,8 @@ func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSi
 	return &GetSiteOutput{Body: body}, nil
 }
 
-// Register registers the sites handler with the given Fiber app.
-func (h *sitesHandler) Register(api huma.API) {
+// Register registers the sites handler with the given Huma API.
+func Register(api huma.API, h *sitesHandler) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "createSite",
 		DefaultStatus: 200,

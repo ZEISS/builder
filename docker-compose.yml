@@ -1,4 +1,12 @@
 services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    networks:
+      - builder
+    ports:
+      - "10000:10000"
+    command: ["azurite", "--blobHost", "0.0.0.0", "--blobPort", "10000", "--skipApiVersionCheck"]
 
   postgres:
       image: postgres:17
@@ -43,3 +51,4 @@ networks:
 volumes:
   pg-data:
   dex-data:
+  azurite-data:
