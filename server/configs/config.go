@@ -80,7 +80,7 @@ func NewFlags() *Flags {
 			Host:     "localhost",
 			Port:     5432,
 			Database: "default",
-			SSLMode:  "disabled",
+			SSLMode:  "disable",
 		},
 	}
 }

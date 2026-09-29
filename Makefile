@@ -48,6 +48,10 @@ lint: fmt ## Run lint.
 fix: ## Run lint auto-fixes.
 	$(GO_LINT) run --fix --timeout 5m -c .golangci.yml
 
+.PHONY: secret
+secret: ## Generate a new secret.
+	openssl rand -base64 12
+
 .PHONY: clean
 clean: ## Remove previous build.
 	@rm -rf .test .dist

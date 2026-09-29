@@ -67,7 +67,7 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	c, err := apis.NewClientWithResponses(config.DefaultConfig.URL, apis.WithRequestEditorFn(bearer.Intercept))
+	c, err := apis.NewClientWithResponses(config.DefaultConfig.Flags.URL, apis.WithRequestEditorFn(bearer.Intercept))
 	if err != nil {
 		return err
 	}

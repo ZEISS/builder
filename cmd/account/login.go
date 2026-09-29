@@ -8,6 +8,7 @@ import (
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/ui/models/account"
+	"github.com/zeiss/builder/server/middlewares/discovery"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/glebarez/sqlite"
@@ -45,8 +46,14 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	discv := discovery.NewClient()
+	wellKnownConfig, err := discv.Discover(cmd.Context(), config.DefaultConfig.Flags.URL)
+	if err != nil {
+		return err
+	}
+
 	store := db.New(conn)
-	oidcProvider := oidc.New(config.DefaultConfig.URL, config.DefaultConfig.Flags.AuthFlags.ClientID)
+	oidcProvider := oidc.New(wellKnownConfig.OidcIssuer, config.DefaultClientID)
 
 	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)

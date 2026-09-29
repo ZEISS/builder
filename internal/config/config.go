@@ -22,6 +22,8 @@ var DefaultConfig = New()
 
 // Flags contains the command line flags.
 type Flags struct {
+	// URL is the URL of the OIDC provider.
+	URL string
 	// Plugins contains the plugins to use.
 	Plugins []string
 	// Vars contains the variables to use.
@@ -38,8 +40,6 @@ type Flags struct {
 	Version bool
 	// TaskFlags contains the flags for a task.
 	TaskFlags TaskFlags
-	// AuthFlags contains the flags for the authentication.
-	AuthFlags AuthFlags
 }
 
 // NewFlags returns a new flags.
@@ -59,7 +59,6 @@ type Config struct {
 	Stdout   *os.File
 	Store    string
 	Task     TaskFlags
-	URL      string
 	Verbose  bool
 }
 
@@ -67,14 +66,6 @@ type Config struct {
 type TaskFlags struct {
 	// Name is the name of the task to execute.
 	Name string
-}
-
-// AuthFlags contains the flags for the authentication.
-type AuthFlags struct {
-	// ClientID is the client ID for the OIDC provider.
-	ClientID string `envconfig:"CLIENT_ID" default:"builder-cli"`
-	// ClientURL is the URL of the OIDC provider.
-	ClientURL string `envconfig:"CLIENT_URL" default:"http://builder.internal:5556/dex"`
 }
 
 // New returns a new config.
@@ -85,8 +76,10 @@ func New() Config {
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags:  Flags{},
-		Spec:   specs.Default(),
+		Flags: Flags{
+			URL: "http://builder.internal:3000",
+		},
+		Spec: specs.Default(),
 	}
 }
 
