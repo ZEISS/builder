@@ -9,7 +9,6 @@ import (
 	"github.com/zeiss/builder/internal/ports"
 	"github.com/zeiss/pkg/utilx"
 
-	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 )
 
@@ -22,9 +21,7 @@ type createSiteModel struct {
 	cfg       config.Config
 	ctx       context.Context
 	err       error
-	lastKey   string
 	quitting  bool
-	keys      keyMap
 	sitesCtrl ports.SitesController
 }
 
@@ -56,16 +53,6 @@ func (m *createSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case createSiteMsg:
 		m.quitting = true
 		return m, tea.Quit
-
-	case tea.KeyPressMsg:
-		switch {
-		case key.Matches(msg, m.keys.Accept):
-			m.lastKey = "Accept"
-			return m, nil
-		case key.Matches(msg, m.keys.Quit):
-			m.quitting = true
-			return m, tea.Quit
-		}
 	}
 
 	return m, nil

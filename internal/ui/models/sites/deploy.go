@@ -33,21 +33,27 @@ type (
 	siteDeployErrorMsg  struct{ err error }
 )
 
+// deployKeyMap defines the keybindings for the deploy model.
+type deployKeyMap struct {
+	Quit   key.Binding
+	Accept key.Binding
+}
+
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
-func (k keyMap) ShortHelp() []key.Binding {
+func (k deployKeyMap) ShortHelp() []key.Binding {
 	return []key.Binding{k.Accept, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
 // key.Map interface.
-func (k keyMap) FullHelp() [][]key.Binding {
+func (k deployKeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Accept, k.Quit}, // second column
 	}
 }
 
-var deployKeys = keyMap{
+var deployKeys = deployKeyMap{
 	Quit: key.NewBinding(
 		key.WithKeys("q", "esc", "ctrl+c"),
 		key.WithHelp("q", "quit"),
@@ -59,7 +65,7 @@ type deploySiteModel struct {
 	completed int
 	ctx       context.Context
 	err       error
-	keys      keyMap
+	keys      deployKeyMap
 	lastKey   string
 	percent   float64
 	progress  progress.Model
