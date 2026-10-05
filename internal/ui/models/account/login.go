@@ -22,17 +22,9 @@ var (
 )
 
 type (
-	deviceAuthBeginMsg struct {
-		deviceAuth *models.DeviceAuth
-	}
-
-	deviceAuthFinishMsg struct {
-		account *models.Account
-	}
-
-	authErrorMsg struct {
-		error error
-	}
+	deviceAuthBeginMsg  struct{ deviceAuth *models.DeviceAuth }
+	deviceAuthFinishMsg struct{ account *models.Account }
+	authErrorMsg        struct{ error error }
 )
 
 // loginKeyMap defines the keybindings for the login model.
@@ -86,12 +78,12 @@ type loginModel struct {
 // New creates a new login model.
 func New(ctx context.Context, authCtrl ports.DeviceAuthController, accountCtrl ports.AccountController) loginModel {
 	model := loginModel{
-		keys:        loginKeys,
-		help:        help.New(),
-		ctx:         ctx,
-		authCtrl:    authCtrl,
 		accountCtrl: accountCtrl,
+		authCtrl:    authCtrl,
+		ctx:         ctx,
+		help:        help.New(),
 		inputStyle:  lipgloss.NewStyle().Foreground(lipgloss.Color("#FF75B7")),
+		keys:        loginKeys,
 	}
 
 	model.resetSpinner()

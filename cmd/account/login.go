@@ -47,14 +47,9 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	discv := discovery.NewClient()
-	wellKnownConfig, err := discv.Discover(cmd.Context(), config.DefaultConfig.Flags.URL)
-	if err != nil {
-		return err
-	}
+	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithDiscovery(discv))
 
 	store := db.New(conn)
-	oidcProvider := oidc.New(wellKnownConfig.OidcIssuer, config.DefaultClientID)
-
 	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 

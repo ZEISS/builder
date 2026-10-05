@@ -11,6 +11,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/server/middlewares/discovery"
 	"github.com/zeiss/fiber-goth/v3/providers"
 
 	"github.com/zeiss/pkg/cast"
@@ -51,8 +52,8 @@ type oidcProvider struct {
 	allowedOrgs  []string
 	providerType models.AuthProviderType
 	client       *http.Client
-	config       *oauth2.Config
 	scopes       []string
+	discovery    discovery.Client
 }
 
 // Opt is a function that configures the GitHub provider.
@@ -62,6 +63,13 @@ type Opt func(*oidcProvider)
 func WithScopes(scopes ...string) Opt {
 	return func(p *oidcProvider) {
 		p.scopes = scopes
+	}
+}
+
+// WithDiscovery sets the discovery client for the GitHub provider.
+func WithDiscovery(discovery discovery.Client) Opt {
+	return func(p *oidcProvider) {
+		p.discovery = discovery
 	}
 }
 
@@ -76,20 +84,26 @@ func New(url, clientID string, opts ...Opt) *oidcProvider {
 		providerType: models.AuthProviderTypeOAuth2,
 		scopes:       DefaultScopes,
 		url:          url,
+		discovery:    discovery.NewClient(),
 	}
 
 	for _, opt := range opts {
 		opt(p)
 	}
 
-	p.config = newConfig(p, p.scopes...)
-
 	return p
 }
 
 // Begin is a method that begins the device authentication process.
-func (d *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
-	resp, err := d.config.DeviceAuth(ctx) // PKCE flow
+func (o *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
+	wellKnownConfig, err := o.discovery.Discover(ctx, o.url)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := newConfig(o, wellKnownConfig.OidcIssuer, o.scopes...)
+
+	resp, err := cfg.DeviceAuth(ctx) // PKCE flow
 	if err != nil {
 		return nil, err
 	}
@@ -106,12 +120,19 @@ func (d *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
 
 // Finish is a method that finishes the device authentication process.
 func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth) (*models.Account, error) {
+	wellKnownConfig, err := o.discovery.Discover(ctx, o.url)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := newConfig(o, wellKnownConfig.OidcIssuer, o.scopes...)
+
 	code := &oauth2.DeviceAuthResponse{
 		DeviceCode: deviceAuth.DeviceCode,
 		Expiry:     deviceAuth.ExpiresIn,
 	}
 
-	token, err := o.config.DeviceAccessToken(ctx, code)
+	token, err := cfg.DeviceAccessToken(ctx, code)
 	if err != nil {
 		return nil, err
 	}
@@ -157,11 +178,11 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth
 	return account, nil
 }
 
-func newConfig(o *oidcProvider, scopes ...string) *oauth2.Config {
+func newConfig(o *oidcProvider, wellKnownURL string, scopes ...string) *oauth2.Config {
 	c := &oauth2.Config{
 		ClientID:    o.clientID,
 		RedirectURL: o.callbackURL,
-		Endpoint:    urlEndpointConfig(o.url),
+		Endpoint:    urlEndpointConfig(wellKnownURL),
 		Scopes:      scopes,
 	}
 
