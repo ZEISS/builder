@@ -11,6 +11,7 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/models/sites"
 	"github.com/zeiss/builder/pkg/apis"
+	"github.com/zeiss/builder/server/middlewares/discovery"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/glebarez/sqlite"
@@ -45,6 +46,12 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	discv := discovery.NewClient()
+	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultConfig.Flags.URL)
+	if err != nil {
+		return err
+	}
+
 	accountStore := db.New(conn)
 	accountController := controllers.NewAccountController(config.DefaultConfig, accountStore)
 
@@ -59,7 +66,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	c, err := apis.NewClientWithResponses(config.DefaultConfig.Flags.URL, apis.WithRequestEditorFn(bearer.Intercept))
+	c, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
 	if err != nil {
 		return err
 	}
@@ -72,7 +79,6 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
 	model := sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController, filesController)
-
 	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err
