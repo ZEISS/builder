@@ -142,7 +142,7 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth
 		return nil, ErrMissingIDToken
 	}
 
-	provider, err := oidc.NewProvider(ctx, o.url)
+	provider, err := oidc.NewProvider(ctx, wellKnownConfig.OidcIssuer)
 	if err != nil {
 		return nil, err
 	}
