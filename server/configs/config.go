@@ -10,6 +10,8 @@ var DefaultConfig = New()
 type Flags struct {
 	// Addr is the address to listen on.
 	Addr string `envconfig:"BUILDER_ADDR" default:":3000"`
+	// Environment is the environment to run in.
+	Environment string `envconfig:"BUILDER_ENVIRONMENT" default:""`
 	// Domain is the domain name for the builder.
 	Domain string `envconfig:"BUILDER_DOMAIN" default:""`
 	// OIDCIssuer is the OIDC issuer URL.
