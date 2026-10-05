@@ -175,7 +175,15 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root := app.Domain(s.cfg.Flags.Domain)
 		root.Use(goth.Session(gothConfig))
 
-		root.Get(discovery.WellKnownConfigurationURL, discovery.New())
+		wellknownConfig := discovery.DefaultConfig()
+		wellknownConfig.WellKnownFunc = func() discovery.WellKnownConfig {
+			return discovery.WellKnownConfig{
+				OidcIssuer: s.cfg.Flags.OIDCIssuer,
+				ApiURL:     fmt.Sprintf("https://%s/api/v1", s.cfg.Flags.Domain),
+			}
+		}
+
+		root.Get(discovery.WellKnownConfigurationURL, discovery.New(wellknownConfig))
 
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
