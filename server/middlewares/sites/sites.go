@@ -122,6 +122,7 @@ func New(config ...Config) fiber.Handler {
 			return c.Status(fiber.StatusNotFound).Next()
 		}
 
+		ext = filepath.Ext(path)
 		var mimeType string
 		switch ext {
 		case ".htm", ".html":
