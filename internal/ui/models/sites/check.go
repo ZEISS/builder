@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/zeiss/builder/internal/ui/cmds"
-	"github.com/zeiss/builder/pkg/apis"
 
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
@@ -20,20 +19,16 @@ var (
 )
 
 type checkSiteModel struct {
-	ctx      context.Context
-	name     string
-	spinner  spinner.Model
-	quitting bool
-	client   *apis.ClientWithResponses
+	ctx         context.Context
+	spinner     spinner.Model
+	name        string
+	initialized bool
+	quitting    bool
 }
 
 // NewCheckSite creates a new check site model.
-func NewCheckSite(ctx context.Context, client *apis.ClientWithResponses, name string) *checkSiteModel {
-	model := &checkSiteModel{
-		ctx:    ctx,
-		name:   name,
-		client: client,
-	}
+func NewCheckSite(ctx context.Context) *checkSiteModel {
+	model := &checkSiteModel{ctx: ctx}
 
 	model.resetSpinner()
 
@@ -42,7 +37,7 @@ func NewCheckSite(ctx context.Context, client *apis.ClientWithResponses, name st
 
 // Init initializes the deploy model.
 func (m *checkSiteModel) Init() tea.Cmd {
-	return cmds.SitesCheckExists(m.ctx, m.client, m.name)
+	return cmds.Init(m.ctx)
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -50,6 +45,11 @@ func (m *checkSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg: // resize the window and progress bar
 		return m, nil
+
+	case cmds.InitMsg:
+		m.initialized = true
+		m.name = msg.Config.Spec.Sites.Name
+		return m, cmds.SitesCheckExists(m.ctx, msg.Client, m.name)
 
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -86,6 +86,11 @@ func (m checkSiteModel) View() tea.View {
 	var s strings.Builder
 
 	if m.quitting {
+		return tea.NewView("")
+	}
+
+	if !m.initialized {
+		fmt.Fprintf(&s, "\n %s %s\n\n", m.spinner.View(), textStyle("Initializing ..."))
 		return tea.NewView("")
 	}
 
