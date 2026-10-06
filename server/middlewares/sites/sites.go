@@ -1,7 +1,7 @@
 package sites
 
 import (
-	"net/http"
+	"mime"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -122,7 +122,17 @@ func New(config ...Config) fiber.Handler {
 			return c.Status(fiber.StatusNotFound).Next()
 		}
 
-		mimeType := http.DetectContentType(file)
+		var mimeType string
+		switch ext {
+		case ".htm", ".html":
+			mimeType = "text/html"
+		case ".css":
+			mimeType = "text/css"
+		case ".js":
+			mimeType = "application/javascript"
+		default:
+			mimeType = mime.TypeByExtension(ext)
+		}
 
 		c.Status(fiber.StatusOK)
 		c.Set(fiber.HeaderContentType, mimeType)
