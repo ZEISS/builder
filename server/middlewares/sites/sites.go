@@ -126,11 +126,11 @@ func New(config ...Config) fiber.Handler {
 		var mimeType string
 		switch ext {
 		case ".htm", ".html":
-			mimeType = "text/html"
+			mimeType = fiber.MIMETextHTMLCharsetUTF8
 		case ".css":
-			mimeType = "text/css"
+			mimeType = fiber.MIMETextCSSCharsetUTF8
 		case ".js":
-			mimeType = "application/javascript"
+			mimeType = fiber.MIMETextJavaScriptCharsetUTF8
 		default:
 			mimeType = mime.TypeByExtension(ext)
 		}
