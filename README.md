@@ -55,7 +55,7 @@ The builder authenticates to the server using OpenID Connect. The authentication
 To authenticate, the builder uses a [dex](https://github.com/dexidp/dex) client ID and secret. These are configured in the builder tool.
 
 ```bash
-builder auth login --url <builder-server>
+builder account login --url <builder-server>
 ```
 
 This logs you in to the builder server.
@@ -67,16 +67,36 @@ builder --help
 There are a couple of basic features.
 
 ```bash
-Usage:
-  builder [command]
+builder
 
-Available Commands:
-  auth        Authenticate the builder (default: dex)
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  init        Initialize a new config
-  sites       Manages sites
-  task        Manage tasks
+  USAGE
+
+
+    builder [command] [--flags]
+
+
+  COMMANDS
+
+    account [command]         Manage accounts
+    completion [command]      Generate the autocompletion script for the specified shell
+    help [command]            Help about any command
+    init                      Initialize a new config
+    reset                     Reset the configuration
+    sites [command]           Manages sites
+    task [command] [--flags]  Manage tasks
+
+  FLAGS
+
+    -c --config               Config file (.builder.yml)
+    -d --dry                  Dry run
+    -f --force                Force init
+    -h --help                 Help for builder
+    -p --plugin               Plugin
+    -r --root                 Run as root
+    -u --url                  Url (http://builder.internal:3000)
+    --var                     Variables
+    -v --verbose              Verbose output
+    --version                 Version for builder
 ```
 
 ## Server
