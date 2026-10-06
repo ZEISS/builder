@@ -15,9 +15,4 @@ func init() {
 var AccountCmd = &cobra.Command{
 	Use:   "account",
 	Short: "Manage accounts",
-	RunE:  runAccount,
-}
-
-func runAccount(cmd *cobra.Command, args []string) error {
-	return nil
 }

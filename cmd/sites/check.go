@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
-	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
@@ -73,18 +72,15 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	c, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
+	api, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
 	if err != nil {
 		return err
 	}
 
-	sitesRepo := client.New(c)
-	sitesController := controllers.NewSitesController(sitesRepo)
-
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	siteCheck := sites.NewCheckSite(cmd.Context(), config.DefaultConfig, sitesController)
+	siteCheck := sites.NewCheckSite(cmd.Context(), api, config.DefaultConfig.Spec.Sites.Name)
 	_, err = tea.NewProgram(siteCheck, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err

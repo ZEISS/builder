@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/ports"
-	"github.com/zeiss/pkg/utilx"
+	"github.com/zeiss/builder/internal/ui/cmds"
+	"github.com/zeiss/builder/pkg/apis"
 
 	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
@@ -20,27 +19,20 @@ var (
 	errorMark = lipgloss.NewStyle().Foreground(lipgloss.Color("196")).SetString("✗")
 )
 
-type (
-	checkSiteExistsMsg    struct{}
-	checkSiteNotExistsMsg struct{}
-	siteCheckErrorMsg     struct{ err error }
-)
-
 type checkSiteModel struct {
-	cfg       config.Config
-	ctx       context.Context
-	err       error
-	spinner   spinner.Model
-	quitting  bool
-	sitesCtrl ports.SitesController
+	ctx      context.Context
+	name     string
+	spinner  spinner.Model
+	quitting bool
+	client   *apis.ClientWithResponses
 }
 
 // NewCheckSite creates a new check site model.
-func NewCheckSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *checkSiteModel {
+func NewCheckSite(ctx context.Context, client *apis.ClientWithResponses, name string) *checkSiteModel {
 	model := &checkSiteModel{
-		ctx:       ctx,
-		cfg:       cfg,
-		sitesCtrl: sitesCtrl,
+		ctx:    ctx,
+		name:   name,
+		client: client,
 	}
 
 	model.resetSpinner()
@@ -50,7 +42,7 @@ func NewCheckSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesC
 
 // Init initializes the deploy model.
 func (m *checkSiteModel) Init() tea.Cmd {
-	return tea.Sequence(m.getSite())
+	return cmds.SitesCheckExists(m.ctx, m.client, m.name)
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -64,25 +56,24 @@ func (m *checkSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 
-	case siteCheckErrorMsg: // handle deployment error
-		m.err = msg.err
+	case cmds.ErrorMsg: // handle deployment error
 		m.quitting = true
 		return m, tea.Sequence(
-			tea.Printf("%s %s", errorMark, m.err),
+			tea.Printf("%s %s", errorMark, msg.Err.Error()),
 			tea.Quit,
 		)
 
-	case checkSiteExistsMsg:
+	case cmds.SitesCheckExistsMsg:
 		m.quitting = true
 		return m, tea.Sequence(
-			tea.Printf("%s %s %s", checkMark, m.cfg.Spec.Sites.Name, "site exists."),
+			tea.Printf("%s %s %s", checkMark, m.name, "site exists."),
 			tea.Quit,
 		)
 
-	case checkSiteNotExistsMsg:
+	case cmds.SitesCheckDoesNotExistMsg:
 		m.quitting = true
 		return m, tea.Sequence(
-			tea.Printf("%s %s %s", errorMark, m.cfg.Spec.Sites.Name, "site does not exist."),
+			tea.Printf("%s %s %s", errorMark, m.name, "site does not exist."),
 			tea.Quit,
 		)
 	}
@@ -100,22 +91,6 @@ func (m checkSiteModel) View() tea.View {
 
 	fmt.Fprintf(&s, "\n %s %s\n\n", m.spinner.View(), textStyle("Checking site ..."))
 	return tea.NewView(s.String())
-}
-
-func (m *checkSiteModel) getSite() tea.Cmd {
-	return func() tea.Msg {
-		site, err := m.sitesCtrl.GetSite(m.ctx, m.cfg.Spec.Sites.Name)
-
-		if utilx.NotNil(err) {
-			return siteCheckErrorMsg{err: err}
-		}
-
-		if utilx.Empty(site.ID) {
-			return checkSiteNotExistsMsg{}
-		}
-
-		return checkSiteExistsMsg{}
-	}
 }
 
 func (m *checkSiteModel) resetSpinner() {

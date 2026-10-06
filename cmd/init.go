@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	tea "charm.land/bubbletea/v2"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/ui/models"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -12,14 +12,20 @@ import (
 var InitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new config",
-	RunE:  runInit,
+	Long: `
+Initialize a new config (.builder.yml) in the current directory.
+The config will be created with default values.
+	`,
+	RunE: runInit,
 }
 
 func runInit(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
-	app := models.NewInit(ctx, config.DefaultConfig)
 
-	_, err := tea.NewProgram(app, tea.WithContext(ctx)).Run()
+	app := models.NewInit(ctx, config.DefaultConfig)
+	programm := tea.NewProgram(app, tea.WithContext(ctx))
+
+	_, err := programm.Run()
 	if err != nil {
 		return err
 	}
