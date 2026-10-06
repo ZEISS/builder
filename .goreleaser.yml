@@ -40,7 +40,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X github.com/zeiss/builder/cmd.version={{.Version}} -X github.com/zeiss/builder/cmd.commit={{.Commit}} -X github.com/zeiss/builder/cmd.date={{.Date}}
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 homebrew_casks:
   - repository:

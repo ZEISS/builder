@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
 
@@ -10,16 +8,6 @@ import (
 )
 
 var cfg = config.New()
-
-const (
-	versionFmt = "%s (%s %s)"
-)
-
-var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
-)
 
 func init() {
 	RootCmd.AddCommand(InitCmd)
@@ -42,7 +30,6 @@ func init() {
 }
 
 var RootCmd = &cobra.Command{
-	Use:     "builder",
-	Short:   "builder",
-	Version: fmt.Sprintf(versionFmt, version, commit, date),
+	Use:   "builder",
+	Short: "builder",
 }
