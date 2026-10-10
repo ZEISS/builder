@@ -1,7 +1,7 @@
 package account
 
 import (
-	"fmt"
+	"log"
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/adapters/db"
@@ -54,7 +54,7 @@ func runTokenCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println(cast.Value(current.AccessToken))
+	log.Println(cast.Value(current.AccessToken))
 
 	return nil
 }
