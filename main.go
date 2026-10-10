@@ -26,11 +26,12 @@ func main() {
 
 	v := fmt.Sprintf(versionFmt, version, commit, date)
 
-	if err := fang.Execute(
+	err := fang.Execute(
 		context.Background(),
 		cmd.RootCmd,
 		fang.WithVersion(v),
-	); err != nil {
+	)
+	if err != nil {
 		os.Exit(1)
 	}
 }

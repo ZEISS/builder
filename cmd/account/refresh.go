@@ -7,24 +7,23 @@ import (
 	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ui/models/account"
+	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/middlewares/discovery"
 
-	tea "charm.land/bubbletea/v2"
 	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/filex"
 	"gorm.io/gorm"
 )
 
-// LoginCmd is the command for logging in to builder.
-var LoginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to builder",
-	RunE:  runLoginCmd,
+// RefreshCmd is the command for refreshing the account.
+var RefreshCmd = &cobra.Command{
+	Use:   "refresh",
+	Short: "Refresh the account",
+	RunE:  runRefreshCmd,
 }
 
-func runLoginCmd(cmd *cobra.Command, args []string) error {
+func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
 	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
@@ -58,10 +57,18 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
 	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 
-	app := account.New(ctx, authCtrl, accountCtrl)
-	program := tea.NewProgram(app, tea.WithContext(cmd.Context()))
+	current := &models.Account{}
+	err = accountCtrl.GetCurrent(ctx, current)
+	if err != nil {
+		return err
+	}
 
-	_, err = program.Run()
+	err = authCtrl.Refresh(ctx, current)
+	if err != nil {
+		return err
+	}
+
+	err = accountCtrl.Update(ctx, current)
 	if err != nil {
 		return err
 	}

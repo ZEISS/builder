@@ -1,11 +1,13 @@
 package sites
 
 import (
+	"errors"
 	"os"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/adapters/db"
+	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
@@ -52,11 +54,19 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	accountStore := db.New(conn)
-	accountController := controllers.NewAccountController(config.DefaultConfig, accountStore)
+	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+
+	store := db.New(conn)
+	accountController := controllers.NewAccountController(config.DefaultConfig, store)
+	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
 
 	account := &models.Account{}
 	err = accountController.GetCurrent(cmd.Context(), account)
+	if err != nil {
+		return errors.New("no account found")
+	}
+
+	err = authCtrl.Refresh(cmd.Context(), account)
 	if err != nil {
 		return err
 	}

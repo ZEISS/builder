@@ -30,5 +30,5 @@ func runResetCmd(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return err
+	return nil
 }

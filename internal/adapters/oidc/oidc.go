@@ -15,7 +15,7 @@ import (
 	"github.com/zeiss/fiber-goth/v3/providers"
 
 	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/conv"
+	"github.com/zeiss/pkg/utilx"
 	"golang.org/x/oauth2"
 )
 
@@ -44,16 +44,16 @@ var _ ports.DeviceAuthRepository = (*oidcProvider)(nil)
 var DefaultScopes = []string{"openid", "email", "offline_access"}
 
 type oidcProvider struct {
-	id           string
-	name         string
-	clientID     string
-	callbackURL  string
-	url          string
-	allowedOrgs  []string
-	providerType models.AuthProviderType
-	client       *http.Client
-	scopes       []string
-	discovery    discovery.Client
+	id              string
+	name            string
+	clientID        string
+	callbackURL     string
+	url             string
+	allowedOrgs     []string
+	providerType    models.AuthProviderType
+	client          *http.Client
+	scopes          []string
+	wellKnownConfig *discovery.WellKnownConfig
 }
 
 // Opt is a function that configures the GitHub provider.
@@ -66,10 +66,10 @@ func WithScopes(scopes ...string) Opt {
 	}
 }
 
-// WithDiscovery sets the discovery client for the GitHub provider.
-func WithDiscovery(discovery discovery.Client) Opt {
+// WithWellKnownConfig sets the well-known configuration for the GitHub provider.
+func WithWellKnownConfig(wellKnownConfig *discovery.WellKnownConfig) Opt {
 	return func(p *oidcProvider) {
-		p.discovery = discovery
+		p.wellKnownConfig = wellKnownConfig
 	}
 }
 
@@ -84,7 +84,6 @@ func New(url, clientID string, opts ...Opt) *oidcProvider {
 		providerType: models.AuthProviderTypeOAuth2,
 		scopes:       DefaultScopes,
 		url:          url,
-		discovery:    discovery.NewClient(),
 	}
 
 	for _, opt := range opts {
@@ -96,12 +95,7 @@ func New(url, clientID string, opts ...Opt) *oidcProvider {
 
 // Begin is a method that begins the device authentication process.
 func (o *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
-	wellKnownConfig, err := o.discovery.Discover(ctx, o.url)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := newConfig(o, wellKnownConfig.OidcIssuer, o.scopes...)
+	cfg := newConfig(o, o.wellKnownConfig.OidcIssuer, o.scopes...)
 
 	resp, err := cfg.DeviceAuth(ctx) // PKCE flow
 	if err != nil {
@@ -120,12 +114,7 @@ func (o *oidcProvider) Begin(ctx context.Context) (*models.DeviceAuth, error) {
 
 // Finish is a method that finishes the device authentication process.
 func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth) (*models.Account, error) {
-	wellKnownConfig, err := o.discovery.Discover(ctx, o.url)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg := newConfig(o, wellKnownConfig.OidcIssuer, o.scopes...)
+	cfg := newConfig(o, o.wellKnownConfig.OidcIssuer, o.scopes...)
 
 	code := &oauth2.DeviceAuthResponse{
 		DeviceCode: deviceAuth.DeviceCode,
@@ -142,7 +131,7 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth
 		return nil, ErrMissingIDToken
 	}
 
-	provider, err := oidc.NewProvider(ctx, wellKnownConfig.OidcIssuer)
+	provider, err := oidc.NewProvider(ctx, o.wellKnownConfig.OidcIssuer)
 	if err != nil {
 		return nil, err
 	}
@@ -172,10 +161,65 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth
 		RefreshToken: cast.Ptr(token.RefreshToken),
 		ExpiresAt:    cast.Ptr(token.Expiry),
 		TokenType:    cast.Ptr(token.TokenType),
-		IDToken:      cast.Ptr(conv.String(token.Extra("id_token"))), // save id token for the API
+		IDToken:      cast.Ptr(rawIDToken), // save id token for the API
 	}
 
 	return account, nil
+}
+
+// Refresh refreshes the access token for the given account.
+func (o *oidcProvider) Refresh(ctx context.Context, account *models.Account) error {
+	provider, err := oidc.NewProvider(ctx, o.wellKnownConfig.OidcIssuer)
+	if err != nil {
+		return err
+	}
+
+	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: o.clientID})
+	_, err = idTokenVerifier.Verify(ctx, cast.Value(account.IDToken))
+	if utilx.IsNil(err) {
+		return nil
+	}
+
+	if _, ok := errors.AsType[*oidc.TokenExpiredError](err); !ok {
+		return providers.ErrFailedVerifyToken
+	}
+
+	cfg := newConfig(o, o.wellKnownConfig.OidcIssuer, o.scopes...)
+	cfg.Endpoint = provider.Endpoint()
+
+	ts := cfg.TokenSource(ctx, &oauth2.Token{RefreshToken: cast.Value(account.RefreshToken)})
+	token, err := ts.Token()
+	if err != nil {
+		return err
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return ErrMissingIDToken
+	}
+
+	idToken, err := idTokenVerifier.Verify(ctx, rawIDToken)
+	if err != nil {
+		return providers.ErrFailedVerifyToken
+	}
+
+	var claims struct {
+		Name     string   `json:"name"`
+		Email    string   `json:"email"`
+		Verified bool     `json:"email_verified"`
+		Groups   []string `json:"groups"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		return err
+	}
+
+	account.AccessToken = cast.Ptr(token.AccessToken)
+	account.RefreshToken = cast.Ptr(token.RefreshToken)
+	account.ExpiresAt = cast.Ptr(token.Expiry)
+	account.TokenType = cast.Ptr(token.TokenType)
+	account.IDToken = cast.Ptr(rawIDToken)
+
+	return nil
 }
 
 func newConfig(o *oidcProvider, wellKnownURL string, scopes ...string) *oauth2.Config {
