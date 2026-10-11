@@ -2,7 +2,6 @@ package account
 
 import (
 	"log"
-	"fmt"
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/adapters/db"
@@ -36,8 +35,6 @@ func runTokenCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(path)
 
 	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
