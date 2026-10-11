@@ -47,8 +47,8 @@ func (c *DeviceAuthController) Finish(ctx context.Context, deviceAuth *models.De
 }
 
 // Refresh is a method that refreshes the device authentication token.
-func (c *DeviceAuthController) Refresh(ctx context.Context, model *models.Account) error {
-	err := c.deviceAuthRepo.Refresh(ctx, model)
+func (c *DeviceAuthController) Refresh(ctx context.Context, model *models.Account, force bool) error {
+	err := c.deviceAuthRepo.Refresh(ctx, model, force)
 	if err != nil {
 		return err
 	}

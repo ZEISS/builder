@@ -63,7 +63,7 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = authCtrl.Refresh(ctx, current)
+	err = authCtrl.Refresh(ctx, current, config.DefaultConfig.Flags.Force)
 	if err != nil {
 		return err
 	}

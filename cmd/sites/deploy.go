@@ -66,7 +66,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return errors.New("no account found")
 	}
 
-	err = authCtrl.Refresh(cmd.Context(), account)
+	err = authCtrl.Refresh(cmd.Context(), account, config.DefaultConfig.Flags.Force)
 	if err != nil {
 		return err
 	}
