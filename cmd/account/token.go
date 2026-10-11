@@ -2,6 +2,7 @@ package account
 
 import (
 	"log"
+	"fmt"
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/adapters/db"
@@ -36,6 +37,8 @@ func runTokenCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	fmt.Println(path)
+
 	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
 	if err != nil {
 		return err
@@ -54,7 +57,7 @@ func runTokenCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	log.Println(cast.Value(current.AccessToken))
+	log.Println(cast.Value(current.IDToken))
 
 	return nil
 }

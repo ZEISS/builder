@@ -168,7 +168,7 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *models.DeviceAuth
 }
 
 // Refresh refreshes the access token for the given account.
-func (o *oidcProvider) Refresh(ctx context.Context, account *models.Account, force bool) error {
+func (o *oidcProvider) Refresh(ctx context.Context, account *models.Account) error {
 	provider, err := oidc.NewProvider(ctx, o.wellKnownConfig.OidcIssuer)
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func (o *oidcProvider) Refresh(ctx context.Context, account *models.Account, for
 
 	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: o.clientID})
 	_, err = idTokenVerifier.Verify(ctx, cast.Value(account.IDToken))
-	if !force && utilx.IsNil(err) {
+	if utilx.IsNil(err) {
 		return nil
 	}
 

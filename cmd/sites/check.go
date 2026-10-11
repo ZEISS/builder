@@ -72,7 +72,7 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return errors.New("no account found")
 	}
 
-	err = authCtrl.Refresh(cmd.Context(), account, config.DefaultConfig.Flags.Force)
+	err = authCtrl.Refresh(cmd.Context(), account)
 	if err != nil {
 		return err
 	}

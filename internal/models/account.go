@@ -50,11 +50,22 @@ type Account struct {
 	// Name is the name of the account.
 	Name string `json:"name"`
 	// Email is the email of the account.
-	Email string `json:"email"`
+	Email string `json:"email" gorm:"type:text;uniqueIndex;"`
 	// CreatedAt is the creation time of the account.
 	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt is the update time of the account.
 	UpdatedAt time.Time `json:"updated_at"`
 	// DeletedAt is the deletion time of the account.
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+// BeforeCreate is a method that is called before creating a new account.
+func (a *Account) BeforeCreate(tx *gorm.DB) (err error) {
+	if a.ID == uuid.Nil {
+		a.ID = uuid.New()
+	}
+
+	a.Current = true
+
+	return nil
 }

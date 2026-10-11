@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeiss/pkg/dbx"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ ports.ReadTx = (*readTxImpl)(nil)
@@ -73,7 +74,10 @@ func (d *Database) GetCurrent(ctx context.Context, account *models.Account) erro
 
 // Create is a method that creates a new account.
 func (d *Database) Create(ctx context.Context, account *models.Account) error {
-	return d.gorm.WithContext(ctx).FirstOrCreate(&account).Error
+	return d.gorm.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "email"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "current", "refresh_token", "access_token", "expires_at", "token_type", "scope", "id_token", "session_state", "updated_at"}),
+	}).Create(account).Error
 }
 
 // Update is a method that updates an account.

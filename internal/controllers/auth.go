@@ -5,8 +5,6 @@ import (
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
-
-	"github.com/google/uuid"
 )
 
 var _ ports.DeviceAuthController = (*DeviceAuthController)(nil)
@@ -35,9 +33,6 @@ func (c *DeviceAuthController) Finish(ctx context.Context, deviceAuth *models.De
 		return nil, err
 	}
 
-	account.Current = true
-	account.ID = uuid.New()
-
 	err = c.accountRepo.Create(ctx, account)
 	if err != nil {
 		return nil, err
@@ -47,8 +42,8 @@ func (c *DeviceAuthController) Finish(ctx context.Context, deviceAuth *models.De
 }
 
 // Refresh is a method that refreshes the device authentication token.
-func (c *DeviceAuthController) Refresh(ctx context.Context, model *models.Account, force bool) error {
-	err := c.deviceAuthRepo.Refresh(ctx, model, force)
+func (c *DeviceAuthController) Refresh(ctx context.Context, model *models.Account) error {
+	err := c.deviceAuthRepo.Refresh(ctx, model)
 	if err != nil {
 		return err
 	}
