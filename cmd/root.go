@@ -1,8 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
+	exitbanner "github.com/zeiss/builder/internal/ui/exit"
+	"github.com/zeiss/builder/internal/versions"
 
 	"github.com/spf13/cobra"
 )
@@ -30,4 +37,20 @@ func init() {
 var RootCmd = &cobra.Command{
 	Use:   "builder",
 	Short: "builder",
+	RunE:  runRootCmd,
+}
+
+func runRootCmd(cmd *cobra.Command, args []string) error {
+	printExitBanner()
+	return nil
+}
+
+func printExitBanner() {
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := exitbanner.Render(versions.VersionString, tw)
+	if body == "" {
+		return
+	}
+
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 }
