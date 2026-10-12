@@ -13,7 +13,7 @@ import (
 // CheckSuccessMsg is sent when the check command succeeds.
 type CheckSuccessMsg struct{}
 
-// Checks the spec and provides feedback
+// Checks the spec and provides feedback.
 func Check(ctx context.Context, path string) tea.Cmd {
 	return func() tea.Msg {
 		f, err := os.ReadFile(path)

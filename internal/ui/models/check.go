@@ -11,7 +11,6 @@ import (
 type checkModel struct {
 	file     string
 	quitting bool
-	err      error
 	ctx      context.Context
 }
 

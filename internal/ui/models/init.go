@@ -17,7 +17,6 @@ type initModel struct {
 	file     string
 	force    bool
 	quitting bool
-	err      error
 	ctx      context.Context
 }
 
