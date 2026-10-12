@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/home"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/pkg/specs"
 	"github.com/zeiss/builder/pkg/utils"
 
 	"charm.land/bubbles/v2/key"
@@ -61,7 +61,8 @@ var deployKeys = deployKeyMap{
 }
 
 type deploySiteModel struct {
-	cfg       config.Config
+	spec      *specs.Spec
+	cwd       string
 	completed int
 	ctx       context.Context
 	err       error
@@ -79,11 +80,12 @@ type deploySiteModel struct {
 }
 
 // NewDeploy creates a new deploy model.
-func NewDeploy(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController, filesCtrl ports.FilesController) *deploySiteModel {
+func NewDeploy(ctx context.Context, spec *specs.Spec, cwd string, sitesCtrl ports.SitesController, filesCtrl ports.FilesController) *deploySiteModel {
 	return &deploySiteModel{
 		keys:      deployKeys,
 		ctx:       ctx,
-		cfg:       cfg,
+		spec:      spec,
+		cwd:       cwd,
 		sitesCtrl: sitesCtrl,
 		filesCtrl: filesCtrl,
 		progress:  progress.New(progress.WithDefaultBlend()),
@@ -151,7 +153,7 @@ func (m *deploySiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the current state of the deploy model.
 func (m deploySiteModel) View() tea.View {
 	var v tea.View
-	v.WindowTitle = "builder " + home.Short(m.cfg.Spec.Name)
+	v.WindowTitle = "builder " + home.Short(m.spec.Name)
 
 	var s strings.Builder
 	if utilx.NotNil(m.err) {
@@ -176,10 +178,8 @@ func (m deploySiteModel) View() tea.View {
 }
 
 func (m *deploySiteModel) writeFiles() tea.Cmd {
-	cwd, _ := m.cfg.Cwd()
-
-	path := filepath.Join(cwd, m.cfg.Spec.Sites.Path)
-	files := utils.ScanDir(path, m.cfg.Spec.Sites.Ignore)
+	path := filepath.Join(m.cwd, m.spec.Sites.Path)
+	files := utils.ScanDir(path, m.spec.Sites.Ignore)
 
 	cmds := make([]tea.Cmd, 0, len(files))
 	m.total = len(files)
@@ -200,7 +200,7 @@ func (m *deploySiteModel) writeFiles() tea.Cmd {
 
 func (m *deploySiteModel) getSite() tea.Cmd {
 	return func() tea.Msg {
-		site, err := m.sitesCtrl.GetSite(m.ctx, m.cfg.Spec.Sites.Name)
+		site, err := m.sitesCtrl.GetSite(m.ctx, m.spec.Sites.Name)
 
 		if utilx.NotNil(err) {
 			return siteDeployErrorMsg{err: err}

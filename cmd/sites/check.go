@@ -29,12 +29,12 @@ var CheckCmd = &cobra.Command{
 }
 
 func runCheck(cmd *cobra.Command, _ []string) error {
-	err := config.DefaultConfig.LoadSpec()
+	spec, err := config.DefaultConfig.Spec()
 	if err != nil {
 		return err
 	}
 
-	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
+	path, err := config.DefaultConfig.Path()
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	siteCheck := sites.NewCheckSite(cmd.Context(), client, config.DefaultConfig.Spec.Sites.Name)
+	siteCheck := sites.NewCheckSite(cmd.Context(), client, spec.Sites.Name)
 	_, err = tea.NewProgram(siteCheck, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err

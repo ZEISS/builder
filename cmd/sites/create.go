@@ -31,12 +31,12 @@ var CreateCmd = &cobra.Command{
 }
 
 func runCreate(cmd *cobra.Command, _ []string) error {
-	err := config.DefaultConfig.LoadSpec()
+	spec, err := config.DefaultConfig.Spec()
 	if err != nil {
 		return err
 	}
 
-	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
+	path, err := config.DefaultConfig.Path()
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	_, err = tea.NewProgram(sites.NewCreateSite(cmd.Context(), config.DefaultConfig, sitesController), tea.WithContext(cmd.Context())).Run()
+	_, err = tea.NewProgram(sites.NewCreateSite(cmd.Context(), spec, sitesController), tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err
 	}

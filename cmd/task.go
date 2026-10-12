@@ -32,14 +32,14 @@ var TaskNewCmd = &cobra.Command{
 }
 
 func createNewTask(_ *cobra.Command, args []string) error {
-	err := cfg.LoadSpec()
+	spec, err := cfg.Spec()
 	if err != nil {
 		return err
 	}
 
 	name := slices.First(args...)
 
-	ok := mapx.Exists(cfg.Spec.Tasks, name)
+	ok := mapx.Exists(spec.Tasks, name)
 	if !ok {
 		return ErrTaskNotExist
 	}
@@ -49,14 +49,14 @@ func createNewTask(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	path := filepath.Join(cwd, cfg.Spec.Root, name, cfg.Flags.TaskFlags.Name)
+	path := filepath.Join(cwd, spec.Root, name, cfg.Flags.TaskFlags.Name)
 
 	err = filex.MkdirAll(path, 0o755) //nolint:mnd
 	if err != nil {
 		return err
 	}
 
-	task := cfg.Spec.Tasks[name]
+	task := spec.Tasks[name]
 
 	for _, doc := range task.Context.Documents {
 		fp := filepath.Join(path, doc.Generates)
@@ -76,7 +76,7 @@ var TaskWorkCmd = &cobra.Command{
 }
 
 func workOnTask(_ *cobra.Command, _ []string) error {
-	err := cfg.LoadSpec()
+	_, err := cfg.Spec()
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,7 @@ var TokenCmd = &cobra.Command{
 func runTokenCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
-	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
+	path, err := config.DefaultConfig.Path()
 	if err != nil {
 		return err
 	}

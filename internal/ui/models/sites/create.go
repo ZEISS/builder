@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/pkg/specs"
 	"github.com/zeiss/pkg/utilx"
 
 	tea "charm.land/bubbletea/v2"
@@ -18,7 +18,7 @@ type (
 )
 
 type createSiteModel struct {
-	cfg       config.Config
+	spec      *specs.Spec
 	ctx       context.Context
 	err       error
 	quitting  bool
@@ -26,9 +26,9 @@ type createSiteModel struct {
 }
 
 // NewCreateSite creates a new create site model.
-func NewCreateSite(ctx context.Context, cfg config.Config, sitesCtrl ports.SitesController) *createSiteModel {
+func NewCreateSite(ctx context.Context, spec *specs.Spec, sitesCtrl ports.SitesController) *createSiteModel {
 	return &createSiteModel{
-		cfg:       cfg,
+		spec:      spec,
 		sitesCtrl: sitesCtrl,
 		ctx:       ctx,
 	}
@@ -60,7 +60,7 @@ func (m *createSiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the current state of the deploy model.
 func (m createSiteModel) View() tea.View {
-	s := fmt.Sprintf("%s %s successfully created.\n", checkMark, m.cfg.Spec.Sites.Name)
+	s := fmt.Sprintf("%s %s successfully created.\n", checkMark, m.spec.Sites.Name)
 
 	if utilx.NotNil(m.err) {
 		s = fmt.Sprintf("%s %s\n", errorMark, m.err)
@@ -72,7 +72,7 @@ func (m createSiteModel) View() tea.View {
 // createSite creates a new site.
 func (m *createSiteModel) createSite() tea.Cmd {
 	return func() tea.Msg {
-		site := &models.Site{Name: m.cfg.Spec.Sites.Name}
+		site := &models.Site{Name: m.spec.Sites.Name}
 		err := m.sitesCtrl.Create(m.ctx, site)
 
 		if utilx.NotNil(err) {

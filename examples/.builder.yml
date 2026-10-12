@@ -1,5 +1,6 @@
 version: 1
-name: example
+
+# Name is the name of the project.
 
 # Root directory for the builder configuration and output.
 root: .builder

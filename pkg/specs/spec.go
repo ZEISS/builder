@@ -2,7 +2,6 @@ package specs
 
 import (
 	"embed"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -24,14 +23,17 @@ const (
 	DefaultFolder = ".builder"
 )
 
+// ErrSpecExists is returned when the spec already exists.
+var ErrSpecExists = errors.New("spec already exists")
+
 // Spec defines the structure for a specification document.
 // This could be used in various contexts such as API specifications,
 // software design documents, etc.
 type Spec struct {
 	// Version is the version of the spec.
-	Version int `json:"version" yaml:"version"`
+	Version int `json:"version" yaml:"version" validate:"required,eq=1"`
 	// Name is the name of the spec.
-	Name string `json:"name,omitempty" yaml:"name"`
+	Name string `json:"name,omitempty" yaml:"name" validate:"required"`
 	// Root is the root directory of the spec.
 	Root string `json:"root,omitempty" yaml:"root,omitempty"`
 	// Description is the description of the spec.
@@ -180,10 +182,6 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 		return errors.WithStack(err)
 	}
 
-	if err := yaml.Unmarshal(data, &spec); err != nil {
-		return errors.WithStack(err)
-	}
-
 	s.Version = spec.Version
 	s.Name = spec.Name
 	s.Rules = spec.Rules
@@ -200,7 +198,7 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 func Write(s *Spec, file string, force bool) error {
 	ok, _ := filex.FileExists(filepath.Clean(file))
 	if ok && !force {
-		return fmt.Errorf("%s already exists, use --force to overwrite", file)
+		return ErrSpecExists
 	}
 
 	f, err := os.Create(filepath.Clean(file))

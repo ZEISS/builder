@@ -2,8 +2,9 @@ package models
 
 import (
 	"context"
+	"errors"
 
-	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/ui/cmds"
 	"github.com/zeiss/builder/pkg/specs"
 
 	tea "charm.land/bubbletea/v2"
@@ -12,73 +13,61 @@ import (
 
 var checkMark = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).SetString("✓")
 
-type (
-	errorInitMsg   struct{ err error }
-	successInitMsg struct{}
-)
-
 type initModel struct {
-	cfg      config.Config
+	file     string
+	force    bool
 	quitting bool
 	err      error
 	ctx      context.Context
 }
 
 // NewInit returns a new init model.
-func NewInit(ctx context.Context, cfg config.Config) initModel {
+func NewInit(ctx context.Context, file string, force bool) initModel {
 	return initModel{
-		cfg: cfg,
-		ctx: ctx,
+		file:  file,
+		force: force,
+		ctx:   ctx,
 	}
 }
 
 // Init initializes the init model.
 func (i initModel) Init() tea.Cmd {
-	return i.init()
+	return cmds.Init(i.file, i.force)
 }
 
 // Update handles messages for the reset model.
-func (i initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		return i, nil
+		return m, nil
 
-	case successInitMsg: // handle successful reset
-		i.quitting = true
-		return i, tea.Sequence(
-			tea.Printf("%s successfully initialized", checkMark),
+	case cmds.InitSuccessMsg: // handle successful reset
+		m.quitting = true
+		return m, tea.Sequence(
+			tea.Printf("%s %s successfully initialized", checkMark, m.file),
 			tea.Quit,
 		)
 
-	case errorInitMsg: // handle reset error
-		i.err = msg.err
-		i.quitting = true
-		return i, tea.Sequence(
-			tea.Printf("%s %s", errorMark, i.err),
+	case cmds.ErrorMsg: // handle reset error
+		m.quitting = true
+
+		if errors.Is(msg.Err, specs.ErrSpecExists) {
+			return m, tea.Sequence(
+				tea.Printf("%s %s: spec already exists, use --force to overwrite", errorMark, m.file),
+				tea.Quit,
+			)
+		}
+
+		return m, tea.Sequence(
+			tea.Printf("%s %s: %s", errorMark, m.file, msg.Err.Error()),
 			tea.Quit,
 		)
 	}
 
-	return i, nil
+	return m, nil
 }
 
 // View returns the view for the reset model.
 func (r initModel) View() tea.View {
 	return tea.NewView("")
-}
-
-// init is a command that initializes a project.
-func (i initModel) init() tea.Cmd {
-	return func() tea.Msg {
-		example, err := specs.Example()
-		if err != nil {
-			return errorInitMsg{err: err}
-		}
-
-		if err := specs.Write(example, i.cfg.File, i.cfg.Flags.Force); err != nil {
-			return errorInitMsg{err: err}
-		}
-
-		return successInitMsg{}
-	}
 }

@@ -13,6 +13,7 @@ func init() {
 	RootCmd.AddCommand(InitCmd)
 	RootCmd.AddCommand(ResetCmd)
 	RootCmd.AddCommand(TaskCmd)
+	RootCmd.AddCommand(CheckCmd)
 	RootCmd.AddCommand(sites.SitesCmd)
 	RootCmd.AddCommand(AccountCmd)
 

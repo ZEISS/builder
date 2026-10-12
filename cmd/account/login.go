@@ -27,7 +27,7 @@ var LoginCmd = &cobra.Command{
 func runLoginCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
-	path, err := filex.ExpandHomeFolder(config.DefaultConfig.Store)
+	path, err := config.DefaultConfig.Path()
 	if err != nil {
 		return err
 	}

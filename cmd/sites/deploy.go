@@ -29,12 +29,17 @@ var DeployCmd = &cobra.Command{
 }
 
 func runDeploy(cmd *cobra.Command, _ []string) error {
-	err := config.DefaultConfig.LoadSpec()
+	spec, err := config.DefaultConfig.Spec()
 	if err != nil {
 		return err
 	}
 
-	path, err := config.ExpandConfigPath(config.DefaultConfig.Store)
+	cwd, err := config.DefaultConfig.Cwd()
+	if err != nil {
+		return err
+	}
+
+	path, err := config.DefaultConfig.Path()
 	if err != nil {
 		return err
 	}
@@ -88,7 +93,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	// clear all the stdout output
 	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
 
-	model := sites.NewDeploy(cmd.Context(), config.DefaultConfig, sitesController, filesController)
+	model := sites.NewDeploy(cmd.Context(), spec, cwd, sitesController, filesController)
 	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err

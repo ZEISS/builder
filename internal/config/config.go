@@ -12,10 +12,14 @@ import (
 // DefaultClientID is the default client ID using the PKCE flow.
 const DefaultClientID = "builder-cli"
 
-const (
-	// UnknownCwd is the unknown current working directory.
-	UnknownCwd = ""
-)
+// DefaultSpecFileName is the default spec file name.
+const DefaultSpecFileName = ".builder.yaml"
+
+// DefaultPath is the default store file name.
+const DefaultPath = "~/.builder/builder.db"
+
+// UnknownCwd is the unknown current working directory.
+const UnknownCwd = ""
 
 // DefaultConfig is the default configuration.
 var DefaultConfig = New()
@@ -40,6 +44,8 @@ type Flags struct {
 	Version bool
 	// TaskFlags contains the flags for a task.
 	TaskFlags TaskFlags
+	// Path is the path to the project.
+	Path string
 }
 
 // NewFlags returns a new flags.
@@ -47,17 +53,22 @@ func NewFlags() Flags {
 	return Flags{}
 }
 
+// NewDefaultFlags returns the default flags.
+func NewDefaultFlags() Flags {
+	return Flags{
+		Path: DefaultPath,
+		URL:  "http://builder.internal:3000",
+	}
+}
+
 // Config contains the configuration.
 type Config struct {
 	File     string
 	FileMode os.FileMode
 	Flags    Flags
-	Path     string
-	Spec     *specs.Spec
 	Stderr   *os.File
 	Stdin    *os.File
 	Stdout   *os.File
-	Store    string
 	Task     TaskFlags
 	Verbose  bool
 }
@@ -71,33 +82,17 @@ type TaskFlags struct {
 // New returns a new config.
 func New() Config {
 	return Config{
-		File:   ".builder.yml",
-		Store:  "~/.builder/builder.db",
+		File:   DefaultSpecFileName,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags: Flags{
-			URL: "http://builder.internal:3000",
-		},
-		Spec: specs.Default(),
+		Flags:  NewDefaultFlags(),
 	}
 }
 
 // Vars returns the variables.
 func (c *Config) Vars() []string {
 	return c.Flags.Vars
-}
-
-// InitDefaultConfig initializes the default configuration.
-func (c *Config) InitDefaultConfig() error {
-	folder, err := filex.ExpandHomeFolder(c.File)
-	if err != nil {
-		return err
-	}
-
-	c.File = folder
-
-	return nil
 }
 
 // HomeDir returns the home directory.
@@ -108,6 +103,21 @@ func (c *Config) HomeDir() (string, error) {
 	}
 
 	return usr.HomeDir, err
+}
+
+// StorePath returns the path to the store file.
+func (c *Config) StorePath() (string, error) {
+	path, err := filex.ExpandHomeFolder(c.Flags.Path)
+	if err != nil {
+		return "", err
+	}
+
+	abs, err := filepath.Abs(filepath.Clean(path))
+	if err != nil {
+		return "", err
+	}
+
+	return abs, nil
 }
 
 // Cwd return the current working directory.
@@ -121,24 +131,64 @@ func (c *Config) Cwd() (string, error) {
 	return filepath.Dir(abs), nil
 }
 
-// LoadSpec is a helper to load the spec from the config file.
-func (c *Config) LoadSpec() error {
-	f, err := os.ReadFile(filepath.Clean(c.File))
+// Spec is a helper to load the spec from the config file.
+func (c *Config) Spec() (*specs.Spec, error) {
+	path, err := c.Abs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.Spec.UnmarshalYAML(f)
+	f, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	spec := &specs.Spec{}
+	if err := spec.UnmarshalYAML(f); err != nil {
+		return nil, err
+	}
+
+	return spec, nil
+}
+
+// Path returns the expanded path of the config file.
+func (c *Config) Path() (string, error) {
+	path, err := filex.ExpandHomeFolder(c.Flags.Path)
+	if err != nil {
+		return "", err
+	}
+
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	return abs, nil
 }
 
 // DeleteStore deletes the session store.
 func (c *Config) DeleteStore() error {
-	path, err := filex.ExpandHomeFolder(c.Store)
+	path, err := filex.ExpandHomeFolder(c.Flags.Path)
 	if err != nil {
 		return err
 	}
 
 	return os.RemoveAll(path)
+}
+
+// Abs returns the absolute path of the config file.
+func (c *Config) Abs() (string, error) {
+	path, err := filex.ExpandHomeFolder(c.File)
+	if err != nil {
+		return "", err
+	}
+
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Clean(abs), nil
 }
 
 // ExpandConfigPath expands the config path and creates the store folder.

@@ -22,10 +22,15 @@ The config will be created with default values.
 func runInit(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 
-	app := models.NewInit(ctx, config.DefaultConfig)
+	absPath, err := config.DefaultConfig.Abs()
+	if err != nil {
+		return err
+	}
+
+	app := models.NewInit(ctx, absPath, config.DefaultConfig.Flags.Force)
 	programm := tea.NewProgram(app, tea.WithContext(ctx))
 
-	_, err := programm.Run()
+	_, err = programm.Run()
 	if err != nil {
 		return err
 	}
