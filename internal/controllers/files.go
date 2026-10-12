@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 )
 
@@ -20,6 +19,6 @@ func NewFilesController(repo ports.FilesRepository) *FilesController {
 }
 
 // UploadFile is a method that uploads a file to the repository.
-func (c *FilesController) UploadFile(ctx context.Context, site models.Site, cwd, file string) error {
-	return c.repo.UploadFile(ctx, site, cwd, file)
+func (c *FilesController) UploadFile(ctx context.Context, name, cwd, file string) error {
+	return c.repo.UploadFile(ctx, name, cwd, file)
 }

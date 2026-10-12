@@ -74,7 +74,7 @@ func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) 
 }
 
 // UploadFile is a method that uploads a file to a site.
-func (c *client) UploadFile(ctx context.Context, site models.Site, cwd, file string) error {
+func (c *client) UploadFile(ctx context.Context, name, cwd, file string) error {
 	body, err := os.ReadFile(filepath.Clean(filepath.Join(cwd, file)))
 	if err != nil {
 		return err
@@ -87,11 +87,15 @@ func (c *client) UploadFile(ctx context.Context, site models.Site, cwd, file str
 		FileName: file,
 	}
 
-	res, err := c.apis.UploadFileWithBody(ctx, site.ID, params, contentType, reader)
+	res, err := c.apis.UploadFileWithBody(ctx, name, params, contentType, reader)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
 
 	return nil
 }

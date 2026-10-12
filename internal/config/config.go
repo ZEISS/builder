@@ -128,7 +128,7 @@ func (c *Config) Cwd() (string, error) {
 		return UnknownCwd, err
 	}
 
-	return filepath.Dir(abs), nil
+	return filepath.Dir(filepath.Clean(abs)), nil
 }
 
 // Spec is a helper to load the spec from the config file.

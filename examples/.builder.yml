@@ -1,6 +1,7 @@
 version: 1
 
 # Name is the name of the project.
+name: fizzy-buzzy
 
 # Root directory for the builder configuration and output.
 root: .builder

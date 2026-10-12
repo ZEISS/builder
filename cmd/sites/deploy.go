@@ -2,7 +2,7 @@ package sites
 
 import (
 	"errors"
-	"os"
+	"path/filepath"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
@@ -90,10 +90,17 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	sitesController := controllers.NewSitesController(client)
 	filesController := controllers.NewFilesController(client)
 
-	// clear all the stdout output
-	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
+	site, err := sitesController.GetSite(cmd.Context(), spec.Sites.Name)
+	if err != nil {
+		return err
+	}
 
-	model := sites.NewDeploy(cmd.Context(), spec, cwd, sitesController, filesController)
+	apath, err := filepath.Abs(filepath.Join(cwd, spec.Sites.Path))
+	if err != nil {
+		return err
+	}
+
+	model := sites.NewDeploy(cmd.Context(), site.Name, site.ID, apath, spec.Sites.Ignore, filesController)
 	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
 	if err != nil {
 		return err

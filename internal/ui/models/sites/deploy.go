@@ -3,14 +3,11 @@ package sites
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/zeiss/builder/internal/home"
-	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
-	"github.com/zeiss/builder/pkg/specs"
-	"github.com/zeiss/builder/pkg/utils"
+	"github.com/zeiss/builder/internal/ui/cmds"
 
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/progress"
@@ -25,12 +22,6 @@ var helpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#626262")).Render
 const (
 	padding  = 2
 	maxWidth = 80
-)
-
-type (
-	progressDeployMsg   struct{}
-	siteDeployExistsMsg struct{ site models.Site }
-	siteDeployErrorMsg  struct{ err error }
 )
 
 // deployKeyMap defines the keybindings for the deploy model.
@@ -61,8 +52,10 @@ var deployKeys = deployKeyMap{
 }
 
 type deploySiteModel struct {
-	spec      *specs.Spec
-	cwd       string
+	path      string
+	id        string
+	name      string
+	ignore    []string
 	completed int
 	ctx       context.Context
 	err       error
@@ -71,22 +64,21 @@ type deploySiteModel struct {
 	percent   float64
 	progress  progress.Model
 	quitting  bool
-	sitesCtrl ports.SitesController
 	filesCtrl ports.FilesController
-	site      models.Site
 	total     int
 	height    int
 	width     int
 }
 
 // NewDeploy creates a new deploy model.
-func NewDeploy(ctx context.Context, spec *specs.Spec, cwd string, sitesCtrl ports.SitesController, filesCtrl ports.FilesController) *deploySiteModel {
+func NewDeploy(ctx context.Context, name, id, path string, ignore []string, filesCtrl ports.FilesController) *deploySiteModel {
 	return &deploySiteModel{
 		keys:      deployKeys,
 		ctx:       ctx,
-		spec:      spec,
-		cwd:       cwd,
-		sitesCtrl: sitesCtrl,
+		name:      name,
+		path:      path,
+		id:        id,
+		ignore:    ignore,
 		filesCtrl: filesCtrl,
 		progress:  progress.New(progress.WithDefaultBlend()),
 	}
@@ -94,7 +86,7 @@ func NewDeploy(ctx context.Context, spec *specs.Spec, cwd string, sitesCtrl port
 
 // Init initializes the deploy model.
 func (m *deploySiteModel) Init() tea.Cmd {
-	return tea.Batch(m.getSite())
+	return cmds.ScanDir(m.path, m.ignore)
 }
 
 // Update handles incoming messages and updates the model accordingly.
@@ -110,22 +102,19 @@ func (m *deploySiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
-	case siteDeployErrorMsg:
-		m.err = msg.err
+	case cmds.ErrorMsg:
+		m.err = msg.Err
 		m.quitting = true
 		return m, tea.Sequence(
 			tea.Printf("%s %s", errorMark, m.err),
 			tea.Quit,
 		)
 
-	case siteDeployExistsMsg:
-		m.site = msg.site
-		return m, tea.Sequence(
-			m.writeFiles(),
-			tea.Quit,
-		)
+	case cmds.SitesDeployScanSuccessMsg:
+		m.total = msg.Total
+		return m, cmds.DeploySite(m.ctx, m.id, m.path, msg.Files, m.filesCtrl)
 
-	case progressDeployMsg:
+	case cmds.SitesDeployFileSuccessMsg:
 		m.completed++
 		m.percent = float64(m.completed) / float64(m.total)
 
@@ -153,7 +142,7 @@ func (m *deploySiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the current state of the deploy model.
 func (m deploySiteModel) View() tea.View {
 	var v tea.View
-	v.WindowTitle = "builder " + home.Short(m.spec.Name)
+	v.WindowTitle = "builder " + home.Short(m.name)
 
 	var s strings.Builder
 	if utilx.NotNil(m.err) {
@@ -175,37 +164,4 @@ func (m deploySiteModel) View() tea.View {
 
 	v.Content = s.String()
 	return v
-}
-
-func (m *deploySiteModel) writeFiles() tea.Cmd {
-	path := filepath.Join(m.cwd, m.spec.Sites.Path)
-	files := utils.ScanDir(path, m.spec.Sites.Ignore)
-
-	cmds := make([]tea.Cmd, 0, len(files))
-	m.total = len(files)
-
-	for _, file := range files {
-		cmds = append(cmds, func() tea.Msg {
-			err := m.filesCtrl.UploadFile(m.ctx, m.site, path, filepath.Clean(strings.TrimPrefix(file, path)))
-			if err != nil {
-				return siteDeployErrorMsg{err: err}
-			}
-
-			return progressDeployMsg{}
-		})
-	}
-
-	return tea.Sequence(cmds...)
-}
-
-func (m *deploySiteModel) getSite() tea.Cmd {
-	return func() tea.Msg {
-		site, err := m.sitesCtrl.GetSite(m.ctx, m.spec.Sites.Name)
-
-		if utilx.NotNil(err) {
-			return siteDeployErrorMsg{err: err}
-		}
-
-		return siteDeployExistsMsg{site}
-	}
 }
