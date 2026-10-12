@@ -7,8 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cfg = config.New()
-
 func init() {
 	RootCmd.AddCommand(InitCmd)
 	RootCmd.AddCommand(ResetCmd)
