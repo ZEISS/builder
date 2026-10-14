@@ -4,44 +4,82 @@ import (
 	"fmt"
 	"os"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/colorprofile"
+	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/ui/defaults"
 	exitbanner "github.com/zeiss/builder/internal/ui/exit"
+	ui "github.com/zeiss/builder/internal/ui/models"
+	"github.com/zeiss/builder/internal/ui/workspaces"
 	"github.com/zeiss/builder/internal/versions"
 
 	"github.com/spf13/cobra"
 )
 
+// Flags holds the command line flags.
+var Flags = config.NewDefaultFlags()
+
 func init() {
+	// Commands
 	RootCmd.AddCommand(InitCmd)
 	RootCmd.AddCommand(ResetCmd)
 	RootCmd.AddCommand(CheckCmd)
 	RootCmd.AddCommand(sites.SitesCmd)
 	RootCmd.AddCommand(AccountCmd)
 
-	RootCmd.PersistentFlags().StringVarP(&config.DefaultConfig.Flags.URL, "url", "u", config.DefaultConfig.Flags.URL, "URL")
-	RootCmd.PersistentFlags().StringVarP(&config.DefaultConfig.File, "config", "c", config.DefaultConfig.File, "config file")
-	RootCmd.PersistentFlags().BoolVarP(&config.DefaultConfig.Flags.Verbose, "verbose", "v", config.DefaultConfig.Flags.Verbose, "verbose output")
-	RootCmd.PersistentFlags().BoolVarP(&config.DefaultConfig.Flags.Dry, "dry", "d", config.DefaultConfig.Flags.Dry, "dry run")
-	RootCmd.PersistentFlags().BoolVarP(&config.DefaultConfig.Flags.Root, "root", "r", config.DefaultConfig.Flags.Root, "run as root")
-	RootCmd.PersistentFlags().BoolVarP(&config.DefaultConfig.Flags.Force, "force", "f", config.DefaultConfig.Flags.Force, "force init")
-	RootCmd.PersistentFlags().StringSliceVarP(&config.DefaultConfig.Flags.Plugins, "plugin", "p", config.DefaultConfig.Flags.Plugins, "plugin")
-	RootCmd.PersistentFlags().StringSliceVar(&config.DefaultConfig.Flags.Vars, "var", config.DefaultConfig.Flags.Vars, "variables")
+	// State
+	RootCmd.PersistentFlags().StringVarP(&Flags.URL, "url", "u", Flags.URL, "URL")
+	RootCmd.PersistentFlags().StringVarP(&Flags.Path, "path", "p", Flags.Path, "path")
+	RootCmd.PersistentFlags().StringVarP(&Flags.Session, "session", "s", Flags.Session, "session")
+	RootCmd.PersistentFlags().BoolVar(&Flags.Continue, "continue", Flags.Continue, "continue")
+	RootCmd.PersistentFlags().StringVarP(&Flags.Config, "config", "c", Flags.Config, "config file")
+	RootCmd.PersistentFlags().BoolVarP(&Flags.Verbose, "verbose", "v", Flags.Verbose, "verbose output")
+	RootCmd.PersistentFlags().BoolVarP(&Flags.Force, "force", "f", Flags.Force, "force init")
+	RootCmd.PersistentFlags().BoolVar(&Flags.Debug, "debug", Flags.Debug, "debug mode")
+	RootCmd.PersistentFlags().BoolVarP(&Flags.Yolo, "yolo", "y", Flags.Yolo, "yolo mode")
 
+	// Runtime
+	RootCmd.PersistentFlags().StringSliceVar(&Flags.Plugins, "plugin", Flags.Plugins, "plugin")
+	RootCmd.PersistentFlags().StringSliceVar(&Flags.Vars, "var", Flags.Vars, "variables")
+
+	// Output
 	RootCmd.SilenceErrors = true
 	RootCmd.SilenceUsage = true
 }
 
 var RootCmd = &cobra.Command{
-	Use:   "builder",
-	Short: "builder",
+	Use:   "sparkles",
+	Short: "sparkles",
 	RunE:  runRootCmd,
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
+	_, _, err := workspaces.SetupWithProgressBar(Flags)
+	if err != nil {
+		return err
+	}
+
+	inputFilter := ui.NewFilter()
+	var env uv.Environ = os.Environ()
+	defaultUI := defaults.DefaultUI()
+	rootUI := ui.NewUI(defaultUI, Flags.Session, Flags.Continue)
+
+	program := tea.NewProgram(
+		rootUI,
+		tea.WithEnvironment(env),
+		tea.WithContext(cmd.Context()),
+		tea.WithFilter(inputFilter.Filter),
+	)
+
+	if _, err := program.Run(); err != nil {
+		return err
+	}
+
 	printExitBanner()
+
 	return nil
 }
 

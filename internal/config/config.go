@@ -26,26 +26,30 @@ var DefaultConfig = New()
 
 // Flags contains the command line flags.
 type Flags struct {
-	// URL is the URL of the OIDC provider.
+	// URL is the URL of the builder server.
 	URL string
 	// Plugins contains the plugins to use.
 	Plugins []string
 	// Vars contains the variables to use.
 	Vars []string
-	// Dry indicates whether to print dry run messages.
-	Dry bool
 	// Force indicates whether to force overwrite.
 	Force bool
-	// Root is the root directory of the project.
-	Root bool
 	// Verbose indicates whether to print verbose messages.
 	Verbose bool
-	// Version indicates whether to print version.
-	Version bool
+	// Debug indicates whether to enable debug mode.
+	Debug bool
+	// Yolo indicates whether to enable yolo mode.
+	Yolo bool
 	// TaskFlags contains the flags for a task.
 	TaskFlags TaskFlags
-	// Path is the path to the project.
+	// Config is the path to the config file.
+	Config string
+	// Path is the path to the store file.
 	Path string
+	// Session is the session ID to use.
+	Session string
+	// Continue indicates whether to continue a session.
+	Continue bool
 }
 
 // NewFlags returns a new flags.
@@ -56,8 +60,8 @@ func NewFlags() Flags {
 // NewDefaultFlags returns the default flags.
 func NewDefaultFlags() Flags {
 	return Flags{
-		Path: DefaultPath,
-		URL:  "http://builder.internal:3000",
+		Config: DefaultSpecFileName,
+		Path:   DefaultPath,
 	}
 }
 
