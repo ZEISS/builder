@@ -10,7 +10,6 @@ import (
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/zeiss/builder/internal/ui/defaults"
-	"github.com/zeiss/builder/internal/ui/dialogs"
 	"github.com/zeiss/builder/internal/ui/list"
 	"github.com/zeiss/builder/internal/ui/styles"
 	"github.com/zeiss/builder/internal/ui/utils"
@@ -322,7 +321,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	commands := []*CommandItem{
 		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
-		NewCommandItem(c.ui.Styles, "config_url", "Configure Builder", "ctrl+u", ActionOpenDialog{DialogID: dialogs.ConfigID}),
+		NewCommandItem(c.ui.Styles, "config_url", "Configure Builder", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
 	}
 
 	// Add external editor command if $EDITOR is available.
