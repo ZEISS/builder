@@ -13,8 +13,8 @@ import (
 	"github.com/zeiss/builder/internal/ui/defaults"
 	exitbanner "github.com/zeiss/builder/internal/ui/exit"
 	ui "github.com/zeiss/builder/internal/ui/models"
-	"github.com/zeiss/builder/internal/ui/workspaces"
 	"github.com/zeiss/builder/internal/versions"
+	"github.com/zeiss/builder/internal/workspaces"
 
 	"github.com/spf13/cobra"
 )
@@ -57,14 +57,14 @@ var RootCmd = &cobra.Command{
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
-	_, _, err := workspaces.SetupWithProgressBar(Flags)
+	workspace, err := workspaces.SetupWithProgressBar(Flags)
 	if err != nil {
 		return err
 	}
 
 	inputFilter := ui.NewFilter()
 	var env uv.Environ = os.Environ()
-	defaultUI := defaults.DefaultUI()
+	defaultUI := defaults.DefaultUI(workspace)
 	rootUI := ui.NewUI(defaultUI, Flags.Session, Flags.Continue)
 
 	program := tea.NewProgram(
@@ -77,6 +77,8 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 	if _, err := program.Run(); err != nil {
 		return err
 	}
+
+	workspace.Cleanup()
 
 	printExitBanner()
 

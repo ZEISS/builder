@@ -15,8 +15,8 @@ const DefaultClientID = "builder-cli"
 // DefaultSpecFileName is the default spec file name.
 const DefaultSpecFileName = ".builder.yaml"
 
-// DefaultPath is the default store file name.
-const DefaultPath = "~/.builder/builder.db"
+// DefaultPath is the default path to store workspace data.
+const DefaultPath = ".sparkles"
 
 // UnknownCwd is the unknown current working directory.
 const UnknownCwd = ""

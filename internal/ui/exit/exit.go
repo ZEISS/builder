@@ -8,15 +8,14 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/zeiss/builder/internal/ui/logo"
 	"github.com/zeiss/builder/internal/ui/styles"
+	"github.com/zeiss/builder/internal/versions"
 )
 
 // FallbackWidth is used when stdout is not a terminal, so the banner still
 // wraps to something sane when output is piped or captured.
 const FallbackWidth = 80
 
-// Render returns the exit banner for the given style, or an empty string when
-// there is nothing to print. A nil or untitled session means the resume hint is
-// omitted, which for the compact banner leaves nothing at all.
+// Render returns the exit banner for the given style.
 func Render(version string, width int) string {
 	if width <= 0 {
 		width = FallbackWidth
@@ -25,23 +24,28 @@ func Render(version string, width int) string {
 	style := lipgloss.NewStyle().Padding(1, 3)
 	contentWidth := width - style.GetHorizontalFrameSize()
 
-	sections := []string{logoSection(version, contentWidth)}
+	sections := []string{logoSection(contentWidth)}
 	return style.Render(strings.Join(sections, "\n\n"))
 }
 
 // logoSection returns the ASCII art logo followed by the parting message.
-func logoSection(version string, contentWidth int) string {
+func logoSection(contentWidth int) string {
 	t := styles.ThemeForProvider("")
-	crushLogo := logo.Render(t.Logo.GradCanvas, version, true, logo.Opts{
-		FieldColor:   t.Logo.FieldColor,
-		TitleColorA:  t.Logo.TitleColorA,
-		TitleColorB:  t.Logo.TitleColorB,
-		CharmColor:   t.Logo.CharmColor,
-		VersionColor: t.Logo.VersionColor,
-	})
-	// Wrap the greeting and the message together: wrapping only the message
-	// leaves the greeting's own width unaccounted for and overflows the frame.
-	return crushLogo + "\n" +
+
+	sparklesLogo := logo.Render(
+		t.Logo.GradCanvas,
+		versions.VersionString,
+		true,
+		logo.Opts{
+			FieldColor:   t.Logo.FieldColor,
+			TitleColorA:  t.Logo.TitleColorA,
+			TitleColorB:  t.Logo.TitleColorB,
+			CharmColor:   t.Logo.CharmColor,
+			VersionColor: t.Logo.VersionColor,
+		},
+	)
+
+	return sparklesLogo + "\n" +
 		lipgloss.NewStyle().Width(contentWidth).Render("It's sparkling! "+randomExitMessage())
 }
 

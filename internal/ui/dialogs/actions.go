@@ -2,6 +2,9 @@ package dialogs
 
 import tea "charm.land/bubbletea/v2"
 
+// Action represents an action taken in a dialog after handling a message.
+type Action any
+
 // ActionClose is a message to close the current dialog.
 type ActionClose struct{}
 
