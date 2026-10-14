@@ -10,6 +10,7 @@ import (
 	"github.com/zeiss/builder/internal/ui/dialogs"
 	"github.com/zeiss/builder/internal/ui/utils"
 
+	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/ultraviolet/layout"
@@ -47,12 +48,15 @@ type UI struct {
 	height int
 	// layout holds the layout of the UI.
 	layout uiLayout
+	// keyMap holds the key map for the UI.
+	keyMap KeyMap
 }
 
 // NewUI creates a new UI model with the given defaults.
 func NewUI(defaults *defaults.UI, sessionID string, sessionContinue bool) *UI {
 	dialogs := dialogs.NewOverlay()
 	header := NewHeader(defaults)
+	keyMap := DefaultKeyMap()
 
 	return &UI{
 		defaults:        defaults,
@@ -60,6 +64,7 @@ func NewUI(defaults *defaults.UI, sessionID string, sessionContinue bool) *UI {
 		sessionID:       sessionID,
 		sessionContinue: sessionContinue,
 		dialogs:         dialogs,
+		keyMap:          keyMap,
 	}
 }
 
@@ -133,6 +138,14 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 	var cmds []tea.Cmd
 
+	if key.Matches(msg, m.keyMap.Quit) && !m.dialogs.ContainsDialog(dialogs.QuitID) {
+		if cmd := m.openQuitDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+
+		return tea.Batch(cmds...)
+	}
+
 	// Route all messages to dialog if one is open.
 	if m.dialogs.HasDialogs() {
 		return m.handleDialogMsg(msg)
@@ -151,6 +164,8 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	}
 
 	switch action.(type) {
+	case dialogs.ActionClose:
+		cmds = append(cmds, m.closeDialog())
 	case dialogs.ActionQuit: // Quit the application.
 		cmds = append(cmds, tea.Quit)
 	default:
@@ -158,6 +173,17 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	}
 
 	return tea.Batch(cmds...)
+}
+
+// closeDialog closes the dialog with the given ID.
+func (m *UI) closeDialog() tea.Cmd {
+	if !m.dialogs.HasDialogs() {
+		return utils.Noop()
+	}
+
+	m.dialogs.CloseFrontDialog()
+
+	return utils.Noop()
 }
 
 // openDialog opens a dialog with the given ID.

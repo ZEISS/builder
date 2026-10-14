@@ -64,6 +64,7 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 
 	inputFilter := ui.NewFilter()
 	var env uv.Environ = os.Environ()
+
 	defaultUI := defaults.DefaultUI(workspace)
 	rootUI := ui.NewUI(defaultUI, Flags.Session, Flags.Continue)
 

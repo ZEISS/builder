@@ -129,6 +129,7 @@ func (q *Quit) handleMouseClick(msg tea.MouseClickMsg) Action {
 			q.selectedNo = true
 			return nil
 		}
+
 		return ActionClose{}
 	}
 
@@ -146,17 +147,22 @@ func (q *Quit) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		baseStyle = q.com.Styles.Dialog.Quit.Content
 		hintStyle = q.com.Styles.Dialog.Quit.Hint
 	)
+
 	buttonOpts := []defaults.ButtonOpts{
 		{Text: "Yep!", Selected: !q.selectedNo, Padding: 3},
 		{Text: "Nope", Selected: q.selectedNo, Padding: 3},
 	}
+
 	if hovered := defaults.HitButtonIndex(q.compositor, q.hoverX, q.hoverY); hovered >= 0 {
 		buttonOpts[hovered].Hovered = true
 	}
+
 	buttonViews := make([]string, len(buttonOpts))
+
 	for i, o := range buttonOpts {
 		buttonViews[i] = defaults.Button(q.com.Styles, o)
 	}
+
 	buttons := strings.Join(buttonViews, " ")
 	buttonsWidth := lipgloss.Width(buttons)
 
@@ -215,6 +221,7 @@ func (q *Quit) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		// as part of the content instead: the user always sees them.
 		DrawCenter(scr, area, frameStyle.Render(renderContent(buttons)))
 	}
+
 	return nil
 }
 
@@ -228,12 +235,15 @@ func (*Quit) HandlesHover() bool {
 func drawButtons(scr uv.Screen, x, y int, views []string) *lipgloss.Compositor {
 	layers := make([]*lipgloss.Layer, len(views))
 	bx := x
+
 	for i, v := range views {
 		layers[i] = lipgloss.NewLayer(v).X(bx).Y(y).ID(fmt.Sprintf("btn_%d", i))
 		bx += lipgloss.Width(v) + 1 // one cell between buttons
 	}
+
 	compositor := lipgloss.NewCompositor(layers...)
 	compositor.Draw(scr, scr.Bounds())
+
 	return compositor
 }
 
