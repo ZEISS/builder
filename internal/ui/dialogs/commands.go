@@ -321,6 +321,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	commands := []*CommandItem{
 		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
+		NewCommandItem(c.ui.Styles, "config_url", "Configure Builder", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
 	}
 
 	// Add external editor command if $EDITOR is available.

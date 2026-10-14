@@ -169,9 +169,12 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		return tea.Batch(cmds...)
 	}
 
-	switch action.(type) {
+	switch msg := action.(type) {
 	case dialogs.ActionClose:
 		cmds = append(cmds, m.closeDialog())
+	case dialogs.ActionOpenDialog:
+		m.dialogs.CloseDialog(dialogs.CommandsID)
+		cmds = append(cmds, m.openDialog(msg.DialogID))
 	case dialogs.ActionQuit: // Quit the application.
 		cmds = append(cmds, tea.Quit)
 	default:
@@ -188,6 +191,23 @@ func (m *UI) closeDialog() tea.Cmd {
 	}
 
 	m.dialogs.CloseFrontDialog()
+
+	return utils.Noop()
+}
+
+// openConfigDialog opens the config dialog.
+func (m *UI) openConfigDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.ConfigID) {
+		m.dialogs.BringToFront(dialogs.ConfigID)
+		return utils.Noop()
+	}
+
+	config, err := dialogs.NewConfigDialog(m.defaults, "")
+	if err != nil {
+		return utils.Noop() // TODO: handle the errors
+	}
+
+	m.dialogs.OpenDialog(config)
 
 	return utils.Noop()
 }
@@ -213,6 +233,10 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 func (m *UI) openDialog(id string) tea.Cmd {
 	if id == dialogs.QuitID {
 		return m.openQuitDialog()
+	}
+
+	if id == dialogs.ConfigID {
+		return m.openConfigDialog()
 	}
 
 	return utils.Noop()

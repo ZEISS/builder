@@ -8,6 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/builder/internal/ui/list"
+	"github.com/zeiss/builder/internal/ui/styles"
+
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/textinput"
@@ -17,9 +21,6 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/rivo/uniseg"
 	"github.com/sahilm/fuzzy"
-	"github.com/zeiss/builder/internal/ui/defaults"
-	"github.com/zeiss/builder/internal/ui/list"
-	"github.com/zeiss/builder/internal/ui/styles"
 )
 
 // Dialog sizing constants.
@@ -683,4 +684,42 @@ func shortHelpLine(h *help.Model, bindings []key.Binding, width int) string {
 		b.WriteString(seg)
 	}
 	return b.String()
+}
+
+// adjustOnboardingInputCursor removes the dialog view frame offset from an
+// input cursor. Onboarding dialogs render without Dialog.View frame, while
+// InputCursor includes that frame offset for regular dialogs.
+func adjustOnboardingInputCursor(t *styles.Styles, cur *tea.Cursor) *tea.Cursor {
+	if cur == nil {
+		return nil
+	}
+
+	dialogStyle := t.Dialog.View
+	cur.X -= dialogStyle.GetBorderLeftSize() +
+		dialogStyle.GetPaddingLeft() +
+		dialogStyle.GetMarginLeft()
+	cur.Y -= dialogStyle.GetBorderTopSize() +
+		dialogStyle.GetPaddingTop() +
+		dialogStyle.GetMarginTop()
+	return cur
+}
+
+// DrawOnboarding draws the given string view centered in the screen area.
+func DrawOnboarding(scr uv.Screen, area uv.Rectangle, view string) {
+	DrawOnboardingCursor(scr, area, view, nil)
+}
+
+// DrawOnboardingCursor draws the given string view positioned at the bottom
+// left area of the screen. Content larger than the area is clamped to fit.
+func DrawOnboardingCursor(scr uv.Screen, area uv.Rectangle, view string, cur *tea.Cursor) {
+	width, height := lipgloss.Size(view)
+	// Clamp to available area so oversized dialogs don't draw outside bounds.
+	width = min(width, area.Dx())
+	height = min(height, area.Dy())
+	bottomLeft := defaults.BottomLeftRect(area, width, height)
+	if cur != nil {
+		cur.X += bottomLeft.Min.X
+		cur.Y += bottomLeft.Min.Y
+	}
+	uv.NewStyledString(view).Draw(scr, bottomLeft)
 }
