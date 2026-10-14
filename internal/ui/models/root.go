@@ -138,11 +138,17 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 	var cmds []tea.Cmd
 
+	if key.Matches(msg, m.keyMap.Commands) {
+		if cmd := m.openCommandsDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return tea.Batch(cmds...)
+	}
+
 	if key.Matches(msg, m.keyMap.Quit) && !m.dialogs.ContainsDialog(dialogs.QuitID) {
 		if cmd := m.openQuitDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-
 		return tea.Batch(cmds...)
 	}
 
@@ -184,6 +190,23 @@ func (m *UI) closeDialog() tea.Cmd {
 	m.dialogs.CloseFrontDialog()
 
 	return utils.Noop()
+}
+
+// openCommandsDialog opens the commands dialog.
+func (m *UI) openCommandsDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.CommandsID) {
+		m.dialogs.BringToFront(dialogs.CommandsID)
+		return utils.Noop()
+	}
+
+	commands, err := dialogs.NewCommands(m.defaults, "", false, false, false)
+	if err != nil {
+		return utils.Noop() // TODO: handle the errors
+	}
+
+	m.dialogs.OpenDialog(commands)
+
+	return commands.InitialCmd()
 }
 
 // openDialog opens a dialog with the given ID.

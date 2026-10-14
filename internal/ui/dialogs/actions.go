@@ -15,3 +15,8 @@ type ActionQuit = tea.QuitMsg
 type ActionOpenDialog struct {
 	DialogID string
 }
+
+// ActionCmd is a message to execute a command.
+type ActionCmd struct {
+	Command tea.Cmd
+}
