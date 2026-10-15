@@ -552,6 +552,7 @@ func (dv *DiffView) renderSplit() string {
 outer:
 	for i, h := range dv.splitHunks {
 		// Render file name header before the first hunk.
+		//nolint:nestif
 		if i == 0 && dv.fileName != "" {
 			if shouldWrite() {
 				ls := dv.style.Filename
@@ -591,6 +592,7 @@ outer:
 			hasReachedHeight := dv.height > 0 && printedLines+1 == dv.height
 			isLastHunk := i+1 == len(dv.unified.Hunks)
 			isLastLine := j+1 == len(h.lines)
+			//nolint:nestif
 			if hasReachedHeight && (!isLastHunk || !isLastLine) {
 				if shouldWrite() {
 					ls := dv.style.MissingLine

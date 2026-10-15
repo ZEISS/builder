@@ -440,6 +440,7 @@ func resolveThemePalette(name string, visiting map[string]bool) (Palette, string
 	visiting[key] = true
 	defer delete(visiting, key)
 
+	//nolint:nestif
 	if path, err := FindThemeFile(key); err == nil {
 		tf, err := LoadThemeFile(path)
 		if err != nil {

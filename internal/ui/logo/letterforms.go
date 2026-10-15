@@ -8,9 +8,8 @@ import (
 	"github.com/charmbracelet/x/exp/slice"
 )
 
-// renderWord renders letterforms to fork a word. stretchIndex is the index of
-// the letter to stretch, or -1 if no letter should be stretched.
-func renderWord(spacing int, stretchIndex int, letterforms ...letterform) string {
+// renderWord is a helper function that renders a word using the given letterforms.
+func renderWord(spacing, stretchIndex int, letterforms ...letterform) string {
 	if spacing < 0 {
 		spacing = 0
 	}

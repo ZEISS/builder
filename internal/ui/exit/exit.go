@@ -70,5 +70,5 @@ func randomExitMessage() string {
 		"Where did I leave my sunglasses?",
 		"It’s cocoa o’clock.",
 	}
-	return messages[rand.IntN(len(messages))]
+	return messages[rand.IntN(len(messages))] //nolint:gosec
 }

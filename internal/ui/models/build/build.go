@@ -23,8 +23,6 @@ type Model struct {
 	cancel context.CancelFunc
 	// renderer is the terminal renderer for the build output.
 	renderer *glamour.TermRenderer
-	// width is the width of the terminal window.
-	width int
 	// spinner is the spinner used to indicate build progress.
 	spinner spinner.Model
 }

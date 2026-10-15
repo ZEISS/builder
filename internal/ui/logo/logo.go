@@ -66,7 +66,7 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 		stretchIndex = cachedRandN(len(sparklesLetterforms))
 	} else if !compact && o.Unstable {
 		// Stretch a random letterform on every render.
-		stretchIndex = rand.IntN(len(sparklesLetterforms))
+		stretchIndex = rand.IntN(len(sparklesLetterforms)) //nolint:gosec
 	}
 
 	sparkles := renderWord(spacing, stretchIndex, sparklesLetterforms...)

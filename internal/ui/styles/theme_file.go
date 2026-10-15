@@ -95,7 +95,7 @@ func ThemeDirs() []string {
 	if themeDirsOverride != nil {
 		return themeDirsOverride
 	}
-	return []string{filepath.Join("themes")}
+	return []string{"themes"}
 }
 
 // ThemePath returns the path for a validated global user theme name.
