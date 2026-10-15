@@ -40,6 +40,8 @@ type UI struct {
 	state UIState
 	// header holds the header model for the UI.
 	header *Header
+	// status holds the status model for the UI.
+	status *Status
 	// dialogs captures the dialog state for the UI.
 	dialogs *dialogs.Overlay
 	// width holds the width of the UI canvas.
@@ -54,18 +56,24 @@ type UI struct {
 
 // NewUI creates a new UI model with the given defaults.
 func NewUI(defaults *defaults.UI, sessionID string, sessionContinue bool) *UI {
-	dialogs := dialogs.NewOverlay()
-	header := NewHeader(defaults)
-	keyMap := DefaultKeyMap()
+	ui := &UI{}
+	ui.defaults = defaults
+	ui.sessionID = sessionID
+	ui.sessionContinue = sessionContinue
 
-	return &UI{
-		defaults:        defaults,
-		header:          header,
-		sessionID:       sessionID,
-		sessionContinue: sessionContinue,
-		dialogs:         dialogs,
-		keyMap:          keyMap,
-	}
+	dialogs := dialogs.NewOverlay()
+	ui.dialogs = dialogs
+
+	header := NewHeader(defaults)
+	ui.header = header
+
+	keyMap := DefaultKeyMap()
+	ui.keyMap = keyMap
+
+	status := NewStatus(defaults, ui)
+	ui.status = status
+
+	return ui
 }
 
 // Init initializes the UI model.
@@ -127,11 +135,46 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		m.drawHeader(scr, layout.header)
 	}
 
+	m.status.Draw(scr, layout.status)
+
 	if m.dialogs.HasDialogs() {
 		return m.dialogs.Draw(scr, scr.Bounds())
 	}
 
 	return nil
+}
+
+// ShortHelp implements [help.KeyMap].
+func (m *UI) ShortHelp() []key.Binding {
+	var binds []key.Binding
+	k := &m.keyMap
+
+	binds = append(
+		binds,
+		k.Quit,
+		k.Help,
+	)
+
+	return binds
+}
+
+// FullHelp implements [help.KeyMap].
+func (m *UI) FullHelp() [][]key.Binding {
+	var binds [][]key.Binding
+
+	k := &m.keyMap
+	help := k.Help
+	help.SetHelp("ctrl+g", "less")
+
+	binds = append(
+		binds,
+		[]key.Binding{
+			help,
+			k.Quit,
+		},
+	)
+
+	return binds
 }
 
 // handleKeyPressMsg handles key press messages.

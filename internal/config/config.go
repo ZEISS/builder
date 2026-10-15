@@ -1,13 +1,18 @@
 package config
 
 import (
+	"cmp"
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 
 	"github.com/zeiss/builder/pkg/specs"
 	"github.com/zeiss/pkg/filex"
+	"github.com/zeiss/pkg/utilx"
 )
+
+const appName = "sparkles"
 
 // DefaultClientID is the default client ID using the PKCE flow.
 const DefaultClientID = "builder-cli"
@@ -90,7 +95,7 @@ func New() Config {
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags:  NewDefaultFlags(),
+		Flags:  NewDefaultFlags(), // deprecated
 	}
 }
 
@@ -208,4 +213,36 @@ func ExpandConfigPath(path string) (string, error) {
 	}
 
 	return path, nil
+}
+
+// AppDirPath returns the path to the main data directory for the application.
+func AppDirPath() (string, error) {
+	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); utilx.NotEmpty(xdgDataHome) {
+		return filepath.Join(xdgDataHome, appName), nil
+	}
+
+	if runtime.GOOS == "windows" {
+		localAppData := cmp.Or(
+			os.Getenv("LOCALAPPDATA"),
+			filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local"),
+		)
+		return filepath.Join(localAppData, appName), nil
+	}
+
+	home, err := HomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(home, ".local", "share", appName), nil
+}
+
+// HomeDir returns the home directory.
+func HomeDir() (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	return usr.HomeDir, err
 }

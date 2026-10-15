@@ -6,8 +6,12 @@ import (
 	"path/filepath"
 
 	"github.com/charmbracelet/x/ansi"
+	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/controllers"
+	"github.com/zeiss/builder/internal/ports"
 	"github.com/zeiss/builder/internal/ui/utils"
+	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/filex"
 )
 
@@ -24,7 +28,9 @@ type Workspace interface {
 	// LogFile returns the log file of the workspace.
 	LogFile() string
 	// Cleanup cleans up the workspace.
-	Cleanup()
+	Cleanup() error
+	// Session returns the session controller of the workspace.
+	Session() ports.SessionController
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -36,15 +42,21 @@ type WorkspaceImpl struct {
 	cwd     string
 	dir     string
 	logFile string
+	session ports.SessionController
+	store   dbx.Database[ports.ReadTx, ports.ReadWriteTx]
 }
 
 // New returns a new WorkspaceImpl.
-func New(debug, yolo bool, cwd, dir string) *WorkspaceImpl {
+func New(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], debug, yolo bool, cwd, dir string) *WorkspaceImpl {
+	session := controllers.NewSessionController(store)
+
 	return &WorkspaceImpl{
-		debug: debug,
-		yolo:  yolo,
-		cwd:   cwd,
-		dir:   dir,
+		debug:   debug,
+		yolo:    yolo,
+		cwd:     cwd,
+		dir:     dir,
+		session: session,
+		store:   store,
 	}
 }
 
@@ -74,7 +86,14 @@ func (w *WorkspaceImpl) LogFile() string {
 }
 
 // Cleanup cleans up the workspace.
-func (w *WorkspaceImpl) Cleanup() {}
+func (w *WorkspaceImpl) Cleanup() error {
+	return w.store.Close()
+}
+
+// Session returns the session controller of the workspace.
+func (w *WorkspaceImpl) Session() ports.SessionController {
+	return w.session
+}
 
 // SetupWithProgressBar sets up the progress bar for the workspaces view.
 func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
@@ -84,7 +103,22 @@ func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 		_, _ = fmt.Fprintf(os.Stderr, ansi.SetIndeterminateProgressBar)
 	}
 
-	ws, err := Setup(flags)
+	appDir, err := config.AppDirPath()
+	if err != nil {
+		return nil, err
+	}
+
+	database, err := db.NewDB(db.WithSqlite3(appDir))
+	if err != nil {
+		return nil, err
+	}
+
+	store, err := dbx.NewDatabase(database.Conn(), db.NewReadTx(), db.NewWriteTx())
+	if err != nil {
+		return nil, err
+	}
+
+	ws, err := Setup(store, flags)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +131,7 @@ func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 }
 
 // Setup is setting up a workspace.
-func Setup(flags config.Flags) (Workspace, error) {
+func Setup(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], flags config.Flags) (Workspace, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
@@ -112,7 +146,7 @@ func Setup(flags config.Flags) (Workspace, error) {
 		return nil, fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
-	ws := New(flags.Debug, flags.Yolo, cwd, "")
+	ws := New(store, flags.Debug, flags.Yolo, cwd, abs)
 
 	logFile := filepath.Join(abs, "sparkles.log")
 	ws.logFile = logFile

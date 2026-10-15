@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	_ dbx.Migrator = (*Database)(nil)
-	_ ports.ReadTx = (*readTxImpl)(nil)
+	_ dbx.Migrator      = (*Database)(nil)
+	_ ports.ReadTx      = (*readTxImpl)(nil)
+	_ ports.ReadWriteTx = (*writeTxImpl)(nil)
 )
 
 // CustomDriverName is the name of the custom SQLite driver.
@@ -56,13 +57,13 @@ func NewReadTx() dbx.ReadTxFactory[ports.ReadTx] {
 }
 
 // Get implements the ReadTx interface.
-func (r *readTxImpl) Get(ctx context.Context, account *models.Account) error {
+func (r *readTxImpl) GetCurrentAccount(ctx context.Context, account *models.Account) error {
 	return r.conn.WithContext(ctx).First(account).Error
 }
 
 type writeTxImpl struct {
-	conn       *gorm.DB
-	readTxImpl //nolint:unused
+	conn *gorm.DB
+	readTxImpl
 }
 
 // NewWriteTx ...
@@ -70,6 +71,16 @@ func NewWriteTx() dbx.ReadWriteTxFactory[ports.ReadWriteTx] {
 	return func(db *gorm.DB) (ports.ReadWriteTx, error) {
 		return &writeTxImpl{conn: db}, nil
 	}
+}
+
+// CreateAccount implements the AccountRepository interface.
+func (tx *writeTxImpl) CreateAccount(ctx context.Context, account *models.Account) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "email"}},
+			DoUpdates: clause.AssignmentColumns([]string{"name", "current", "refresh_token", "access_token", "expires_at", "token_type", "scope", "id_token", "session_state", "updated_at"}),
+		}).Create(account).Error
+	})
 }
 
 // Database is a struct that represents the database adapter.
@@ -95,7 +106,7 @@ func WithSqlite3(path string) Opt {
 			return fmt.Errorf("failed to create directory for database: %w", err)
 		}
 
-		conn, err := sql.Open(CustomDriverName, path)
+		conn, err := sql.Open(CustomDriverName, filepath.Join(apath, "session.db"))
 		if err != nil {
 			return fmt.Errorf("failed to open database: %w", err)
 		}
@@ -145,6 +156,11 @@ func NewDB(opts ...Opt) (*Database, error) {
 	}
 
 	return db, nil
+}
+
+// Conn returns the underlying GORM DB connection.
+func (d *Database) Conn() *gorm.DB {
+	return d.gorm
 }
 
 // Migrate is a method that runs the migrations for the database.

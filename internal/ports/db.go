@@ -8,8 +8,12 @@ import (
 
 // ReadTx is a read-only transaction interface.
 type ReadTx interface {
-	Get(ctx context.Context, account *models.Account) error
+	// GetCurrentAccount retrieves the current account from the database.
+	GetCurrentAccount(ctx context.Context, account *models.Account) error
 }
 
 // ReadWriteTx is a read-write transaction interface.
-type ReadWriteTx interface{}
+type ReadWriteTx interface {
+	// CreateAccount creates a new account in the database.
+	CreateAccount(ctx context.Context, account *models.Account) error
+}

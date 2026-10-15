@@ -22,6 +22,9 @@ import (
 // Flags holds the command line flags.
 var Flags = config.NewDefaultFlags()
 
+// Config holds the configuration for the builder.
+var Config = config.New()
+
 func init() {
 	// Commands
 	RootCmd.AddCommand(InitCmd)
@@ -79,7 +82,9 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	workspace.Cleanup()
+	if err := workspace.Cleanup(); err != nil {
+		return err
+	}
 
 	printExitBanner()
 
