@@ -5,12 +5,12 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/zeiss/builder/internal/home"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	"github.com/zeiss/builder/internal/ui/dialogs"
 	"github.com/zeiss/builder/internal/ui/utils"
 
 	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/spinner"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/ultraviolet/layout"
@@ -23,10 +23,8 @@ type UIState uint8
 
 // Possible UIState values.
 const (
-	UIOnboarding UIState = iota
-	UIInitialize
-	UILanding
-	UIChat
+	UIInitializing = iota
+	UIInitialized
 )
 
 // UI represents the main user interface model.
@@ -52,6 +50,10 @@ type UI struct {
 	layout uiLayout
 	// keyMap holds the key map for the UI.
 	keyMap KeyMap
+
+	// Activity spinner
+	activity   spinner.Model
+	activityIs bool
 }
 
 // NewUI creates a new UI model with the given defaults.
@@ -111,7 +113,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *UI) View() tea.View {
 	var v tea.View
 	v.AltScreen = true
-	v.WindowTitle = "Sparkles " + home.Short(m.defaults.Workspace.Cwd())
+	v.WindowTitle = "Sparkles " + m.defaults.Workspace.Cwd()
 
 	canvas := uv.NewScreenBuffer(m.width, m.height)
 	v.Cursor = m.Draw(canvas, canvas.Bounds())
@@ -202,8 +204,6 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 		if cmd := m.openQuitDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-
-		cmds = append(cmds, Info("Quiting..."))
 		return tea.Batch(cmds...)
 	}
 
@@ -340,7 +340,7 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 	appRect.Min.X += 1
 	appRect.Max.X -= 1
 
-	if slices.Contains([]UIState{UIOnboarding, UIInitialize}, m.state) {
+	if slices.Contains([]UIState{UIInitializing}, m.state) {
 		// extra padding on left and right for these states
 		appRect.Min.X += 1
 		appRect.Max.X -= 1
@@ -353,7 +353,7 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 
 	// Handle different app states
 	switch m.state {
-	case UIOnboarding, UIInitialize:
+	case UIInitializing:
 		// Layout
 		//
 		// header

@@ -60,7 +60,7 @@ var RootCmd = &cobra.Command{
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
-	workspace, err := workspaces.SetupWithProgressBar(Flags)
+	workspace, err := workspaces.SetupWithProgressBar(cmd.Context(), Flags)
 	if err != nil {
 		return err
 	}

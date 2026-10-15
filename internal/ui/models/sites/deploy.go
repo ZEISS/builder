@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zeiss/builder/internal/home"
 	"github.com/zeiss/builder/internal/ports"
 	"github.com/zeiss/builder/internal/ui/cmds"
 
@@ -142,7 +141,7 @@ func (m *deploySiteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the current state of the deploy model.
 func (m deploySiteModel) View() tea.View {
 	var v tea.View
-	v.WindowTitle = "builder " + home.Short(m.name)
+	v.WindowTitle = "builder "
 
 	var s strings.Builder
 	if utilx.NotNil(m.err) {

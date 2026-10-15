@@ -1,16 +1,17 @@
 package workspaces
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/x/ansi"
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/internal/sessions"
 	"github.com/zeiss/builder/internal/ui/utils"
+
+	"github.com/charmbracelet/x/ansi"
 	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/filex"
 )
@@ -30,7 +31,7 @@ type Workspace interface {
 	// Cleanup cleans up the workspace.
 	Cleanup() error
 	// Session returns the session controller of the workspace.
-	Session() ports.SessionController
+	Session() sessions.Session
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -42,13 +43,16 @@ type WorkspaceImpl struct {
 	cwd     string
 	dir     string
 	logFile string
-	session ports.SessionController
-	store   dbx.Database[ports.ReadTx, ports.ReadWriteTx]
+	session sessions.Session
+	funcs   []func() error
 }
 
 // New returns a new WorkspaceImpl.
-func New(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], debug, yolo bool, cwd, dir string) *WorkspaceImpl {
-	session := controllers.NewSessionController(store)
+func New(session sessions.Session, debug, yolo bool, cwd, dir string, funcs ...func() error) *WorkspaceImpl {
+	f := make([]func() error, 0, len(funcs))
+	for _, fn := range funcs {
+		f = append(f, fn)
+	}
 
 	return &WorkspaceImpl{
 		debug:   debug,
@@ -56,7 +60,7 @@ func New(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], debug, yolo bool, 
 		cwd:     cwd,
 		dir:     dir,
 		session: session,
-		store:   store,
+		funcs:   f,
 	}
 }
 
@@ -87,16 +91,21 @@ func (w *WorkspaceImpl) LogFile() string {
 
 // Cleanup cleans up the workspace.
 func (w *WorkspaceImpl) Cleanup() error {
-	return w.store.Close()
+	for _, f := range w.funcs {
+		if err := f(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Session returns the session controller of the workspace.
-func (w *WorkspaceImpl) Session() ports.SessionController {
+func (w *WorkspaceImpl) Session() sessions.Session {
 	return w.session
 }
 
 // SetupWithProgressBar sets up the progress bar for the workspaces view.
-func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
+func SetupWithProgressBar(ctx context.Context, flags config.Flags) (Workspace, error) {
 	showProgressBar := utils.SupportsProgressBar()
 
 	if showProgressBar {
@@ -113,12 +122,28 @@ func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 		return nil, err
 	}
 
+	err = database.Migrate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	store, err := dbx.NewDatabase(database.Conn(), db.NewReadTx(), db.NewWriteTx())
 	if err != nil {
 		return nil, err
 	}
 
-	ws, err := Setup(store, flags)
+	session := sessions.New(store)
+	if err := session.Initialize(ctx); err != nil {
+		return nil, err
+	}
+
+	funcs := []func() error{
+		func() error {
+			return store.Close()
+		},
+	}
+
+	ws, err := Setup(session, flags, funcs...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +156,7 @@ func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 }
 
 // Setup is setting up a workspace.
-func Setup(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], flags config.Flags) (Workspace, error) {
+func Setup(session sessions.Session, flags config.Flags, funcs ...func() error) (Workspace, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
@@ -146,7 +171,7 @@ func Setup(store dbx.Database[ports.ReadTx, ports.ReadWriteTx], flags config.Fla
 		return nil, fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
-	ws := New(store, flags.Debug, flags.Yolo, cwd, abs)
+	ws := New(session, flags.Debug, flags.Yolo, cwd, abs, funcs...)
 
 	logFile := filepath.Join(abs, "sparkles.log")
 	ws.logFile = logFile

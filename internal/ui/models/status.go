@@ -27,11 +27,15 @@ const (
 
 // InfoMsg is a message to be displayed in the status bar.
 type InfoMsg struct {
+	// Type is the type of the message.
 	Type InfoMsgType
-	Msg  string
-	TTL  time.Duration
+	// Msg is the message text.
+	Msg string
+	// TTL is the time-to-live for the message.
+	TTL time.Duration
 }
 
+// ClearStatusMsg is a message to clear the status bar.
 type ClearStatusMsg struct{}
 
 // IsEmpty checks if the [InfoMsg] is empty.
@@ -152,8 +156,8 @@ func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
 	uv.NewStyledString(strings.Repeat(" ", indInset)+ind+info).Draw(scr, area)
 }
 
-// clearInfoMsgCmd returns a command that clears the info message after the
-// given TTL.
+// clearInfoMsgCmd returns a command that clears the info
+// message after the given TTL.
 func clearInfoMsgCmd(ttl time.Duration) tea.Cmd {
 	return tea.Tick(ttl, func(time.Time) tea.Msg {
 		return ClearStatusMsg{}
