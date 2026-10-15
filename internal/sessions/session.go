@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zeiss/pkg/dbx"
-	"github.com/zeiss/pkg/utilx"
 )
 
 // Session is the interface for a session.
@@ -41,8 +40,13 @@ func (s *SessionImpl) Initialize(ctx context.Context) error {
 	err := s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
 		return tx.GetCurrentAccount(ctx, account)
 	})
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
+	notfound := errors.Is(err, gorm.ErrRecordNotFound)
+	if err != nil && !notfound {
 		return err
+	}
+
+	if notfound {
+		return nil
 	}
 
 	s.account = account
@@ -56,5 +60,5 @@ func (s *SessionImpl) Account() *models.Account {
 
 // HasAccount returns true if the session has an account.
 func (s *SessionImpl) HasAccount() bool {
-	return utilx.NotNil(s.account)
+	return s.account != nil
 }

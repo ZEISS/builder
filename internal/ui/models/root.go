@@ -29,7 +29,7 @@ const (
 
 // UI represents the main user interface model.
 type UI struct {
-	defaults *defaults.UI
+	root *defaults.UI
 
 	sessionID       string
 	sessionContinue bool
@@ -57,22 +57,22 @@ type UI struct {
 }
 
 // NewUI creates a new UI model with the given defaults.
-func NewUI(defaults *defaults.UI, sessionID string, sessionContinue bool) *UI {
+func NewUI(root *defaults.UI, sessionID string, sessionContinue bool) *UI {
 	ui := &UI{}
-	ui.defaults = defaults
+	ui.root = root
 	ui.sessionID = sessionID
 	ui.sessionContinue = sessionContinue
 
 	dialogs := dialogs.NewOverlay()
 	ui.dialogs = dialogs
 
-	header := NewHeader(defaults)
+	header := NewHeader(root)
 	ui.header = header
 
 	keyMap := DefaultKeyMap()
 	ui.keyMap = keyMap
 
-	status := NewStatus(defaults, ui)
+	status := NewStatus(root, ui)
 	ui.status = status
 
 	return ui
@@ -80,7 +80,7 @@ func NewUI(defaults *defaults.UI, sessionID string, sessionContinue bool) *UI {
 
 // Init initializes the UI model.
 func (m *UI) Init() tea.Cmd {
-	return tea.Batch()
+	return tea.Batch(m.initialize())
 }
 
 // Update handles incoming messages and updates the UI model.
@@ -113,7 +113,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *UI) View() tea.View {
 	var v tea.View
 	v.AltScreen = true
-	v.WindowTitle = "Sparkles " + m.defaults.Workspace.Cwd()
+	v.WindowTitle = "Sparkles " + m.root.Workspace.Cwd()
 
 	canvas := uv.NewScreenBuffer(m.width, m.height)
 	v.Cursor = m.Draw(canvas, canvas.Bounds())
@@ -189,6 +189,16 @@ func (m *UI) FullHelp() [][]key.Binding {
 	return binds
 }
 
+func (m *UI) initialize() tea.Cmd {
+	var cmds []tea.Cmd
+
+	if !m.root.Workspace.Session().HasAccount() {
+		cmds = append(cmds, m.openConfigDialog())
+	}
+
+	return tea.Batch(cmds...)
+}
+
 // handleKeyPressMsg handles key press messages.
 func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 	var cmds []tea.Cmd
@@ -257,7 +267,7 @@ func (m *UI) openConfigDialog() tea.Cmd {
 		return utils.Noop()
 	}
 
-	config, err := dialogs.NewConfigDialog(m.defaults, "")
+	config, err := dialogs.NewConfigDialog(m.root, "")
 	if err != nil {
 		return utils.Noop() // TODO: handle the errors
 	}
@@ -274,7 +284,7 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 		return utils.Noop()
 	}
 
-	commands, err := dialogs.NewCommands(m.defaults, "", false, false, false)
+	commands, err := dialogs.NewCommands(m.root, "", false, false, false)
 	if err != nil {
 		return utils.Noop() // TODO: handle the errors
 	}
@@ -304,7 +314,7 @@ func (m *UI) openQuitDialog() tea.Cmd {
 		return utils.Noop()
 	}
 
-	quitDialog := dialogs.NewQuit(m.defaults)
+	quitDialog := dialogs.NewQuit(m.root)
 	m.dialogs.OpenDialog(quitDialog)
 
 	return utils.Noop()
