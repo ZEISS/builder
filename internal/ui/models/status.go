@@ -159,3 +159,43 @@ func clearInfoMsgCmd(ttl time.Duration) tea.Cmd {
 		return ClearStatusMsg{}
 	})
 }
+
+// Info returns a command that displays an info message.
+func Info(msg string) tea.Cmd {
+	return func() tea.Msg {
+		return InfoMsg{
+			Type: InfoMsgTypeInfo,
+			Msg:  msg,
+		}
+	}
+}
+
+// Error returns a command that displays an error message.
+func Error(err error) tea.Cmd {
+	return func() tea.Msg {
+		return InfoMsg{
+			Type: InfoMsgTypeError,
+			Msg:  err.Error(),
+		}
+	}
+}
+
+// Warn returns a command that displays a warning message.
+func Warn(msg string) tea.Cmd {
+	return func() tea.Msg {
+		return InfoMsg{
+			Type: InfoMsgTypeWarn,
+			Msg:  msg,
+		}
+	}
+}
+
+// Success returns a command that displays a success message.
+func Success(msg string) tea.Cmd {
+	return func() tea.Msg {
+		return InfoMsg{
+			Type: InfoMsgTypeSuccess,
+			Msg:  msg,
+		}
+	}
+}

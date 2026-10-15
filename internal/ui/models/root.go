@@ -93,6 +93,15 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 		m.updateLayoutAndSize()
+	case ClearStatusMsg:
+		m.status.Clear()
+	case InfoMsg:
+		m.status.Set(msg)
+		ttl := msg.TTL
+		if ttl <= 0 {
+			ttl = DefaultStatusTTL
+		}
+		cmds = append(cmds, clearInfoMsgCmd(ttl))
 	}
 
 	return m, tea.Batch(cmds...)
@@ -193,6 +202,8 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 		if cmd := m.openQuitDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+
+		cmds = append(cmds, Info("Quiting..."))
 		return tea.Batch(cmds...)
 	}
 
