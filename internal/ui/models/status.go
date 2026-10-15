@@ -101,21 +101,19 @@ func (s *Status) SetHideHelp(hideHelp bool) {
 
 // Draw draws the status bar onto the screen.
 func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
-	if !s.hideHelp {
-		helpStyle := s.ui.Styles.Status.Help
-		helpWidth := area.Dx() - helpStyle.GetPaddingLeft() - helpStyle.GetPaddingRight()
-		s.help.SetWidth(max(0, helpWidth))
-		helpView := helpStyle.Render(s.help.View(s.helpKm))
-		uv.NewStyledString(helpView).Draw(scr, area)
-	}
+	helpStyle := s.ui.Styles.Status.Help
+	helpWidth := area.Dx() - helpStyle.GetPaddingLeft() - helpStyle.GetPaddingRight()
+	s.help.SetWidth(max(0, helpWidth))
+	helpView := helpStyle.Render(s.help.View(s.helpKm))
+	uv.NewStyledString(helpView).Draw(scr, area)
 
-	// Render notifications
 	if s.msg.IsEmpty() {
 		return
 	}
 
 	var indStyle lipgloss.Style
 	var msgStyle lipgloss.Style
+
 	// Mode banners show the same badge that sits next to the help hints, so
 	// they honor the same left inset to keep the indicator from jumping when
 	// the banner appears or expires.
@@ -142,6 +140,7 @@ func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
 	indWidth := lipgloss.Width(ind)
 	msgPad := msgStyle.GetPaddingLeft() + msgStyle.GetPaddingRight()
 	avail := max(0, area.Dx()-indWidth-msgPad-indInset)
+
 	msg := strings.Join(strings.Split(s.msg.Msg, "\n"), " ")
 	msg = ansi.Truncate(msg, avail, "…")
 

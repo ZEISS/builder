@@ -152,6 +152,7 @@ func (m *UI) ShortHelp() []key.Binding {
 	binds = append(
 		binds,
 		k.Quit,
+		k.Commands,
 		k.Help,
 	)
 
