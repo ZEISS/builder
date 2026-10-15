@@ -307,7 +307,7 @@ type ListItemStyles struct {
 	InfoTextFocused lipgloss.Style
 }
 
-func renderItem(t ListItemStyles, title string, info string, focused bool, width int, cache map[int]string, m *fuzzy.Match) string {
+func renderItem(t ListItemStyles, title, info string, focused bool, width int, cache map[int]string, m *fuzzy.Match) string {
 	if cache == nil {
 		cache = make(map[int]string)
 	}

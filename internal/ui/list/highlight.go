@@ -278,7 +278,7 @@ func HighlightBuffer(content string, area image.Rectangle, startLine, startCol, 
 
 // ToHighlighter converts a [lipgloss.Style] to a [Highlighter].
 func ToHighlighter(lgStyle lipgloss.Style) Highlighter {
-	return func(_ int, _ int, c *uv.Cell) *uv.Cell {
+	return func(_, _ int, c *uv.Cell) *uv.Cell {
 		if c != nil {
 			c.Style = ToStyle(lgStyle)
 		}

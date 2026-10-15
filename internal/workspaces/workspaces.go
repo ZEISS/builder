@@ -76,7 +76,7 @@ func (w *WorkspaceImpl) LogFile() string {
 // Cleanup cleans up the workspace.
 func (w *WorkspaceImpl) Cleanup() {}
 
-// SetupWithProgressBar sets up the progress bar for the workspaces view
+// SetupWithProgressBar sets up the progress bar for the workspaces view.
 func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 	showProgressBar := utils.SupportsProgressBar()
 
@@ -100,16 +100,16 @@ func SetupWithProgressBar(flags config.Flags) (Workspace, error) {
 func Setup(flags config.Flags) (Workspace, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get current working directory: %v", err)
+		return nil, fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
 	abs, err := filepath.Abs(flags.Path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get path to workspace directory: %v", err)
+		return nil, fmt.Errorf("failed to get path to workspace directory: %w", err)
 	}
 
 	if err := filex.MkdirAll(abs, 0o700); err != nil {
-		return nil, fmt.Errorf("failed to create workspace directory: %v", err)
+		return nil, fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
 	ws := New(flags.Debug, flags.Yolo, cwd, "")

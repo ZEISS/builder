@@ -944,14 +944,14 @@ func (l *List) ItemAt(index int) Item {
 // ItemIndexAtPosition returns the item at the given viewport-relative y
 // coordinate. Returns the item index and the y offset within that item. It
 // returns -1, -1 if no item is found.
-func (l *List) ItemIndexAtPosition(x, y int) (itemIdx int, itemY int) {
+func (l *List) ItemIndexAtPosition(x, y int) (itemIdx, itemY int) {
 	return l.findItemAtY(x, y)
 }
 
 // findItemAtY finds the item at the given viewport y coordinate.
 // Returns the item index and the y offset within that item. It returns -1, -1
 // if no item is found.
-func (l *List) findItemAtY(_, y int) (itemIdx int, itemY int) {
+func (l *List) findItemAtY(_, y int) (itemIdx, itemY int) {
 	if y < 0 || y >= l.height {
 		return -1, -1
 	}

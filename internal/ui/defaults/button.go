@@ -7,7 +7,7 @@ import (
 	"github.com/zeiss/builder/internal/ui/styles"
 )
 
-// ButtonOpts defines the configuration for a single button
+// ButtonOpts defines the configuration for a single button.
 type ButtonOpts struct {
 	// Text is the button label
 	Text string
@@ -25,7 +25,7 @@ type ButtonOpts struct {
 	Padding int
 }
 
-// Button creates a button with an underlined character and selection state
+// Button creates a button with an underlined character and selection state.
 func Button(t *styles.Styles, opts ButtonOpts) string {
 	style := t.Button.Blurred
 

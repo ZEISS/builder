@@ -10,7 +10,7 @@ import (
 
 // renderWord renders letterforms to fork a word. stretchIndex is the index of
 // the letter to stretch, or -1 if no letter should be stretched.
-func renderWord(spacing int, stretchIndex int, letterforms ...letterform) string {
+func renderWord(spacing, stretchIndex int, letterforms ...letterform) string {
 	if spacing < 0 {
 		spacing = 0
 	}

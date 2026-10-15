@@ -199,7 +199,7 @@ func (c *Commands) Cursor() *tea.Cursor {
 }
 
 // commandsRadioView generates the command type selector radio buttons.
-func commandsRadioView(sty *styles.Styles, selected CommandType, hasUserCmds bool, hasMCPPrompts bool) string {
+func commandsRadioView(sty *styles.Styles, selected CommandType, hasUserCmds, hasMCPPrompts bool) string {
 	if !hasUserCmds && !hasMCPPrompts {
 		return ""
 	}

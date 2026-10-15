@@ -7,7 +7,7 @@ import (
 	"github.com/zeiss/builder/internal/ui/defaults"
 )
 
-// inputFilterInterval
+// inputFilterInterval.
 const inputFilterInterval = 16 * time.Millisecond
 
 // Filter coalesces high-frequency terminal mouse input before it reaches the

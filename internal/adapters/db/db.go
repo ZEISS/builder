@@ -2,16 +2,47 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"path/filepath"
 
+	"github.com/glebarez/sqlite"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 
+	"github.com/google/uuid"
+	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/zeiss/pkg/dbx"
+	"github.com/zeiss/pkg/filex"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 )
 
-var _ ports.ReadTx = (*readTxImpl)(nil)
+var (
+	_ dbx.Migrator = (*Database)(nil)
+	_ ports.ReadTx = (*readTxImpl)(nil)
+)
+
+// CustomDriverName is the name of the custom SQLite driver.
+const CustomDriverName = "sqlite3_extended"
+
+func init() {
+	sql.Register(CustomDriverName,
+		&sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				err := conn.RegisterFunc(
+					"gen_random_uuid",
+					func(arguments ...interface{}) (string, error) {
+						return uuid.New().String(), nil
+					},
+					true,
+				)
+				return err
+			},
+		},
+	)
+}
 
 type readTxImpl struct {
 	conn *gorm.DB
@@ -44,9 +75,50 @@ func NewWriteTx() dbx.ReadWriteTxFactory[ports.ReadWriteTx] {
 // Database is a struct that represents the database adapter.
 type Database struct {
 	gorm *gorm.DB
+	conn *sql.DB
 }
 
 var _ ports.AccountRepository = (*Database)(nil)
+
+// Opt is an function that returns the options for the database.
+type Opt func(*Database) error
+
+// WithSqlite3 returns an option that sets the database to use SQLite3.
+func WithSqlite3(path string) Opt {
+	return func(db *Database) error {
+		apath, err := filepath.Abs(path)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path: %w", err)
+		}
+
+		if err := filex.MkdirAll(apath, 0o700); err != nil {
+			return fmt.Errorf("failed to create directory for database: %w", err)
+		}
+
+		conn, err := sql.Open(CustomDriverName, path)
+		if err != nil {
+			return fmt.Errorf("failed to open database: %w", err)
+		}
+		db.conn = conn
+
+		g, err := gorm.Open(sqlite.Dialector{
+			DriverName: CustomDriverName,
+			DSN:        apath,
+			Conn:       conn,
+		}, &gorm.Config{
+			Logger:                   logger.Default.LogMode(logger.Info),
+			SkipDefaultTransaction:   true,
+			DisableNestedTransaction: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to open database: %w", err)
+		}
+
+		db.gorm = g
+
+		return nil
+	}
+}
 
 // RunMigrations is a helper function to run the migrations for the database.
 func RunMigrations(db *gorm.DB) error {
@@ -60,6 +132,24 @@ func New(gorm *gorm.DB) *Database {
 	return &Database{
 		gorm: gorm,
 	}
+}
+
+// NewDB creates a new instance of the Database adapter.
+func NewDB(opts ...Opt) (*Database, error) {
+	db := &Database{}
+
+	for _, opt := range opts {
+		if err := opt(db); err != nil {
+			return nil, err
+		}
+	}
+
+	return db, nil
+}
+
+// Migrate is a method that runs the migrations for the database.
+func (d *Database) Migrate(ctx context.Context, _ ...any) error {
+	return d.gorm.WithContext(ctx).AutoMigrate(&models.Account{})
 }
 
 // Get is a method that returns an account by ID.
@@ -93,4 +183,9 @@ func (d *Database) Delete(ctx context.Context, account *models.Account) error {
 // List is a method that returns a list of all accounts.
 func (d *Database) List(ctx context.Context, accounts *[]models.Account) error {
 	return d.gorm.WithContext(ctx).Find(accounts).Error
+}
+
+// Close is a method that closes the database connection.
+func (d *Database) Close() error {
+	return d.conn.Close()
 }
