@@ -20,3 +20,34 @@ type ActionOpenDialog struct {
 type ActionCmd struct {
 	Command tea.Cmd
 }
+
+// ActionInitiateBuilder is sent when the OAuth builder is initiated.
+type ActionInitiateBuilder struct{ URL string }
+
+type (
+	// ActionInitiateOAuth is sent when the device auth is initiated
+	// successfully.
+	ActionInitiateOAuth struct {
+		DeviceCode      string
+		UserCode        string
+		ExpiresIn       int
+		VerificationURL string
+		Interval        int
+	}
+
+	// ActionCompleteOAuth is sent when the device flow completes successfully.
+	ActionCompleteOAuth struct{}
+
+	// ActionOAuthErrored is sent when the device flow encounters an error.
+	ActionOAuthErrored struct {
+		Error error
+	}
+
+	// ActionCloseOAuth closes the OAuth dialog and runs the given cleanup
+	// command, cancelling any in-flight authorization. It exists so a
+	// dismissed dialog does not leave a poller or loopback listener
+	// running in the background.
+	ActionCloseOAuth struct {
+		Cmd tea.Cmd
+	}
+)

@@ -240,6 +240,8 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	case dialogs.ActionOpenDialog:
 		m.dialogs.CloseDialog(dialogs.CommandsID)
 		cmds = append(cmds, m.openDialog(msg.DialogID))
+	case dialogs.ActionInitiateBuilder:
+		cmds = append(cmds, m.openOAuthBuilderDialog())
 	case dialogs.ActionQuit: // Quit the application.
 		cmds = append(cmds, tea.Quit)
 	default:
@@ -277,6 +279,24 @@ func (m *UI) openConfigDialog() tea.Cmd {
 	return utils.Noop()
 }
 
+// openOAuthBuilderDialog opens the OAuth builder dialog.
+func (m *UI) openOAuthBuilderDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.ConfigID) {
+		m.dialogs.CloseDialog(dialogs.ConfigID)
+	}
+
+	authDialog, cmd := dialogs.NewOAuthBuilder(m.root, false, nil)
+
+	if m.dialogs.ContainsDialog(authDialog.ID()) {
+		m.dialogs.BringToFront(authDialog.ID())
+
+		return nil
+	}
+	m.dialogs.OpenDialogWithGrace(authDialog)
+
+	return tea.Batch(cmd)
+}
+
 // openCommandsDialog opens the commands dialog.
 func (m *UI) openCommandsDialog() tea.Cmd {
 	if m.dialogs.ContainsDialog(dialogs.CommandsID) {
@@ -302,6 +322,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 
 	if id == dialogs.ConfigID {
 		return m.openConfigDialog()
+	}
+
+	if id == dialogs.OAuthID {
+		return m.openOAuthBuilderDialog()
 	}
 
 	return utils.Noop()

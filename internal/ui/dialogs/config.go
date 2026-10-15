@@ -72,6 +72,9 @@ func (m *ConfigDialog) HandleMsg(msg tea.Msg) Action {
 	case tea.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.keyMap.Submit):
+			return ActionInitiateBuilder{
+				URL: m.input.Value(),
+			}
 		case key.Matches(msg, m.keyMap.Close):
 			return ActionClose{}
 		default:
