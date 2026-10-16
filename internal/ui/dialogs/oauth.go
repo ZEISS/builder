@@ -125,8 +125,12 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 			return ActionClose{}
 		}
 
-		if key.Matches(msg, m.keyMap.Submit) {
+		if key.Matches(msg, m.keyMap.Submit) && m.State == OAuthStateAuthenticating {
 			return ActionCmd{CopyCodeAndOpenURL(m.deviceAuth)}
+		}
+
+		if key.Matches(msg, m.keyMap.Submit) && m.State == OAuthStateSuccess {
+			return ActionCmd{CloseAction()}
 		}
 
 	case ActionOAuthInitialized: // initiate oauth
@@ -139,8 +143,9 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 		return ActionCmd{tea.Batch(defaults.Error(msg.Error))}
 
 	case ActionOAuthCompleted: // oauth completed
+		m.token = msg.Token
 		m.State = OAuthStateSuccess
-		return ActionCmd{tea.Batch(CloseAction(), defaults.Success("OAuth completed successfully"))}
+		return ActionCmd{defaults.Success("OAuth completed successfully")}
 
 	default:
 		return nil
