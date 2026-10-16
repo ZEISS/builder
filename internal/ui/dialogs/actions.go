@@ -51,3 +51,10 @@ type (
 		Cmd tea.Cmd
 	}
 )
+
+// CloseAction returns a command that closes the dialog and runs the given cleanup command.
+func CloseAction() tea.Cmd {
+	return func() tea.Msg {
+		return ActionClose{}
+	}
+}

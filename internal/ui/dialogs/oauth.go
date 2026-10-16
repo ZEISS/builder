@@ -138,6 +138,10 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 		m.State = OAuthStateError
 		return ActionCmd{tea.Batch(defaults.Error(msg.Error))}
 
+	case ActionOAuthCompleted: // oauth completed
+		m.State = OAuthStateSuccess
+		return ActionCmd{tea.Batch(CloseAction(), defaults.Success("OAuth completed successfully"))}
+
 	default:
 		return nil
 	}
