@@ -28,14 +28,13 @@ type ActionCmd struct {
 type ActionInitiateBuilder struct{ URL string }
 
 type (
-	// ActionInitiateOAuth is sent when the device auth is initiated
-	// successfully.
-	ActionInitiateOAuth struct {
+	// ActionOAuthInitialized is sent when the OAuth flow is initialized.
+	ActionOAuthInitialized struct {
 		DeviceAuth *oidc.DeviceAuth
 	}
 
-	// ActionCompleteOAuth is sent when the device flow completes successfully.
-	ActionCompleteOAuth struct {
+	// ActionOAuthCompleted is sent when the OAuth flow is completed successfully.
+	ActionOAuthCompleted struct {
 		Token *oidc.Token
 	}
 

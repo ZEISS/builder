@@ -6,8 +6,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/browser"
+	"github.com/zeiss/builder/internal/clipboard"
 	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/pkg/utilx"
 
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
@@ -39,6 +42,7 @@ type OAuth struct {
 	oidcProvider oidc.OidcProvider
 	name         string
 
+	// State is the current state of the OAuth flow.
 	State OAuthState
 
 	spinner spinner.Model
@@ -121,13 +125,21 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 			return ActionClose{}
 		}
 
+		if key.Matches(msg, m.keyMap.Submit) {
+			return ActionCmd{CopyCodeAndOpenURL(m.deviceAuth)}
+		}
+
+	case ActionOAuthInitialized: // initiate oauth
+		m.deviceAuth = msg.DeviceAuth
+		m.State = OAuthStateAuthenticating
+		return ActionCmd{Finish(m.oidcProvider, m.deviceAuth)}
+
 	case ActionOAuthErrored: // oauth error
 		m.State = OAuthStateError
 		return ActionCmd{tea.Batch(defaults.Error(msg.Error))}
 
-	case ActionInitiateOAuth: // initiate oauth
-		m.deviceAuth = msg.DeviceAuth
-		return ActionCmd{Finish(m.oidcProvider, m.deviceAuth)}
+	default:
+		return nil
 	}
 
 	return nil
@@ -191,9 +203,11 @@ func (m *OAuth) headerContent() string {
 		headerOffset = titleStyle.GetHorizontalFrameSize() + dialogStyle.GetHorizontalFrameSize()
 		dialogTitle  = fmt.Sprintf("Let's authenticate with %s", m.name)
 	)
+
 	if m.isOnboarding {
 		return textStyle.Render(dialogTitle)
 	}
+
 	return defaults.DialogTitle(t, titleStyle.Render(dialogTitle), m.width-headerOffset, t.Dialog.TitleGradFromColor, t.Dialog.TitleGradToColor)
 }
 
@@ -324,14 +338,26 @@ func (m *OAuth) ShortHelp() []key.Binding {
 		return nil
 
 	default:
-		return nil
+		submit := m.keyMap.Submit
+		submit = key.NewBinding(
+			key.WithKeys("enter", "ctrl+y"),
+			key.WithHelp("enter", "open browser"),
+		)
+
+		h := []key.Binding{
+			m.keyMap.CopyURL,
+			submit,
+			m.keyMap.Close,
+		}
+
+		return h
 	}
 }
 
 // Begin initiates the OAuth device flow.
 func Begin(oidcProvider oidc.OidcProvider) tea.Cmd {
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 
 		deviceAuth, err := oidcProvider.Begin(ctx)
@@ -339,14 +365,14 @@ func Begin(oidcProvider oidc.OidcProvider) tea.Cmd {
 			return ActionOAuthErrored{Error: fmt.Errorf("failed to initiate device auth: %w", err)}
 		}
 
-		return ActionInitiateOAuth{DeviceAuth: deviceAuth}
+		return ActionOAuthInitialized{DeviceAuth: deviceAuth}
 	}
 }
 
 // Finish completes the OAuth device flow.
 func Finish(oidcProvider oidc.OidcProvider, deviceAuth *oidc.DeviceAuth) tea.Cmd {
 	return func() tea.Msg {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
 		token, err := oidcProvider.Finish(ctx, deviceAuth)
@@ -354,6 +380,31 @@ func Finish(oidcProvider oidc.OidcProvider, deviceAuth *oidc.DeviceAuth) tea.Cmd
 			return ActionOAuthErrored{Error: fmt.Errorf("failed to finish device auth: %w", err)}
 		}
 
-		return ActionCompleteOAuth{Token: token}
+		return ActionOAuthCompleted{Token: token}
+	}
+}
+
+// CopyCodeAndOpenURL copies the code and opens the URL in the browser.
+func CopyCodeAndOpenURL(deviceAuth *oidc.DeviceAuth) tea.Cmd {
+	return func() tea.Msg {
+		if utilx.Empty(deviceAuth.UserCode) {
+			if err := browser.OpenURL(deviceAuth.VerificationURI); err != nil {
+				return ActionOAuthErrored{fmt.Errorf("failed to open browser: %w", err)}
+			}
+			return nil
+		}
+
+		cmd := clipboard.CopyToClipboardWithCallback(
+			deviceAuth.UserCode,
+			"Code copied and URL opened",
+			func() tea.Msg {
+				if err := browser.OpenURL(deviceAuth.VerificationURI); err != nil {
+					return ActionOAuthErrored{fmt.Errorf("failed to open browser: %w", err)}
+				}
+				return nil
+			},
+		)
+
+		return ActionCmd{Cmd: cmd}
 	}
 }
