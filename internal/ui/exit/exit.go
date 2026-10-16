@@ -1,4 +1,4 @@
-// Package exitbanner renders what Crush prints after the TUI exits.
+// Package exitbanner is
 package exitbanner
 
 import (

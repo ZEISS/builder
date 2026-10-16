@@ -14,7 +14,9 @@ import (
 
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/textarea"
 	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/ultraviolet/layout"
 	"github.com/charmbracelet/ultraviolet/screen"
@@ -30,6 +32,16 @@ const (
 	UIInitialized
 )
 
+// editorHeightMargin is the vertical margin added to the textarea height to
+// account for the attachments row (top) and bottom margin.
+const editorHeightMargin = 2
+
+// TextareaMaxHeight is the maximum height of the prompt textarea.
+const TextareaMaxHeight = 15
+
+// TextareaMinHeight is the minimum height of the prompt textarea.
+const TextareaMinHeight = 3
+
 // UI represents the main user interface model.
 type UI struct {
 	root *defaults.UI
@@ -41,6 +53,8 @@ type UI struct {
 	state UIState
 	// header holds the header model for the UI.
 	header *Header
+	// editor holds the editor model for the UI.
+	textarea textarea.Model
 	// status holds the status model for the UI.
 	status *Status
 	// dialogs captures the dialog state for the UI.
@@ -65,6 +79,28 @@ func NewUI(root *defaults.UI, sessionID string, sessionContinue bool) *UI {
 	ui.root = root
 	ui.sessionID = sessionID
 	ui.sessionContinue = sessionContinue
+
+	ta := textarea.New()
+	ta.SetStyles(ui.root.Styles.Editor.Textarea)
+	ta.ShowLineNumbers = false
+	ta.CharLimit = -1
+	ta.SetVirtualCursor(false)
+	ta.DynamicHeight = true
+	ta.MinHeight = TextareaMinHeight
+	ta.MaxHeight = TextareaMaxHeight
+	// Keep "ctrl+a" for line-start (the textarea default); bind select-all
+	// to "ctrl+shift+a" instead (line-start is also available via "home").
+	ta.KeyMap.LineStart = key.NewBinding(
+		key.WithKeys("home", "ctrl+a"),
+		key.WithHelp("home", "line start"),
+	)
+	ta.KeyMap.SelectAll = key.NewBinding(
+		key.WithKeys("ctrl+shift+a"),
+		key.WithHelp("ctrl+shift+a", "select all"),
+	)
+	ta.KeyMap.CopySelection = key.NewBinding()
+	ta.Focus()
+	ui.textarea = ta
 
 	dialogs := dialogs.NewOverlay()
 	ui.dialogs = dialogs
@@ -165,6 +201,13 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	screen.Clear(scr)
 
 	switch m.state {
+	case UIInitialized:
+		m.drawHeader(scr, layout.header)
+		main := uv.NewStyledString(m.landingView())
+		main.Draw(scr, layout.main)
+
+		editor := uv.NewStyledString(m.renderEditorView(scr.Bounds().Dx()))
+		editor.Draw(scr, layout.editor)
 	default:
 		m.drawHeader(scr, layout.header)
 	}
@@ -252,6 +295,8 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 	action := m.dialogs.Update(msg)
+
+	m.state = UIInitialized
 
 	if utilx.Empty(action) {
 		return tea.Batch(cmds...)
@@ -392,6 +437,7 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 	area := image.Rect(0, 0, w, h)
 
 	helpHeight := 1
+	editorHeight := m.textarea.Height() + editorHeightMargin
 	const landingHeaderHeight = 4
 
 	// Add app margins
@@ -435,6 +481,33 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 		).Split(appRect).Assign(&headerRect, &mainRect)
 		uiLayout.header = headerRect
 		uiLayout.main = mainRect
+
+	case UIInitialized:
+		// Layout
+		//
+		// header
+		// ------
+		// main
+		// ------
+		// editor
+		// ------
+		// help
+		var headerRect, mainRect image.Rectangle
+		layout.Vertical(
+			layout.Len(landingHeaderHeight),
+			layout.Fill(1),
+		).Split(appRect).Assign(&headerRect, &mainRect)
+		var editorRect image.Rectangle
+		layout.Vertical(
+			layout.Len(mainRect.Dy()-editorHeight),
+			layout.Fill(1),
+		).Split(mainRect).Assign(&mainRect, &editorRect)
+		// Remove extra padding from editor (but keep it for header and main)
+		editorRect.Min.X -= 1
+		editorRect.Max.X += 1
+		uiLayout.header = headerRect
+		uiLayout.main = mainRect
+		uiLayout.editor = editorRect
 	}
 
 	return uiLayout
@@ -449,6 +522,31 @@ func (m *UI) drawHeader(scr uv.Screen, area uv.Rectangle) {
 		false,
 		area.Dx(),
 	)
+}
+
+// landingView renders the landing page.
+func (m *UI) landingView() string {
+	width := m.layout.main.Dx()
+
+	content := lipgloss.JoinHorizontal(lipgloss.Left, "Info")
+
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(m.layout.main.Dy() - 1).
+		PaddingTop(1).
+		Render(
+			lipgloss.JoinVertical(lipgloss.Left, "", content),
+		)
+}
+
+// renderEditorView renders the editor view with attachments if any.
+func (m *UI) renderEditorView(width int) string {
+	var attachmentsView string
+	return strings.Join([]string{
+		attachmentsView,
+		m.textarea.View(),
+		"", // margin at bottom of editor
+	}, "\n")
 }
 
 // uiLayout defines the positioning of UI elements.

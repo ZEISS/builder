@@ -30,6 +30,8 @@ type Workspace interface {
 	LogFile() string
 	// Cleanup cleans up the workspace.
 	Cleanup() error
+	// Initialized returns whether the workspace is initialized.
+	Initialized() bool
 	// Session returns the session controller of the workspace.
 	Session() sessions.Session
 }
@@ -38,13 +40,14 @@ var _ Workspace = (*WorkspaceImpl)(nil)
 
 // WorkspaceImpl is the implementation of the Workspace interface.
 type WorkspaceImpl struct {
-	debug   bool
-	yolo    bool
-	cwd     string
-	dir     string
-	logFile string
-	session sessions.Session
-	funcs   []func() error
+	debug       bool
+	yolo        bool
+	cwd         string
+	dir         string
+	logFile     string
+	session     sessions.Session
+	funcs       []func() error
+	initialized bool
 }
 
 // New returns a new WorkspaceImpl.
@@ -87,6 +90,11 @@ func (w *WorkspaceImpl) DataDir() string {
 // LogFile returns the log file of the workspace.
 func (w *WorkspaceImpl) LogFile() string {
 	return w.logFile
+}
+
+// Initialized returns whether the workspace is initialized.
+func (w *WorkspaceImpl) Initialized() bool {
+	return w.initialized
 }
 
 // Cleanup cleans up the workspace.
