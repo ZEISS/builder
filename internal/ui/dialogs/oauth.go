@@ -130,7 +130,7 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 		}
 
 		if key.Matches(msg, m.keyMap.Submit) && m.State == OAuthStateSuccess {
-			return ActionCmd{CloseAction()}
+			return ActionClose{}
 		}
 
 	case ActionOAuthInitialized: // initiate oauth
