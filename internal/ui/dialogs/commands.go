@@ -321,7 +321,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	commands := []*CommandItem{
 		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
-		NewCommandItem(c.ui.Styles, "config_url", "Configure Builder", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
+		NewCommandItem(c.ui.Styles, "config_url", "Authenticate", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
 	}
 
 	// Add external editor command if $EDITOR is available.
@@ -339,26 +339,8 @@ func (c *Commands) defaultCommands() []*CommandItem {
 
 	commands = append(
 		commands,
-		// NewCommandItem(c.ui.Styles, "toggle_yolo", "Toggle Yolo Mode", "ctrl+y", ActionToggleYoloMode{}),
-		// 	NewCommandItem(c.com.Styles, "toggle_help", "Toggle Help", "ctrl+g", ActionToggleHelp{}),
-		// NewCommandItem(c.com.Styles, "init", "Initialize Project", "", ActionInitializeProject{}),
+		NewCommandItem(c.ui.Styles, "toggle_help", "Toggle Help", "ctrl+g", ActionToggleHelp{}),
 	)
-
-	// Add transparent background toggle.
-	// transparentLabel := "Disable Background Color"
-	// if cfg != nil && cfg.Options != nil && cfg.Options.TUI.IsTransparent() {
-	// 	transparentLabel = "Enable Background Color"
-	// }
-	// 	commands = append(commands, NewCommandItem(c.ui.Styles, "toggle_transparent", transparentLabel, "", ActionToggleTransparentBackground{}))
-	//
-	// 	commands = append(commands, NewCommandItem(c.com.Styles, "switch_theme", "Themes", "", ActionOpenDialog{ThemeID}))
-
-	// // Add mouse support toggle.
-	// mouseLabel := "Disable Mouse"
-	// if cfg != nil && cfg.Options != nil && cfg.Options.TUI.Mouse != nil && !*cfg.Options.TUI.Mouse {
-	// 	mouseLabel = "Enable Mouse"
-	// }
-	// commands = append(commands, NewCommandItem(c.com.Styles, "toggle_mouse", mouseLabel, "", ActionToggleMouseSupport{}))
 
 	commands = append(
 		commands,

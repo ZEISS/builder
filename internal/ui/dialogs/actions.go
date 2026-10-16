@@ -19,6 +19,9 @@ type ActionOpenDialog struct {
 	DialogID string
 }
 
+// ActionToggleHelp is a message to toggle the help dialog.
+type ActionToggleHelp struct{}
+
 // ActionCmd is a message to execute a command.
 type ActionCmd struct {
 	Cmd tea.Cmd

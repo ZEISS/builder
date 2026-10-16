@@ -276,6 +276,10 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	case dialogs.ActionCmd: // Run a command.
 		cmds = append(cmds, msg.Cmd)
 
+	case dialogs.ActionToggleHelp:
+		m.status.ToggleHelp()
+		m.dialogs.CloseDialog(dialogs.CommandsID)
+
 	default:
 		cmds = append(cmds, utils.Noop())
 	}
