@@ -8,6 +8,7 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/builder/internal/ui/status"
 )
 
 // badgeLeftInset is the number of cells between the status bar's left edge
@@ -20,7 +21,7 @@ type Status struct {
 	hideHelp bool
 	help     help.Model
 	helpKm   help.KeyMap
-	msg      defaults.InfoMsg
+	msg      status.InfoMsg
 }
 
 // NewStatus creates a new status bar and help model.
@@ -35,13 +36,13 @@ func NewStatus(ui *defaults.UI, km help.KeyMap) *Status {
 }
 
 // Set sets the status info message.
-func (s *Status) Set(msg defaults.InfoMsg) {
+func (s *Status) Set(msg status.InfoMsg) {
 	s.msg = msg
 }
 
 // Clear clears the status info message.
 func (s *Status) Clear() {
-	s.msg = defaults.InfoMsg{}
+	s.msg = status.InfoMsg{}
 }
 
 // SetWidth sets the width of the status bar and help view.
@@ -86,19 +87,19 @@ func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
 	// the banner appears or expires.
 	indInset := 0
 	switch s.msg.Type {
-	case defaults.InfoMsgTypeError:
+	case status.InfoMsgTypeError:
 		indStyle = s.ui.Styles.Status.ErrorIndicator
 		msgStyle = s.ui.Styles.Status.ErrorMessage
-	case defaults.InfoMsgTypeWarn:
+	case status.InfoMsgTypeWarn:
 		indStyle = s.ui.Styles.Status.WarnIndicator
 		msgStyle = s.ui.Styles.Status.WarnMessage
-	case defaults.InfoMsgTypeUpdate:
+	case status.InfoMsgTypeUpdate:
 		indStyle = s.ui.Styles.Status.UpdateIndicator
 		msgStyle = s.ui.Styles.Status.UpdateMessage
-	case defaults.InfoMsgTypeInfo:
+	case status.InfoMsgTypeInfo:
 		indStyle = s.ui.Styles.Status.InfoIndicator
 		msgStyle = s.ui.Styles.Status.InfoMessage
-	case defaults.InfoMsgTypeSuccess:
+	case status.InfoMsgTypeSuccess:
 		indStyle = s.ui.Styles.Status.SuccessIndicator
 		msgStyle = s.ui.Styles.Status.SuccessMessage
 	}

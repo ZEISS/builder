@@ -9,7 +9,9 @@ import (
 	"github.com/pkg/browser"
 	"github.com/zeiss/builder/internal/clipboard"
 	"github.com/zeiss/builder/internal/oidc"
+	"github.com/zeiss/builder/internal/sessions"
 	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/builder/internal/ui/status"
 	"github.com/zeiss/pkg/utilx"
 
 	"charm.land/bubbles/v2/help"
@@ -118,7 +120,7 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 	case spinner.TickMsg: // spinner tick
 		spinner, cmd := m.spinner.Update(msg)
 		m.spinner = spinner
-		return ActionCmd{tea.Batch(cmd, m.spinner.Tick)}
+		return ActionCmd{cmd}
 
 	case tea.KeyPressMsg:
 		if key.Matches(msg, m.keyMap.Close) { // close dialog
@@ -126,7 +128,7 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 		}
 
 		if key.Matches(msg, m.keyMap.Submit) && m.State == OAuthStateAuthenticating {
-			return ActionCmd{CopyCodeAndOpenURL(m.deviceAuth)}
+			return ActionCmd{tea.Batch(CopyCodeAndOpenURL(m.deviceAuth))}
 		}
 
 		if key.Matches(msg, m.keyMap.Submit) && m.State == OAuthStateSuccess {
@@ -140,12 +142,12 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 
 	case ActionOAuthErrored: // oauth error
 		m.State = OAuthStateError
-		return ActionCmd{tea.Batch(defaults.Error(msg.Error))}
+		return ActionCmd{tea.Batch(status.Error(msg.Error))}
 
 	case ActionOAuthCompleted: // oauth completed
 		m.token = msg.Token
 		m.State = OAuthStateSuccess
-		return ActionCmd{defaults.Success("OAuth completed successfully")}
+		return ActionCmd{tea.Batch(status.Success("OAuth completed successfully"), sessions.CreateAccount(m.ui.Workspace.Session(), msg.Token))}
 
 	default:
 		return nil

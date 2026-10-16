@@ -1,4 +1,4 @@
-package defaults
+package status
 
 import (
 	"time"
@@ -87,4 +87,9 @@ func Success(msg string) tea.Cmd {
 			Msg:  msg,
 		}
 	}
+}
+
+// Msg is a helper function that returns a [tea.Msg] from a [tea.Cmd].
+func Msg(cmd tea.Cmd) tea.Msg {
+	return cmd()
 }

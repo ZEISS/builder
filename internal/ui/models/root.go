@@ -9,6 +9,7 @@ import (
 	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	"github.com/zeiss/builder/internal/ui/dialogs"
+	"github.com/zeiss/builder/internal/ui/status"
 	"github.com/zeiss/builder/internal/ui/utils"
 
 	"charm.land/bubbles/v2/key"
@@ -93,15 +94,15 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 		m.updateLayoutAndSize()
-	case defaults.ClearStatusMsg:
+	case status.ClearStatusMsg:
 		m.status.Clear()
-	case defaults.InfoMsg:
+	case status.InfoMsg:
 		m.status.Set(msg)
 		ttl := msg.TTL
 		if ttl <= 0 {
-			ttl = defaults.DefaultStatusTTL
+			ttl = status.DefaultStatusTTL
 		}
-		cmds = append(cmds, defaults.ClearInfoMsgCmd(ttl))
+		cmds = append(cmds, status.ClearInfoMsgCmd(ttl))
 
 	case dialogs.ActionCmd:
 		if msg.Cmd != nil {

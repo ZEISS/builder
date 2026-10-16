@@ -16,7 +16,6 @@ import (
 	"github.com/zeiss/pkg/filex"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"gorm.io/gorm/logger"
 )
 
 var (
@@ -34,7 +33,7 @@ func init() {
 			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 				err := conn.RegisterFunc(
 					"gen_random_uuid",
-					func(arguments ...interface{}) (string, error) {
+					func(arguments ...any) (string, error) {
 						return uuid.New().String(), nil
 					},
 					true,
@@ -117,7 +116,6 @@ func WithSqlite3(path string) Opt {
 			DSN:        apath,
 			Conn:       conn,
 		}, &gorm.Config{
-			Logger:                   logger.Default.LogMode(logger.Info),
 			SkipDefaultTransaction:   true,
 			DisableNestedTransaction: true,
 		})
