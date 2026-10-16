@@ -1,6 +1,9 @@
 package dialogs
 
-import tea "charm.land/bubbletea/v2"
+import (
+	tea "charm.land/bubbletea/v2"
+	"github.com/zeiss/builder/internal/oidc"
+)
 
 // Action represents an action taken in a dialog after handling a message.
 type Action any
@@ -18,7 +21,7 @@ type ActionOpenDialog struct {
 
 // ActionCmd is a message to execute a command.
 type ActionCmd struct {
-	Command tea.Cmd
+	Cmd tea.Cmd
 }
 
 // ActionInitiateBuilder is sent when the OAuth builder is initiated.
@@ -28,15 +31,13 @@ type (
 	// ActionInitiateOAuth is sent when the device auth is initiated
 	// successfully.
 	ActionInitiateOAuth struct {
-		DeviceCode      string
-		UserCode        string
-		ExpiresIn       int
-		VerificationURL string
-		Interval        int
+		DeviceAuth *oidc.DeviceAuth
 	}
 
 	// ActionCompleteOAuth is sent when the device flow completes successfully.
-	ActionCompleteOAuth struct{}
+	ActionCompleteOAuth struct {
+		Token *oidc.Token
+	}
 
 	// ActionOAuthErrored is sent when the device flow encounters an error.
 	ActionOAuthErrored struct {

@@ -8,7 +8,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/zeiss/builder/internal/ui/models"
+	"github.com/zeiss/builder/internal/ui/defaults"
 )
 
 // Format identifies the kind of data to read from the clipboard.
@@ -84,9 +84,9 @@ func CopyToClipboardWithCallback(text, successMessage string, callback tea.Cmd) 
 		osc52 := tea.SetClipboard(text)
 
 		if errors.Is(err, ErrWriteFailed) {
-			return tea.Sequence(osc52, models.Error(errors.New("Failed to copy to clipboard")))()
+			return tea.Sequence(osc52, defaults.Error(errors.New("Failed to copy to clipboard")))()
 		}
 
-		return tea.Sequence(osc52, callback, models.Success(successMessage))()
+		return tea.Sequence(osc52, callback, defaults.Success(successMessage))()
 	}
 }

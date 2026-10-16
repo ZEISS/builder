@@ -8,23 +8,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ports"
 	"github.com/zeiss/builder/server/middlewares/discovery"
 	"github.com/zeiss/fiber-goth/v3/providers"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/zeiss/pkg/cast"
 	"github.com/zeiss/pkg/utilx"
 	"golang.org/x/oauth2"
 )
 
 var (
+	// ErrNoVerifiedPrimaryEmail is returned when no verified primary email is found.
 	ErrNoVerifiedPrimaryEmail = errors.New("builder: no verified primary email found")
-	ErrFailedFetchUser        = errors.New("builder: no failed to fetch user")
-	ErrNotAllowedOrg          = errors.New("builder: user not in allowed org")
-	ErrNoName                 = errors.New("builder: user has no display name set")
-	ErrMissingIDToken         = errors.New("builder: no id token found")
+	// ErrFailedFetchUser is returned when the user fails to be fetched.
+	ErrFailedFetchUser = errors.New("builder: no failed to fetch user")
+	// ErrNotAllowedOrg is returned when the user is not in the allowed org.
+	ErrNotAllowedOrg = errors.New("builder: user not in allowed org")
+	// ErrNoName is returned when the user has no display name set.
+	ErrNoName = errors.New("builder: user has no display name set")
+	// ErrMissingIDToken is returned when no id token is found.
+	ErrMissingIDToken = errors.New("builder: no id token found")
 )
 
 // DefaultClient is the default HTTP client used.
@@ -36,9 +40,8 @@ var DefaultClient = &http.Client{
 	Timeout: 10 * time.Second,
 }
 
+// NoopEmail is the email address used when no email is available.
 const NoopEmail = ""
-
-var _ ports.DeviceAuthRepository = (*oidcProvider)(nil)
 
 // DefaultScopes holds the default scopes used for GitHub.
 var DefaultScopes = []string{"openid", "email", "offline_access"}

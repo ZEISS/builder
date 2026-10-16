@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	"github.com/zeiss/builder/internal/ui/dialogs"
 	"github.com/zeiss/builder/internal/ui/utils"
@@ -88,22 +90,42 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width, m.height = msg.Width, msg.Height
+		m.updateLayoutAndSize()
+	case defaults.ClearStatusMsg:
+		m.status.Clear()
+	case defaults.InfoMsg:
+		m.status.Set(msg)
+		ttl := msg.TTL
+		if ttl <= 0 {
+			ttl = defaults.DefaultStatusTTL
+		}
+		cmds = append(cmds, defaults.ClearInfoMsgCmd(ttl))
+
+	case dialogs.ActionCmd:
+		if msg.Cmd != nil {
+			cmds = append(cmds, msg.Cmd)
+		}
+
+	case spinner.TickMsg:
+		if m.dialogs.HasDialogs() {
+			if cmd := m.handleDialogMsg(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+
 	case tea.KeyPressMsg:
 		if cmd := m.handleKeyPressMsg(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-	case tea.WindowSizeMsg:
-		m.width, m.height = msg.Width, msg.Height
-		m.updateLayoutAndSize()
-	case ClearStatusMsg:
-		m.status.Clear()
-	case InfoMsg:
-		m.status.Set(msg)
-		ttl := msg.TTL
-		if ttl <= 0 {
-			ttl = DefaultStatusTTL
+
+	default:
+		if m.dialogs.HasDialogs() {
+			if cmd := m.handleDialogMsg(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		}
-		cmds = append(cmds, clearInfoMsgCmd(ttl))
 	}
 
 	return m, tea.Batch(cmds...)
@@ -235,15 +257,24 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	}
 
 	switch msg := action.(type) {
+
+	// Handle dialog actions.
 	case dialogs.ActionClose:
 		cmds = append(cmds, m.closeDialog())
-	case dialogs.ActionOpenDialog:
+
+	case dialogs.ActionOpenDialog: // Open a dialog.
 		m.dialogs.CloseDialog(dialogs.CommandsID)
 		cmds = append(cmds, m.openDialog(msg.DialogID))
-	case dialogs.ActionInitiateBuilder:
-		cmds = append(cmds, m.openOAuthBuilderDialog())
+
+	case dialogs.ActionInitiateBuilder: // Initiate the builder.
+		cmds = append(cmds, m.openOAuthBuilderDialog(msg))
+
 	case dialogs.ActionQuit: // Quit the application.
 		cmds = append(cmds, tea.Quit)
+
+	case dialogs.ActionCmd: // Run a command.
+		cmds = append(cmds, msg.Cmd)
+
 	default:
 		cmds = append(cmds, utils.Noop())
 	}
@@ -280,16 +311,16 @@ func (m *UI) openConfigDialog() tea.Cmd {
 }
 
 // openOAuthBuilderDialog opens the OAuth builder dialog.
-func (m *UI) openOAuthBuilderDialog() tea.Cmd {
+func (m *UI) openOAuthBuilderDialog(msg dialogs.ActionInitiateBuilder) tea.Cmd {
 	if m.dialogs.ContainsDialog(dialogs.ConfigID) {
 		m.dialogs.CloseDialog(dialogs.ConfigID)
 	}
 
-	authDialog, cmd := dialogs.NewOAuthBuilder(m.root, false, nil)
+	oidcProvider := oidc.New(msg.URL, config.DefaultClientID)
+	authDialog, cmd := dialogs.NewOAuth(m.root, oidcProvider, "Builder by Zeiss")
 
 	if m.dialogs.ContainsDialog(authDialog.ID()) {
 		m.dialogs.BringToFront(authDialog.ID())
-
 		return nil
 	}
 	m.dialogs.OpenDialogWithGrace(authDialog)
@@ -322,10 +353,6 @@ func (m *UI) openDialog(id string) tea.Cmd {
 
 	if id == dialogs.ConfigID {
 		return m.openConfigDialog()
-	}
-
-	if id == dialogs.OAuthID {
-		return m.openOAuthBuilderDialog()
 	}
 
 	return utils.Noop()

@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/ui/defaults"
 
 	"charm.land/bubbles/v2/help"
@@ -16,27 +18,12 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
-type OAuthProvider interface {
-	name() string
-	initiateAuth() tea.Msg
-	startPolling(deviceCode string, expiresIn int) tea.Cmd
-	stopPolling() tea.Msg
-	// supportsCodeEntry reports whether the sign-in can finish with a
-	// code pasted back from the authorization page instead of the
-	// loopback redirect — for when the user declines the browser
-	// permission or the browser cannot reach the callback.
-	supportsCodeEntry() bool
-	// submitCode exchanges a pasted code (or full callback URL) for a
-	// token. Only called when supportsCodeEntry is true.
-	submitCode(input string) tea.Cmd
-}
-
 // OAuthState represents the current state of the device flow.
 type OAuthState int
 
 const (
 	OAuthStateInitializing OAuthState = iota
-	OAuthStateDisplay
+	OAuthStateAuthenticating
 	OAuthStateSuccess
 	OAuthStateSaving
 	OAuthStateError
@@ -47,15 +34,17 @@ const OAuthID = "oauth"
 
 // OAuth handles the OAuth flow authentication.
 type OAuth struct {
-	ui            *defaults.UI
-	isOnboarding  bool
-	oAuthProvider OAuthProvider
+	ui           *defaults.UI
+	isOnboarding bool
+	oidcProvider oidc.OidcProvider
+	name         string
 
 	State OAuthState
 
 	spinner spinner.Model
 	help    help.Model
-	keyMap  struct {
+
+	keyMap struct {
 		Copy      key.Binding
 		CopyURL   key.Binding
 		Submit    key.Binding
@@ -63,33 +52,25 @@ type OAuth struct {
 		Close     key.Binding
 	}
 
-	width           int
-	deviceCode      string
-	userCode        string
-	verificationURL string
-	expiresIn       int
-	interval        int
-	cancelFunc      context.CancelFunc
-	// codeInput is the paste field for providers whose browser flow
-	// can finish with a code entered back in the terminal.
-	codeInput textinput.Model
+	width      int
+	token      *oidc.Token
+	deviceAuth *oidc.DeviceAuth
+
+	cancelFunc context.CancelFunc
+	codeInput  textinput.Model
 }
 
 var _ Dialog = (*OAuth)(nil)
 
-// newOAuth creates a new device flow component.
-func newOAuth(
-	ui *defaults.UI,
-	isOnboarding bool,
-	oAuthProvider OAuthProvider,
-) (*OAuth, tea.Cmd) {
+// NewOAuth creates a new OAuth dialog.
+func NewOAuth(ui *defaults.UI, oidcProvider oidc.OidcProvider, name string) (*OAuth, tea.Cmd) {
 	t := ui.Styles
 
-	m := OAuth{}
+	m := &OAuth{}
 	m.ui = ui
-	m.isOnboarding = isOnboarding
-	m.oAuthProvider = oAuthProvider
-	m.width = 0 // Set dynamically in Draw().
+	m.oidcProvider = oidcProvider
+	m.name = name
+	m.width = 0
 	m.State = OAuthStateInitializing
 
 	m.spinner = spinner.New(
@@ -118,16 +99,7 @@ func newOAuth(
 	)
 	m.keyMap.Close = CloseKey
 
-	// if m.oAuthProvider.supportsCodeEntry() {
-	// 	m.codeInput = textinput.New()
-	// 	m.codeInput.SetVirtualCursor(false)
-	// 	m.codeInput.Prompt = "> "
-	// 	m.codeInput.Placeholder = "Paste the code from the browser..."
-	// 	m.codeInput.SetStyles(t.TextInput)
-	// 	m.codeInput.Blur()
-	// }
-
-	return &m, tea.Batch(m.spinner.Tick)
+	return m, tea.Batch(m.spinner.Tick, Begin(m.oidcProvider))
 }
 
 // ID implements Dialog.
@@ -138,15 +110,24 @@ func (m *OAuth) ID() string {
 // HandleMsg handles messages and state transitions.
 func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 	switch msg := msg.(type) {
-	case spinner.TickMsg:
-		switch m.State {
-		case OAuthStateInitializing, OAuthStateDisplay, OAuthStateSaving:
-			var cmd tea.Cmd
-			m.spinner, cmd = m.spinner.Update(msg)
-			if cmd != nil {
-				return ActionCmd{cmd}
-			}
+
+	case spinner.TickMsg: // spinner tick
+		spinner, cmd := m.spinner.Update(msg)
+		m.spinner = spinner
+		return ActionCmd{tea.Batch(cmd, m.spinner.Tick)}
+
+	case tea.KeyPressMsg:
+		if key.Matches(msg, m.keyMap.Close) { // close dialog
+			return ActionClose{}
 		}
+
+	case ActionOAuthErrored: // oauth error
+		m.State = OAuthStateError
+		return ActionCmd{tea.Batch(defaults.Error(msg.Error))}
+
+	case ActionInitiateOAuth: // initiate oauth
+		m.deviceAuth = msg.DeviceAuth
+		return ActionCmd{Finish(m.oidcProvider, m.deviceAuth)}
 	}
 
 	return nil
@@ -190,9 +171,6 @@ func (m *OAuth) dialogContent() string {
 	t := m.ui.Styles
 
 	switch m.State {
-	case OAuthStateInitializing, OAuthStateSaving:
-		return m.innerDialogContent()
-
 	default:
 		innerWidth := m.width - t.Dialog.View.GetHorizontalFrameSize()
 		elements := []string{
@@ -211,7 +189,7 @@ func (m *OAuth) headerContent() string {
 		textStyle    = t.Dialog.PrimaryText
 		dialogStyle  = t.Dialog.View.Width(m.width)
 		headerOffset = titleStyle.GetHorizontalFrameSize() + dialogStyle.GetHorizontalFrameSize()
-		dialogTitle  = fmt.Sprintf("Let’s authenticate with %s", m.oAuthProvider.name())
+		dialogTitle  = fmt.Sprintf("Let's authenticate with %s", m.name)
 	)
 	if m.isOnboarding {
 		return textStyle.Render(dialogTitle)
@@ -245,14 +223,14 @@ func (m *OAuth) innerDialogContent() string {
 					statusTextStyle.Render("Initializing..."),
 			)
 
-	case OAuthStateDisplay:
+	case OAuthStateAuthenticating:
 		// Render each text segment with its own style. Wrapping the
 		// whole concatenation in a single style would lose the text
 		// color after enterKeyStyle's reset code.
 		instructionText := instructionStyle.Render("Press ") +
 			enterKeyStyle.Render("enter") +
 			instructionStyle.Render(" to open the browser and authenticate.")
-		if m.userCode != "" {
+		if m.deviceAuth.UserCode != "" {
 			instructionText = instructionStyle.Render("Press ") +
 				enterKeyStyle.Render("enter") +
 				instructionStyle.Render(" to copy the code below and open the browser.")
@@ -263,26 +241,26 @@ func (m *OAuth) innerDialogContent() string {
 			Render(instructionText)
 
 		elements := []string{"", instructions, ""}
-		if m.userCode != "" {
+		if m.deviceAuth.UserCode != "" {
 			codeBox := lipgloss.NewStyle().
 				Width(innerWidth).
 				Height(7).
 				Align(lipgloss.Center, lipgloss.Center).
 				Background(t.Dialog.OAuth.UserCodeBg).
 				Render(
-					t.Dialog.OAuth.UserCode.Render(m.userCode),
+					t.Dialog.OAuth.UserCode.Render(m.deviceAuth.UserCode),
 				)
 			elements = append(elements, codeBox, "")
 		}
 
-		link := linkStyle.Hyperlink(m.verificationURL, "id=oauth-verify").Render(m.verificationURL)
+		link := linkStyle.Hyperlink(m.deviceAuth.VerificationURI, "id=oauth-verify").Render(m.deviceAuth.VerificationURI)
 		url := statusTextStyle.
 			Width(innerWidth).
 			Padding(0, 1).
 			Render("Browser not opening? Pay a visit to:\n" + link)
 
 		waitingMsg := "Waiting for browser authentication..."
-		if m.userCode != "" {
+		if m.deviceAuth.UserCode != "" {
 			waitingMsg = "Verifying..."
 		}
 		waiting := statusTextStyle.
@@ -347,5 +325,35 @@ func (m *OAuth) ShortHelp() []key.Binding {
 
 	default:
 		return nil
+	}
+}
+
+// Begin initiates the OAuth device flow.
+func Begin(oidcProvider oidc.OidcProvider) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		deviceAuth, err := oidcProvider.Begin(ctx)
+		if err != nil {
+			return ActionOAuthErrored{Error: fmt.Errorf("failed to initiate device auth: %w", err)}
+		}
+
+		return ActionInitiateOAuth{DeviceAuth: deviceAuth}
+	}
+}
+
+// Finish completes the OAuth device flow.
+func Finish(oidcProvider oidc.OidcProvider, deviceAuth *oidc.DeviceAuth) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		token, err := oidcProvider.Finish(ctx, deviceAuth)
+		if err != nil {
+			return ActionOAuthErrored{Error: fmt.Errorf("failed to finish device auth: %w", err)}
+		}
+
+		return ActionCompleteOAuth{Token: token}
 	}
 }

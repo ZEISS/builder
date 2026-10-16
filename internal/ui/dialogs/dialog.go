@@ -254,13 +254,13 @@ func (d *Overlay) Update(msg tea.Msg) tea.Msg {
 		return nil
 	}
 
-	// Absorb keystrokes during the grace period for async dialogs.
 	if _, ok := msg.(tea.KeyPressMsg); ok && d.inGracePeriod() {
 		d.graceLastInputAt = time.Now()
 		return nil
 	}
 
 	idx := len(d.dialogs) - 1 // active dialog is the last one
+
 	dialog := d.dialogs[idx]
 	if dialog == nil {
 		return nil
