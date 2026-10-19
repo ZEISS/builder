@@ -214,3 +214,24 @@ func Write(s *Spec, file string, force bool) error {
 
 	return nil
 }
+
+// Read reads a spec from a file.
+func Read(file string) (*Spec, error) {
+	data, err := os.ReadFile(filepath.Clean(file))
+	if err != nil {
+		return nil, err
+	}
+
+	s := Default()
+	if err := yaml.Unmarshal(data, s); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+// Exists checks if a spec file exists at the given path.
+func Exists(file string) bool {
+	ok, _ := filex.FileExists(filepath.Clean(file))
+	return ok
+}

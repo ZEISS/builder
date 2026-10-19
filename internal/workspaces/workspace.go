@@ -8,12 +8,14 @@ import (
 
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/sessions"
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/utils"
 
 	"github.com/charmbracelet/x/ansi"
 	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/filex"
+	"github.com/zeiss/pkg/utilx"
 )
 
 // Workspace represents a workspace in the workspaces view.
@@ -33,7 +35,7 @@ type Workspace interface {
 	// Initialized returns whether the workspace is initialized.
 	Initialized() bool
 	// Session returns the session controller of the workspace.
-	Session() sessions.Session
+	Session() (*models.Session, bool)
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -45,13 +47,14 @@ type WorkspaceImpl struct {
 	cwd         string
 	dir         string
 	logFile     string
-	session     sessions.Session
+	sevices     services.Service
 	funcs       []func() error
 	initialized bool
+	session     *models.Session
 }
 
 // New returns a new WorkspaceImpl.
-func New(session sessions.Session, debug, yolo bool, cwd, dir string, funcs ...func() error) *WorkspaceImpl {
+func New(services services.Service, debug, yolo bool, cwd, dir string, funcs ...func() error) *WorkspaceImpl {
 	f := make([]func() error, 0, len(funcs))
 	for _, fn := range funcs {
 		f = append(f, fn)
@@ -62,7 +65,7 @@ func New(session sessions.Session, debug, yolo bool, cwd, dir string, funcs ...f
 		yolo:    yolo,
 		cwd:     cwd,
 		dir:     dir,
-		session: session,
+		sevices: services,
 		funcs:   f,
 	}
 }
@@ -108,8 +111,8 @@ func (w *WorkspaceImpl) Cleanup() error {
 }
 
 // Session returns the session controller of the workspace.
-func (w *WorkspaceImpl) Session() sessions.Session {
-	return w.session
+func (w *WorkspaceImpl) Session() (*models.Session, bool) {
+	return w.session, utilx.NotNil(w.session)
 }
 
 // SetupWithProgressBar sets up the progress bar for the workspaces view.
@@ -140,18 +143,15 @@ func SetupWithProgressBar(ctx context.Context, flags config.Flags) (Workspace, e
 		return nil, err
 	}
 
-	session := sessions.New(store)
-	if err := session.Initialize(ctx); err != nil {
-		return nil, err
-	}
-
 	funcs := []func() error{
 		func() error {
 			return store.Close()
 		},
 	}
 
-	ws, err := Setup(session, flags, funcs...)
+	srv := services.NewService(store)
+
+	ws, err := Setup(srv, flags, funcs...)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func SetupWithProgressBar(ctx context.Context, flags config.Flags) (Workspace, e
 }
 
 // Setup is setting up a workspace.
-func Setup(session sessions.Session, flags config.Flags, funcs ...func() error) (Workspace, error) {
+func Setup(services services.Service, flags config.Flags, funcs ...func() error) (Workspace, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
@@ -179,7 +179,7 @@ func Setup(session sessions.Session, flags config.Flags, funcs ...func() error) 
 		return nil, fmt.Errorf("failed to create workspace directory: %w", err)
 	}
 
-	ws := New(session, flags.Debug, flags.Yolo, cwd, abs, funcs...)
+	ws := New(services, flags.Debug, flags.Yolo, cwd, abs, funcs...)
 
 	logFile := filepath.Join(abs, "sparkles.log")
 	ws.logFile = logFile

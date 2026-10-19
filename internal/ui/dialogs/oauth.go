@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/browser"
 	"github.com/zeiss/builder/internal/clipboard"
+	"github.com/zeiss/builder/internal/cmds"
 	"github.com/zeiss/builder/internal/oidc"
-	"github.com/zeiss/builder/internal/sessions"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	"github.com/zeiss/builder/internal/ui/status"
 	"github.com/zeiss/pkg/utilx"
@@ -147,7 +147,7 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 	case ActionOAuthCompleted: // oauth completed
 		m.token = msg.Token
 		m.State = OAuthStateSuccess
-		return ActionCmd{tea.Batch(status.Success("OAuth completed successfully"), sessions.CreateAccount(m.ui.Workspace.Session(), msg.Token))}
+		return ActionCmd{tea.Batch(status.Success("OAuth completed successfully"), cmds.CreateAccount(nil, msg.Token))}
 
 	default:
 		return nil

@@ -100,6 +100,7 @@ func NewUI(root *defaults.UI, sessionID string, sessionContinue bool) *UI {
 	)
 	ta.KeyMap.CopySelection = key.NewBinding()
 	ta.Focus()
+	ta.Placeholder = defaults.ReadyPlaceholders.Random()
 	ui.textarea = ta
 
 	dialogs := dialogs.NewOverlay()
@@ -258,7 +259,7 @@ func (m *UI) FullHelp() [][]key.Binding {
 func (m *UI) initialize() tea.Cmd {
 	var cmds []tea.Cmd
 
-	if !m.root.Workspace.Session().HasAccount() {
+	if _, ok := m.root.Workspace.Session(); !ok {
 		cmds = append(cmds, m.openConfigDialog())
 	}
 

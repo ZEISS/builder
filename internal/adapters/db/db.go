@@ -48,7 +48,7 @@ type readTxImpl struct {
 	conn *gorm.DB
 }
 
-// NewReadTx ...
+// NewReadTx is a factory function that returns a new readTxImpl.
 func NewReadTx() dbx.ReadTxFactory[ports.ReadTx] {
 	return func(db *gorm.DB) (ports.ReadTx, error) {
 		return &readTxImpl{conn: db}, nil
@@ -60,12 +60,17 @@ func (r *readTxImpl) GetCurrentAccount(ctx context.Context, account *models.Acco
 	return r.conn.WithContext(ctx).First(account).Error
 }
 
+// GetSession implements the ReadTx interface.
+func (r *readTxImpl) GetSession(ctx context.Context, session *models.Session) error {
+	return r.conn.WithContext(ctx).First(session).Error
+}
+
 type writeTxImpl struct {
 	conn *gorm.DB
 	readTxImpl
 }
 
-// NewWriteTx ...
+// NewReadWriteTx is a factory function that returns a new writeTxImpl.
 func NewWriteTx() dbx.ReadWriteTxFactory[ports.ReadWriteTx] {
 	return func(db *gorm.DB) (ports.ReadWriteTx, error) {
 		return &writeTxImpl{conn: db}, nil
@@ -80,6 +85,21 @@ func (tx *writeTxImpl) CreateAccount(ctx context.Context, account *models.Accoun
 			DoUpdates: clause.AssignmentColumns([]string{"name", "current", "refresh_token", "access_token", "expires_at", "token_type", "scope", "id_token", "session_state", "updated_at"}),
 		}).Create(account).Error
 	})
+}
+
+// CreateSession implements the SessionRepository interface.
+func (tx *writeTxImpl) CreateSession(ctx context.Context, session *models.Session) error {
+	return tx.conn.WithContext(ctx).Create(session).Error
+}
+
+// UpdateSession implements the SessionRepository interface.
+func (tx *writeTxImpl) UpdateSession(ctx context.Context, session *models.Session) error {
+	return tx.conn.WithContext(ctx).Save(session).Error
+}
+
+// DeleteSession implements the SessionRepository interface.
+func (tx *writeTxImpl) DeleteSession(ctx context.Context, session *models.Session) error {
+	return tx.conn.WithContext(ctx).Delete(session).Error
 }
 
 // Database is a struct that represents the database adapter.
@@ -133,6 +153,7 @@ func WithSqlite3(path string) Opt {
 func RunMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.Account{},
+		&models.Session{},
 	)
 }
 
