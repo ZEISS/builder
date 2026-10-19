@@ -405,6 +405,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		return m.openConfigDialog()
 	}
 
+	if id == dialogs.DeployID {
+		return m.openDeployDialog()
+	}
+
 	return utils.Noop()
 }
 
@@ -417,6 +421,19 @@ func (m *UI) openQuitDialog() tea.Cmd {
 
 	quitDialog := dialogs.NewQuit(m.root)
 	m.dialogs.OpenDialog(quitDialog)
+
+	return utils.Noop()
+}
+
+// openDeployDialog opens the deploy dialog.
+func (m *UI) openDeployDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.DeployID) {
+		m.dialogs.BringToFront(dialogs.DeployID)
+		return utils.Noop()
+	}
+
+	deployDialog := dialogs.NewDeploy(m.root)
+	m.dialogs.OpenDialog(deployDialog)
 
 	return utils.Noop()
 }

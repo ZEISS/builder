@@ -321,7 +321,8 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	commands := []*CommandItem{
 		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
-		NewCommandItem(c.ui.Styles, "config_url", "Authenticate", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
+		NewCommandItem(c.ui.Styles, "deploy", "Deploy", "ctrl+d", ActionOpenDialog{DialogID: DeployID}),
+		NewCommandItem(c.ui.Styles, "config", "Configure", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
 	}
 
 	// Add external editor command if $EDITOR is available.
@@ -332,10 +333,6 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	// 	if os.Getenv("EDITOR") != "" {
 	// 		commands = append(commands, NewCommandItem(c.ui.Styles, "open_external_editor", "Open External Editor", "ctrl+o", ActionExternalEditor{}))
 	// 	}
-	//
-	// 	// Add a command for selecting notification style via picker dialog.
-	// 	notificationLabel := "Notification Style"
-	// 	commands = append(commands, NewCommandItem(c.ui.Styles, "select_notifications", notificationLabel, "", ActionOpenDialog{DialogID: NotificationsID}))
 
 	commands = append(
 		commands,

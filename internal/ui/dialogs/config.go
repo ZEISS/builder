@@ -125,6 +125,7 @@ func (m *ConfigDialog) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 func (m *ConfigDialog) ShortHelp() []key.Binding {
 	return []key.Binding{
 		m.keyMap.Submit,
+		m.keyMap.Close,
 	}
 }
 
