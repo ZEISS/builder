@@ -22,4 +22,6 @@ type SessionService interface {
 	UpdateSession(ctx context.Context, session *models.Session) error
 	// DeleteSession deletes a session.
 	DeleteSession(ctx context.Context, session *models.Session) error
+	// ListSessions returns the list of sessions.
+	ListSessions(ctx context.Context, sessions *[]*models.Session) error
 }

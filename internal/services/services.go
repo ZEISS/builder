@@ -57,3 +57,10 @@ func (s *ServiceImpl) DeleteSession(ctx context.Context, session *models.Session
 		return rw.DeleteSession(ctx, session)
 	})
 }
+
+// ListSessions returns the list of sessions.
+func (s *ServiceImpl) ListSessions(ctx context.Context, sessions *[]*models.Session) error {
+	return s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
+		return tx.ListSessions(ctx, sessions)
+	})
+}

@@ -65,6 +65,11 @@ func (r *readTxImpl) GetSession(ctx context.Context, session *models.Session) er
 	return r.conn.WithContext(ctx).First(session).Error
 }
 
+// ListSessions implements the ReadTx interface.
+func (r *readTxImpl) ListSessions(ctx context.Context, sessions *[]*models.Session) error {
+	return r.conn.WithContext(ctx).Find(sessions).Error
+}
+
 type writeTxImpl struct {
 	conn *gorm.DB
 	readTxImpl

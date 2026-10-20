@@ -12,6 +12,8 @@ type ReadTx interface {
 	GetCurrentAccount(ctx context.Context, account *models.Account) error
 	// GetSession retrieves the session from the database.
 	GetSession(ctx context.Context, session *models.Session) error
+	// ListSessions retrieves the list of sessions from the database.
+	ListSessions(ctx context.Context, sessions *[]*models.Session) error
 }
 
 // ReadWriteTx is a read-write transaction interface.

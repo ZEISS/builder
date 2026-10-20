@@ -37,6 +37,8 @@ type Workspace interface {
 	Initialized() bool
 	// Session returns the session controller of the workspace.
 	Session() (*models.Session, bool)
+	// ListSessions returns the list of sessions of the workspace.
+	ListSessions() ([]*models.Session, error)
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -114,6 +116,13 @@ func (w *WorkspaceImpl) Cleanup() error {
 // Session returns the session controller of the workspace.
 func (w *WorkspaceImpl) Session() (*models.Session, bool) {
 	return w.session, utilx.NotNil(w.session)
+}
+
+// ListSessions returns the list of sessions of the workspace.
+func (w *WorkspaceImpl) ListSessions() ([]*models.Session, error) {
+	var sessions []*models.Session
+	err := w.sevices.ListSessions(context.Background(), &sessions)
+	return sessions, err
 }
 
 // SetupWithProgressBar sets up the progress bar for the workspaces view.
