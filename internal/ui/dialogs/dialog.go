@@ -643,9 +643,9 @@ func renderDialogHelp(t *styles.Styles, h *help.Model, km help.KeyMap, contentWi
 }
 
 func renderProgress(t *styles.Styles, progress *progress.Model, contentWidth int) string {
-	progress.SetWidth(contentWidth)
-	view := progress.View()
-	return t.Dialog.View.Render(view)
+	textWidth := max(0, contentWidth-t.Dialog.HelpView.GetHorizontalFrameSize())
+	progress.SetWidth(textWidth)
+	return progress.View()
 }
 
 // shortHelpLine builds a single-line short help view truncated to width.

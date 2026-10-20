@@ -11,8 +11,6 @@ import (
 
 const DeployID = "deploy"
 
-const defaultDeployDialogMaxWidth = 73
-
 // DeployDialog represents a deploy configuration dialog.
 type DeployDialog struct {
 	ui  *defaults.UI

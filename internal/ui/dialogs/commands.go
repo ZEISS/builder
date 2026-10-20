@@ -319,7 +319,7 @@ func (c *Commands) setCommandItems(commandType CommandType) {
 // defaultCommands returns the list of default system commands.
 func (c *Commands) defaultCommands() []*CommandItem {
 	commands := []*CommandItem{
-		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{}),
+		NewCommandItem(c.ui.Styles, "switch_session", "Sessions", "ctrl+s", ActionOpenDialog{DialogID: SessionsID}),
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "deploy", "Deploy", "ctrl+d", ActionOpenDialog{DialogID: DeployID}),
 		NewCommandItem(c.ui.Styles, "config", "Configure", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),

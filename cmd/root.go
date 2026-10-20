@@ -4,10 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/colorprofile"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
@@ -17,6 +13,10 @@ import (
 	"github.com/zeiss/builder/internal/versions"
 	"github.com/zeiss/builder/internal/workspaces"
 
+	tea "charm.land/bubbletea/v2"
+	"github.com/charmbracelet/colorprofile"
+	uv "github.com/charmbracelet/ultraviolet"
+	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )
 

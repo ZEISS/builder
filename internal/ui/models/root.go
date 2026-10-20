@@ -410,6 +410,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		return m.openDeployDialog()
 	}
 
+	if id == dialogs.SessionsID {
+		return m.openSessionsDialog()
+	}
+
 	return utils.Noop()
 }
 
@@ -435,6 +439,23 @@ func (m *UI) openDeployDialog() tea.Cmd {
 
 	deployDialog := dialogs.NewDeploy(m.root)
 	m.dialogs.OpenDialog(deployDialog)
+
+	return utils.Noop()
+}
+
+// openSessionsDialog opens the sessions dialog.
+func (m *UI) openSessionsDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.SessionsID) {
+		m.dialogs.BringToFront(dialogs.SessionsID)
+		return utils.Noop()
+	}
+
+	sessionsDialog, err := dialogs.NewSessions(m.root, m.sessionID)
+	if err != nil {
+		return status.Error(err)
+	}
+
+	m.dialogs.OpenDialog(sessionsDialog)
 
 	return utils.Noop()
 }
