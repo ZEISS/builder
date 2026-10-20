@@ -26,7 +26,7 @@ var RefreshCmd = &cobra.Command{
 func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
@@ -46,12 +46,12 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, config.DefaultConfig.Flags.URL)
+	wellknownConfig, err := discv.Discover(ctx, config.DefaultFlags.URL)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
 
 	store := db.New(conn)
 	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)

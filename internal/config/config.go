@@ -9,9 +9,14 @@ import (
 
 	"github.com/zeiss/builder/pkg/specs"
 
-	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/utilx"
 )
+
+// DefaultFlags holds the default command line flags.
+var DefaultFlags = NewFlags()
+
+// DefaultConfig holds the configuration for the builder.
+var DefaultConfig = NewConfig()
 
 const appName = "sparkles"
 
@@ -26,9 +31,6 @@ const DefaultPath = ".sparkles"
 
 // UnknownCwd is the unknown current working directory.
 const UnknownCwd = ""
-
-// DefaultConfig is the default configuration.
-var DefaultConfig = New()
 
 // Flags contains the command line flags.
 type Flags struct {
@@ -60,11 +62,6 @@ type Flags struct {
 
 // NewFlags returns a new flags.
 func NewFlags() Flags {
-	return Flags{}
-}
-
-// NewDefaultFlags returns the default flags.
-func NewDefaultFlags() Flags {
 	return Flags{
 		Config: DefaultSpecFileName,
 		Path:   DefaultPath,
@@ -73,12 +70,6 @@ func NewDefaultFlags() Flags {
 
 // Config contains the configuration.
 type Config struct {
-	// File is the path to the config file.
-	File string
-	// FileMode is the file mode of the config file.
-	FileMode os.FileMode
-	// Flags contains the flags for the config.
-	Flags Flags
 	// Stderr is the stderr file.
 	Stderr *os.File
 	// Stdin is the stdin file.
@@ -87,8 +78,6 @@ type Config struct {
 	Stdout *os.File
 	// Task contains the flags for a task.
 	Task TaskFlags
-	// Verbose indicates whether to print verbose output.
-	Verbose bool
 }
 
 // TaskFlags contains the flags for a task.
@@ -98,130 +87,48 @@ type TaskFlags struct {
 }
 
 // New returns a new config.
-func New() Config {
+func NewConfig() Config {
 	return Config{
-		File:   DefaultSpecFileName,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags:  NewDefaultFlags(), // deprecated
 	}
-}
-
-// Vars returns the variables.
-func (c *Config) Vars() []string {
-	return c.Flags.Vars
-}
-
-// HomeDir returns the home directory.
-func (c *Config) HomeDir() (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-
-	return usr.HomeDir, err
-}
-
-// StorePath returns the path to the store file.
-func (c *Config) StorePath() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return "", err
-	}
-
-	abs, err := filepath.Abs(filepath.Clean(path))
-	if err != nil {
-		return "", err
-	}
-
-	return abs, nil
-}
-
-// Cwd return the current working directory.
-// Which is the path in which the builder spec is located.
-func (c *Config) Cwd() (string, error) {
-	abs, err := filepath.Abs(filepath.Clean(c.File))
-	if err != nil {
-		return UnknownCwd, err
-	}
-
-	return filepath.Dir(filepath.Clean(abs)), nil
 }
 
 // Spec is a helper to load the spec from the config file.
-func (c *Config) Spec() (*specs.Spec, error) {
-	path, err := c.Abs()
+func (f *Flags) Spec() (*specs.Spec, error) {
+	path, err := f.Abs()
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := os.ReadFile(path)
+	s, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	spec := &specs.Spec{}
-	if err := spec.UnmarshalYAML(f); err != nil {
+	if err := spec.UnmarshalYAML(s); err != nil {
 		return nil, err
 	}
 
 	return spec, nil
 }
 
-// Path returns the expanded path of the config file.
-func (c *Config) Path() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return "", err
-	}
-
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return "", err
-	}
-
-	return abs, nil
-}
-
-// DeleteStore deletes the session store.
-func (c *Config) DeleteStore() error {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return err
-	}
-
-	return os.RemoveAll(path)
-}
-
 // Abs returns the absolute path of the config file.
-func (c *Config) Abs() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.File)
+func (f *Flags) Abs() (string, error) {
+	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 
+	path := filepath.Join(cwd, f.Config)
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
 	}
 
 	return filepath.Clean(abs), nil
-}
-
-// ExpandConfigPath expands the config path and creates the store folder.
-func ExpandConfigPath(path string) (string, error) {
-	path, err := filex.ExpandHomeFolder(path)
-	if err != nil {
-		return "", err
-	}
-
-	err = os.MkdirAll(filepath.Dir(path), 0o777)
-	if err != nil {
-		return "", err
-	}
-
-	return path, nil
 }
 
 // AppDirPath returns the path to the main data directory for the application.
@@ -254,4 +161,14 @@ func HomeDir() (string, error) {
 	}
 
 	return usr.HomeDir, err
+}
+
+// Cwd returns the current working directory.
+func Cwd() (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Clean(wd), nil
 }

@@ -8,10 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNew(t *testing.T) {
+func TestNewConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := config.New()
+	cfg := config.NewConfig()
 
 	require.NotNil(t, cfg)
+}
+
+func TestNewFlags(t *testing.T) {
+	t.Parallel()
+
+	flags := config.NewFlags()
+
+	require.NotNil(t, flags)
 }

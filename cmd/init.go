@@ -1,10 +1,12 @@
 package cmd
 
 import (
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/ui/models"
+	"fmt"
 
-	tea "charm.land/bubbletea/v2"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/pkg/specs"
+	"github.com/zeiss/pkg/filex"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,17 +22,22 @@ The config will be created with default values.
 }
 
 func runInit(cmd *cobra.Command, _ []string) error {
-	ctx := cmd.Context()
-
-	absPath, err := config.DefaultConfig.Abs()
+	absPath, err := config.DefaultFlags.Abs()
 	if err != nil {
 		return err
 	}
 
-	app := models.NewInit(ctx, absPath, config.DefaultConfig.Flags.Force)
-	programm := tea.NewProgram(app, tea.WithContext(ctx))
+	ok, _ := filex.FileExists(absPath)
+	if ok && !config.DefaultFlags.Force {
+		return fmt.Errorf("use --force to overwrite the config file: %s", absPath)
+	}
 
-	_, err = programm.Run()
+	spec, err := specs.Example()
+	if err != nil {
+		return err
+	}
+
+	err = specs.Write(spec, absPath, config.DefaultFlags.Force)
 	if err != nil {
 		return err
 	}

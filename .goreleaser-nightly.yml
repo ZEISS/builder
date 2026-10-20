@@ -1,0 +1,120 @@
+version: 2
+before:
+  hooks:
+    - go mod tidy
+
+env:
+  - DOCKER_IMAGE_REPO={{ envOrDefault "DOCKER_IMAGE_REPO" "builder" }}
+
+builds:
+  - id: server
+    binary: server
+    main: server/main.go
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
+  - id: builder
+    binary: builder
+    main: main.go
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+
+homebrew_casks:
+  - repository:
+      owner: zeiss
+      name: homebrew-builder-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/zeiss/builder
+    description: A teeny-tiny tool to build stuff
+    url:
+      template: "https://github.com/zeiss/builder/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Casks
+    name: builder
+    ids:
+      - builder
+    binaries:
+      - builder
+    hooks:
+      post:
+        install: |
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+    license: APACHE-2.0
+
+dockers_v2:
+  - id: builder
+    dockerfile: Dockerfile.builder
+    images:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
+    tags:
+      - "{{ .Version }}"
+      - latest
+    ids:
+      - builder
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+
+  - id: server
+    dockerfile: Dockerfile.server
+    images:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}"
+      - latest
+    ids:
+      - server
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+
+archives:
+  - id: server
+    builds:
+      - server
+    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
+  - id: builder
+    builds:
+      - builder
+    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+release:
+  disable: true
+
+changelog:
+  disable: true
+
+checksum:
+  name_template: "builder_checksums.txt"

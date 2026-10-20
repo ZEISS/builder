@@ -31,12 +31,12 @@ var CreateCmd = &cobra.Command{
 }
 
 func runCreate(cmd *cobra.Command, _ []string) error {
-	spec, err := config.DefaultConfig.Spec()
+	spec, err := config.DefaultFlags.Spec()
 	if err != nil {
 		return err
 	}
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
@@ -57,12 +57,12 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 	}
 
 	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultConfig.Flags.URL)
+	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultFlags.URL)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
 
 	store := db.New(conn)
 	accountController := controllers.NewAccountController(config.DefaultConfig, store)

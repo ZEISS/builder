@@ -20,12 +20,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Flags holds the command line flags.
-var Flags = config.NewDefaultFlags()
-
-// Config holds the configuration for the builder.
-var Config = config.New()
-
 func init() {
 	// Commands
 	RootCmd.AddCommand(InitCmd)
@@ -35,19 +29,19 @@ func init() {
 	RootCmd.AddCommand(AccountCmd)
 
 	// State
-	RootCmd.PersistentFlags().StringVarP(&Flags.URL, "url", "u", Flags.URL, "URL")
-	RootCmd.PersistentFlags().StringVarP(&Flags.Path, "path", "p", Flags.Path, "path")
-	RootCmd.PersistentFlags().StringVarP(&Flags.Session, "session", "s", Flags.Session, "session")
-	RootCmd.PersistentFlags().BoolVar(&Flags.Continue, "continue", Flags.Continue, "continue")
-	RootCmd.PersistentFlags().StringVarP(&Flags.Config, "config", "c", Flags.Config, "config file")
-	RootCmd.PersistentFlags().BoolVarP(&Flags.Verbose, "verbose", "v", Flags.Verbose, "verbose output")
-	RootCmd.PersistentFlags().BoolVarP(&Flags.Force, "force", "f", Flags.Force, "force init")
-	RootCmd.PersistentFlags().BoolVar(&Flags.Debug, "debug", Flags.Debug, "debug mode")
-	RootCmd.PersistentFlags().BoolVarP(&Flags.Yolo, "yolo", "y", Flags.Yolo, "yolo mode")
+	RootCmd.PersistentFlags().StringVarP(&config.DefaultFlags.URL, "url", "u", config.DefaultFlags.URL, "URL")
+	RootCmd.PersistentFlags().StringVarP(&config.DefaultFlags.Path, "path", "p", config.DefaultFlags.Path, "path")
+	RootCmd.PersistentFlags().StringVarP(&config.DefaultFlags.Session, "session", "s", config.DefaultFlags.Session, "session")
+	RootCmd.PersistentFlags().BoolVar(&config.DefaultFlags.Continue, "continue", config.DefaultFlags.Continue, "continue")
+	RootCmd.PersistentFlags().StringVarP(&config.DefaultFlags.Config, "config", "c", config.DefaultFlags.Config, "config file")
+	RootCmd.PersistentFlags().BoolVarP(&config.DefaultFlags.Verbose, "verbose", "v", config.DefaultFlags.Verbose, "verbose output")
+	RootCmd.PersistentFlags().BoolVarP(&config.DefaultFlags.Force, "force", "f", config.DefaultFlags.Force, "force init")
+	RootCmd.PersistentFlags().BoolVar(&config.DefaultFlags.Debug, "debug", config.DefaultFlags.Debug, "debug mode")
+	RootCmd.PersistentFlags().BoolVarP(&config.DefaultFlags.Yolo, "yolo", "y", config.DefaultFlags.Yolo, "yolo mode")
 
 	// Runtime
-	RootCmd.PersistentFlags().StringSliceVar(&Flags.Plugins, "plugin", Flags.Plugins, "plugin")
-	RootCmd.PersistentFlags().StringSliceVar(&Flags.Vars, "var", Flags.Vars, "variables")
+	RootCmd.PersistentFlags().StringSliceVar(&config.DefaultFlags.Plugins, "plugin", config.DefaultFlags.Plugins, "plugin")
+	RootCmd.PersistentFlags().StringSliceVar(&config.DefaultFlags.Vars, "var", config.DefaultFlags.Vars, "variables")
 
 	// Output
 	RootCmd.SilenceErrors = true
@@ -61,7 +55,7 @@ var RootCmd = &cobra.Command{
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
-	workspace, err := workspaces.SetupWithProgressBar(cmd.Context(), Flags)
+	workspace, err := workspaces.SetupWithProgressBar(cmd.Context(), config.DefaultFlags)
 	if err != nil {
 		return err
 	}
@@ -70,7 +64,7 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 	var env uv.Environ = os.Environ()
 
 	defaultUI := defaults.DefaultUI(workspace)
-	rootUI := ui.NewUI(defaultUI, Flags.Session, Flags.Continue)
+	rootUI := ui.NewUI(defaultUI, config.DefaultFlags.Session, config.DefaultFlags.Continue)
 
 	program := tea.NewProgram(
 		rootUI,

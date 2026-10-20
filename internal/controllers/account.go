@@ -53,8 +53,3 @@ func (c *AccountController) Delete(ctx context.Context, account *models.Account)
 func (c *AccountController) List(ctx context.Context, accounts *[]models.Account) error {
 	return c.account.List(ctx, accounts)
 }
-
-// Reset is a method that resets all accounts.
-func (c *AccountController) Reset(ctx context.Context) error {
-	return c.cfg.DeleteStore()
-}

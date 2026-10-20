@@ -24,7 +24,7 @@ var SwitchCmd = &cobra.Command{
 func runAuthSwitch(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
