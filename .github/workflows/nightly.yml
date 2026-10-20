@@ -32,6 +32,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: make release
+      - run: make nightly
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
