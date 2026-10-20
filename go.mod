@@ -62,6 +62,7 @@ require (
 	github.com/zeebo/xxh3 v1.1.0
 	github.com/zeiss/fiber-goth/v3 v3.0.8
 	github.com/zeiss/pkg v0.2.4
+	go.yaml.in/yaml/v2 v2.4.4
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/oauth2 v0.37.0
 	gorm.io/driver/postgres v1.6.3
@@ -595,7 +596,6 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	gocloud.dev v0.46.0 // indirect

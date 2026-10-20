@@ -14,6 +14,7 @@ import (
 
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/progress"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -639,6 +640,12 @@ func dialogInputTextWidth(t *styles.Styles, input textinput.Model, contentWidth 
 func renderDialogHelp(t *styles.Styles, h *help.Model, km help.KeyMap, contentWidth int) string {
 	textWidth := max(0, contentWidth-t.Dialog.HelpView.GetHorizontalFrameSize())
 	return t.Dialog.HelpView.Render(shortHelpLine(h, km.ShortHelp(), textWidth))
+}
+
+func renderProgress(t *styles.Styles, progress *progress.Model, contentWidth int) string {
+	progress.SetWidth(contentWidth)
+	view := progress.View()
+	return t.Dialog.View.Render(view)
 }
 
 // shortHelpLine builds a single-line short help view truncated to width.

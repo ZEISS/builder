@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/zeiss/builder/pkg/specs"
+
 	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/utilx"
 )
@@ -72,14 +73,22 @@ func NewDefaultFlags() Flags {
 
 // Config contains the configuration.
 type Config struct {
-	File     string
+	// File is the path to the config file.
+	File string
+	// FileMode is the file mode of the config file.
 	FileMode os.FileMode
-	Flags    Flags
-	Stderr   *os.File
-	Stdin    *os.File
-	Stdout   *os.File
-	Task     TaskFlags
-	Verbose  bool
+	// Flags contains the flags for the config.
+	Flags Flags
+	// Stderr is the stderr file.
+	Stderr *os.File
+	// Stdin is the stdin file.
+	Stdin *os.File
+	// Stdout is the stdout file.
+	Stdout *os.File
+	// Task contains the flags for a task.
+	Task TaskFlags
+	// Verbose indicates whether to print verbose output.
+	Verbose bool
 }
 
 // TaskFlags contains the flags for a task.

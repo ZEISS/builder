@@ -5,11 +5,12 @@ import (
 	"math/rand/v2"
 	"strings"
 
-	"charm.land/lipgloss/v2"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/logo"
 	"github.com/zeiss/builder/internal/ui/styles"
 	"github.com/zeiss/builder/internal/versions"
+
+	"charm.land/lipgloss/v2"
 )
 
 // FallbackWidth is used when stdout is not a terminal, so the banner still
@@ -29,6 +30,7 @@ func Render(session *models.Session, version string, width int) string {
 		logoSection(contentWidth),
 		sessionSection(session, contentWidth),
 	}
+
 	return style.Render(strings.Join(sections, "\n\n"))
 }
 

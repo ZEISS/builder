@@ -3,6 +3,7 @@ package dialogs
 import (
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/progress"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/zeiss/builder/internal/ui/defaults"
@@ -22,7 +23,8 @@ type DeployDialog struct {
 		Close  key.Binding
 	}
 
-	help help.Model
+	help     help.Model
+	progress progress.Model
 
 	windowWidth int
 }
@@ -34,6 +36,9 @@ func NewDeploy(ui *defaults.UI) *DeployDialog {
 	t := ui.Styles
 	m := &DeployDialog{}
 	m.ui = ui
+
+	progress := progress.New(progress.WithDefaultBlend())
+	m.progress = progress
 
 	help := help.New()
 	help.Styles = t.DialogHelpStyles()
@@ -83,6 +88,8 @@ func (m *DeployDialog) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	rc := NewRenderContext(t, width)
 	rc.Title = "Deploy to Builder"
 	rc.Help = renderDialogHelp(t, &m.help, m, innerWidth)
+
+	rc.AddPart(renderProgress(t, &m.progress, innerWidth))
 
 	view := rc.Render()
 
