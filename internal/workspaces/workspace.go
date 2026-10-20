@@ -13,6 +13,7 @@ import (
 	"github.com/zeiss/builder/internal/ui/utils"
 
 	"github.com/charmbracelet/x/ansi"
+	"github.com/google/uuid"
 	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/filex"
 	"github.com/zeiss/pkg/utilx"
@@ -151,7 +152,7 @@ func SetupWithProgressBar(ctx context.Context, flags config.Flags) (Workspace, e
 
 	srv := services.NewService(store)
 
-	ws, err := Setup(srv, flags, funcs...)
+	ws, err := Setup(ctx, srv, flags, funcs...)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +165,7 @@ func SetupWithProgressBar(ctx context.Context, flags config.Flags) (Workspace, e
 }
 
 // Setup is setting up a workspace.
-func Setup(services services.Service, flags config.Flags, funcs ...func() error) (Workspace, error) {
+func Setup(ctx context.Context, services services.Service, flags config.Flags, funcs ...func() error) (Workspace, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current working directory: %w", err)
@@ -180,6 +181,32 @@ func Setup(services services.Service, flags config.Flags, funcs ...func() error)
 	}
 
 	ws := New(services, flags.Debug, flags.Yolo, cwd, abs, funcs...)
+
+	var session *models.Session
+	if utilx.NotEmpty(flags.Session) && flags.Continue {
+		prevSession := &models.Session{}
+		id, err := uuid.Parse(flags.Session)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate session id: %w", err)
+		}
+		prevSession.ID = id
+
+		err = services.GetSession(ctx, prevSession)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get session: %w", err)
+		}
+		session = prevSession
+	}
+
+	if utilx.Empty(session) {
+		newSession, err := services.CreateSession(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create session: %w", err)
+		}
+		session = newSession
+	}
+
+	ws.session = session
 
 	logFile := filepath.Join(abs, "sparkles.log")
 	ws.logFile = logFile

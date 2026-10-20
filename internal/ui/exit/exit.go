@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/logo"
 	"github.com/zeiss/builder/internal/ui/styles"
 	"github.com/zeiss/builder/internal/versions"
@@ -16,7 +17,7 @@ import (
 const FallbackWidth = 80
 
 // Render returns the exit banner for the given style.
-func Render(version string, width int) string {
+func Render(session *models.Session, version string, width int) string {
 	if width <= 0 {
 		width = FallbackWidth
 	}
@@ -24,8 +25,16 @@ func Render(version string, width int) string {
 	style := lipgloss.NewStyle().Padding(1, 3)
 	contentWidth := width - style.GetHorizontalFrameSize()
 
-	sections := []string{logoSection(contentWidth)}
+	sections := []string{
+		logoSection(contentWidth),
+		sessionSection(session, contentWidth),
+	}
 	return style.Render(strings.Join(sections, "\n\n"))
+}
+
+// sessionSection returns the session section of the exit banner.
+func sessionSection(session *models.Session, contentWidth int) string {
+	return lipgloss.NewStyle().Width(contentWidth).Render("Session: " + session.ID.String())
 }
 
 // logoSection returns the ASCII art logo followed by the parting message.

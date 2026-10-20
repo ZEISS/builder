@@ -184,7 +184,7 @@ func (d *Database) Conn() *gorm.DB {
 
 // Migrate is a method that runs the migrations for the database.
 func (d *Database) Migrate(ctx context.Context, _ ...any) error {
-	return d.gorm.WithContext(ctx).AutoMigrate(&models.Account{})
+	return d.gorm.WithContext(ctx).AutoMigrate(&models.Account{}, &models.Session{})
 }
 
 // Get is a method that returns an account by ID.

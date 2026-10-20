@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/cmd/sites"
 	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	exitbanner "github.com/zeiss/builder/internal/ui/exit"
 	ui "github.com/zeiss/builder/internal/ui/models"
@@ -86,14 +87,19 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	printExitBanner()
+	session, ok := workspace.Session()
+	if !ok {
+		return nil
+	}
+
+	printExitBanner(session)
 
 	return nil
 }
 
-func printExitBanner() {
+func printExitBanner(session *models.Session) {
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
-	body := exitbanner.Render(versions.VersionString, tw)
+	body := exitbanner.Render(session, versions.VersionString, tw)
 	if body == "" {
 		return
 	}
