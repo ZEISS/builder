@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/zeiss/pkg/filex"
 
 	"github.com/goccy/go-yaml"
@@ -13,6 +14,8 @@ import (
 
 //go:embed example.yml
 var Examples embed.FS
+
+var validate = validator.New(validator.WithRequiredStructEnabled())
 
 const (
 	// Default values for the spec.
@@ -190,6 +193,15 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 	s.Tasks = spec.Tasks
 	s.Sites = spec.Sites
 	s.Root = spec.Root
+
+	return nil
+}
+
+// Validate validates the spec.
+func (s *Spec) Validate() error {
+	if err := validate.Struct(s); err != nil {
+		return err
+	}
 
 	return nil
 }

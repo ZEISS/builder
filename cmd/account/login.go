@@ -1,20 +1,14 @@
 package account
 
 import (
-	"path/filepath"
+	"fmt"
+	"strings"
 
-	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ui/models/account"
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/internal/services"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 // LoginCmd is the command for logging in to builder.
@@ -26,45 +20,47 @@ var LoginCmd = &cobra.Command{
 
 func runLoginCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+	flags := config.DefaultFlags
+
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
+	if err != nil {
+		return err
+	}
 
 	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
-	if err != nil {
-		return err
-	}
-
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-	if err != nil {
-		return err
-	}
-
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, config.DefaultFlags.URL)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
 	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	app := account.New(ctx, authCtrl, accountCtrl)
-	program := tea.NewProgram(app, tea.WithContext(cmd.Context()))
-
-	_, err = program.Run()
+	deviceAuth, err := oidcProvider.Begin(ctx)
 	if err != nil {
 		return err
 	}
+
+	var s strings.Builder
+
+	fmt.Fprintf(&s, "Open the following URL to verify your device: %s\n\n", deviceAuth.VerificationURI)
+	fmt.Fprintf(&s, "User code: %s\n", deviceAuth.UserCode)
+	fmt.Println(s.String())
+
+	account, err := oidcProvider.Finish(ctx, deviceAuth)
+	if err != nil {
+		return err
+	}
+	account.Current = true
+
+	err = srv.CreateAccount(ctx, account)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Logged in successfully.")
 
 	return nil
 }

@@ -1,19 +1,14 @@
 package account
 
 import (
-	"path/filepath"
+	"fmt"
 
-	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/internal/services"
 
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 // RefreshCmd is the command for refreshing the account.
@@ -25,53 +20,40 @@ var RefreshCmd = &cobra.Command{
 
 func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+	flags := config.DefaultFlags
+
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
+	if err != nil {
+		return err
+	}
 
 	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
-	if err != nil {
-		return err
-	}
-
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-	if err != nil {
-		return err
-	}
-
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, config.DefaultFlags.URL)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
 	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
 
-	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
+		return err
+	}
 
-	current := &models.Account{}
-	err = accountCtrl.GetCurrent(ctx, current)
+	if err := oidcProvider.Refresh(ctx, account); err != nil {
+		return err
+	}
+
+	err = srv.UpdateAccount(ctx, account)
 	if err != nil {
 		return err
 	}
 
-	err = authCtrl.Refresh(ctx, current)
-	if err != nil {
-		return err
-	}
-
-	err = accountCtrl.Update(ctx, current)
-	if err != nil {
-		return err
-	}
+	fmt.Println("Refreshed account successfully.")
 
 	return nil
 }

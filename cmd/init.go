@@ -22,13 +22,15 @@ The config will be created with default values.
 }
 
 func runInit(cmd *cobra.Command, _ []string) error {
-	path, err := config.DefaultFlags.Abs()
+	flags := config.DefaultFlags
+
+	path, err := flags.ConfigPath()
 	if err != nil {
 		return err
 	}
 
 	ok, _ := filex.FileExists(path)
-	if ok && !config.DefaultFlags.Force {
+	if ok && !flags.Force {
 		return fmt.Errorf("use --force to overwrite the config file: %s", path)
 	}
 
@@ -37,7 +39,7 @@ func runInit(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	err = specs.Write(spec, path, config.DefaultFlags.Force)
+	err = specs.Write(spec, path, flags.Force)
 	if err != nil {
 		return err
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	"github.com/zeiss/builder/internal/ui/status"
-	"github.com/zeiss/pkg/utilx"
 
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
@@ -21,6 +20,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	uv "github.com/charmbracelet/ultraviolet"
+	"github.com/zeiss/pkg/utilx"
 )
 
 // OAuthState represents the current state of the device flow.

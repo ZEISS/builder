@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/zeiss/builder/internal/apps"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/pkg/apis"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
@@ -20,20 +22,37 @@ var CheckCmd = &cobra.Command{
 
 func runCheck(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	app, err := apps.SetupApp(ctx)
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
 	if err != nil {
 		return err
 	}
 
-	if err := app.Initialize(ctx); err != nil {
+	path, err := config.AppDirPath()
+	if err != nil {
 		return err
 	}
 
-	spec := app.Spec()
-	wellknownConfig := app.WellKnownConfig()
+	spec, err := flags.Spec()
+	if err != nil {
+		return err
+	}
 
-	account := app.Account()
+	if err := spec.Validate(); err != nil {
+		return err
+	}
+
+	srv, err := services.SetupServices(ctx, path)
+	if err != nil {
+		return err
+	}
+
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
+		return err
+	}
+
 	bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
 	if err != nil {
 		return err

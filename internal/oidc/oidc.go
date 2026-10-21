@@ -137,7 +137,7 @@ type oidcProvider struct {
 	name         string
 	clientID     string
 	callbackURL  string
-	url          string
+	oidcIssuer   string
 	allowedOrgs  []string
 	providerType string
 	client       *http.Client
@@ -156,9 +156,7 @@ func WithScopes(scopes ...string) Opt {
 }
 
 // New creates a new GitHub provider.
-func New(url, clientID string, opts ...Opt) *oidcProvider {
-	discv := discovery.NewClient()
-
+func New(oidcIssuer, clientID string, opts ...Opt) *oidcProvider {
 	p := &oidcProvider{
 		allowedOrgs:  []string{},
 		client:       DefaultClient,
@@ -167,8 +165,7 @@ func New(url, clientID string, opts ...Opt) *oidcProvider {
 		name:         "ODIC",
 		providerType: ProviderTypeOAuth2,
 		scopes:       DefaultScopes,
-		url:          url,
-		discv:        discv,
+		oidcIssuer:   oidcIssuer,
 	}
 
 	for _, opt := range opts {
@@ -180,13 +177,7 @@ func New(url, clientID string, opts ...Opt) *oidcProvider {
 
 // Begin is a method that begins the device authentication process.
 func (o *oidcProvider) Begin(ctx context.Context) (*DeviceAuth, error) {
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, o.url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initiate device auth: %w", err)
-	}
-
-	cfg := newConfig(o, wellknownConfig.OidcIssuer, o.scopes...)
+	cfg := newConfig(o, o.oidcIssuer, o.scopes...)
 
 	resp, err := cfg.DeviceAuth(ctx) // PKCE flow
 	if err != nil {
@@ -205,12 +196,7 @@ func (o *oidcProvider) Begin(ctx context.Context) (*DeviceAuth, error) {
 
 // Finish is a method that finishes the device authentication process.
 func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *DeviceAuth) (*Token, error) {
-	wellknownConfig, err := o.discv.Discover(ctx, o.url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initiate device auth: %w", err)
-	}
-
-	cfg := newConfig(o, wellknownConfig.OidcIssuer, o.scopes...)
+	cfg := newConfig(o, o.oidcIssuer, o.scopes...)
 
 	code := &oauth2.DeviceAuthResponse{
 		DeviceCode: deviceAuth.DeviceCode,
@@ -227,7 +213,7 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *DeviceAuth) (*Tok
 		return nil, ErrOidcMissingIDToken
 	}
 
-	provider, err := oidc.NewProvider(ctx, wellknownConfig.OidcIssuer)
+	provider, err := oidc.NewProvider(ctx, o.oidcIssuer)
 	if err != nil {
 		return nil, err
 	}
@@ -258,12 +244,7 @@ func (o *oidcProvider) Finish(ctx context.Context, deviceAuth *DeviceAuth) (*Tok
 
 // Refresh refreshes the access token for the given account.
 func (o *oidcProvider) Refresh(ctx context.Context, token *Token) error {
-	wellknownConfig, err := o.discv.Discover(ctx, o.url)
-	if err != nil {
-		return fmt.Errorf("failed to refresh token: %w", err)
-	}
-
-	provider, err := oidc.NewProvider(ctx, wellknownConfig.OidcIssuer)
+	provider, err := oidc.NewProvider(ctx, o.oidcIssuer)
 	if err != nil {
 		return err
 	}
@@ -274,7 +255,7 @@ func (o *oidcProvider) Refresh(ctx context.Context, token *Token) error {
 		return nil
 	}
 
-	cfg := newConfig(o, wellknownConfig.OidcIssuer, o.scopes...)
+	cfg := newConfig(o, o.oidcIssuer, o.scopes...)
 	cfg.Endpoint = provider.Endpoint()
 
 	ts := cfg.TokenSource(ctx, &oauth2.Token{RefreshToken: token.RefreshToken})

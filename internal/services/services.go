@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 
+	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+
 	"github.com/zeiss/pkg/dbx"
 )
 
@@ -13,6 +15,8 @@ type Service interface {
 	// Sessions is the session service.
 	ports.SessionService
 }
+
+var _ ports.SessionService = (*ServiceImpl)(nil)
 
 // ServiceImpl is the implementation of the Service interface.
 type ServiceImpl struct {
@@ -98,4 +102,53 @@ func (s *ServiceImpl) DeleteAccount(ctx context.Context, account *models.Account
 	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
 		return rw.DeleteAccount(ctx, account)
 	})
+}
+
+// GetSite returns a site from the database.
+func (s *ServiceImpl) GetSite(ctx context.Context, site *models.Site) error {
+	return s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
+		return tx.GetSite(ctx, site)
+	})
+}
+
+// CreateSite creates a new site in the database.
+func (s *ServiceImpl) CreateSite(ctx context.Context, site *models.Site) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.CreateSite(ctx, site)
+	})
+}
+
+// DeleteSite deletes a site from the database.
+func (s *ServiceImpl) DeleteSite(ctx context.Context, site *models.Site) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.DeleteSite(ctx, site)
+	})
+}
+
+// UpdateSite updates a site in the database.
+func (s *ServiceImpl) UpdateSite(ctx context.Context, site *models.Site) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.UpdateSite(ctx, site)
+	})
+}
+
+// SetupServices sets up the services for the application.
+func SetupServices(ctx context.Context, path string) (Service, error) {
+	database, err := db.NewDB(db.WithSqlite3(path))
+	if err != nil {
+		return nil, err
+	}
+
+	err = database.Migrate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	store, err := dbx.NewDatabase(database.Conn(), db.NewReadTx(), db.NewWriteTx())
+	if err != nil {
+		return nil, err
+	}
+	srv := NewService(store)
+
+	return srv, nil
 }

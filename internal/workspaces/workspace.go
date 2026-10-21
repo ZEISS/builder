@@ -110,6 +110,7 @@ func (w *WorkspaceImpl) Cleanup() error {
 			return err
 		}
 	}
+
 	return nil
 }
 

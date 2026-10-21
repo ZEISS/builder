@@ -2,13 +2,18 @@ package config
 
 import (
 	"cmp"
+	"context"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
 
+	"github.com/zeiss/builder/internal/adapters/db"
+	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/pkg/specs"
+	"github.com/zeiss/builder/server/middlewares/discovery"
 
+	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/utilx"
 )
 
@@ -100,7 +105,7 @@ func NewConfig() Config {
 
 // Spec is a helper to load the spec from the config file.
 func (f *Flags) Spec() (*specs.Spec, error) {
-	path, err := f.Abs()
+	path, err := f.ConfigPath()
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +124,7 @@ func (f *Flags) Spec() (*specs.Spec, error) {
 }
 
 // Abs returns the absolute path of the config file.
-func (f *Flags) Abs() (string, error) {
+func (f *Flags) ConfigPath() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
@@ -186,4 +191,36 @@ func Cwd() (string, error) {
 	}
 
 	return filepath.Clean(wd), nil
+}
+
+// DiscoverWellKnownConfig discovers the well-known configuration for the given URL.
+func DiscoverWellKnownConfig(ctx context.Context, url string) (*discovery.WellKnownConfig, error) {
+	discv := discovery.NewClient()
+	wellknownConfig, err := discv.Discover(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return wellknownConfig, nil
+}
+
+// SetupServices sets up the services for the application.
+func SetupServices(ctx context.Context, path string) (services.Service, error) {
+	database, err := db.NewDB(db.WithSqlite3(path))
+	if err != nil {
+		return nil, err
+	}
+
+	err = database.Migrate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	store, err := dbx.NewDatabase(database.Conn(), db.NewReadTx(), db.NewWriteTx())
+	if err != nil {
+		return nil, err
+	}
+	srv := services.NewService(store)
+
+	return srv, nil
 }

@@ -60,6 +60,11 @@ func (r *readTxImpl) GetCurrentAccount(ctx context.Context, account *models.Acco
 	return r.conn.WithContext(ctx).First(account).Error
 }
 
+// GetSite implements the ReadTx interface.
+func (r *readTxImpl) GetSite(ctx context.Context, site *models.Site) error {
+	return r.conn.WithContext(ctx).First(site).Error
+}
+
 // GetSession implements the ReadTx interface.
 func (r *readTxImpl) GetSession(ctx context.Context, session *models.Session) error {
 	return r.conn.WithContext(ctx).First(session).Error
@@ -113,6 +118,27 @@ func (tx *writeTxImpl) DeleteAccount(ctx context.Context, account *models.Accoun
 func (tx *writeTxImpl) UpdateAccount(ctx context.Context, account *models.Account) error {
 	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Save(account).Error
+	})
+}
+
+// CreateSite implements the SiteRepository interface.
+func (tx *writeTxImpl) CreateSite(ctx context.Context, site *models.Site) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Create(site).Error
+	})
+}
+
+// UpdateSite implements the SiteRepository interface.
+func (tx *writeTxImpl) UpdateSite(ctx context.Context, site *models.Site) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Save(site).Error
+	})
+}
+
+// DeleteSite implements the SiteRepository interface.
+func (tx *writeTxImpl) DeleteSite(ctx context.Context, site *models.Site) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Delete(site).Error
 	})
 }
 
@@ -183,6 +209,7 @@ func RunMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.Account{},
 		&models.Session{},
+		&models.Site{},
 	)
 }
 

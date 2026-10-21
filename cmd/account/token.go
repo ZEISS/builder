@@ -2,18 +2,13 @@ package account
 
 import (
 	"log"
-	"path/filepath"
 
-	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/services"
 
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 // TokenCmd is the command for refreshing the account.
@@ -31,30 +26,18 @@ func runTokenCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	account := &models.Account{Current: true}
+	err = srv.GetAccount(ctx, account)
 	if err != nil {
 		return err
 	}
 
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
-
-	current := &models.Account{}
-	err = accountCtrl.GetCurrent(ctx, current)
-	if err != nil {
-		return err
-	}
-
-	log.Println(cast.Value(current.IDToken))
+	log.Println(cast.Value(account.IDToken))
 
 	return nil
 }

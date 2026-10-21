@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zeiss/builder/internal/apps"
+	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/pkg/filex"
 
 	"github.com/spf13/cobra"
@@ -21,23 +21,23 @@ This command deletes the 'builder.db' file and resets the config to its default 
 }
 
 func runResetCmd(cmd *cobra.Command, _ []string) error {
-	ctx := cmd.Context()
-	app, err := apps.SetupApp(ctx)
+	flags := config.DefaultFlags
+
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	path := app.Path()
 	ok, err := filex.FileExists(path)
 	if err != nil {
 		return err
 	}
 
-	if ok && !app.Force() {
+	if ok && !flags.Force {
 		return fmt.Errorf("Use --force to reset the configuration")
 	}
 
-	err = os.RemoveAll(app.Path())
+	err = os.RemoveAll(path)
 	if err != nil {
 		return err
 	}

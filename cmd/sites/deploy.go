@@ -1,25 +1,19 @@
 package sites
 
 import (
-	"errors"
 	"path/filepath"
+	"strings"
+
+	"github.com/zeiss/builder/internal/adapters/client"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/pkg/apis"
+	"github.com/zeiss/builder/pkg/utils"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
-	"github.com/zeiss/builder/internal/adapters/client"
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ui/models/sites"
-	"github.com/zeiss/builder/pkg/apis"
-	"github.com/zeiss/builder/server/middlewares/discovery"
-
-	tea "charm.land/bubbletea/v2"
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
-	"gorm.io/gorm"
 )
 
 var DeployCmd = &cobra.Command{
@@ -29,12 +23,10 @@ var DeployCmd = &cobra.Command{
 }
 
 func runDeploy(cmd *cobra.Command, _ []string) error {
-	spec, err := config.DefaultFlags.Spec()
-	if err != nil {
-		return err
-	}
+	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	cwd, err := config.Cwd()
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
 	if err != nil {
 		return err
 	}
@@ -44,35 +36,22 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	spec, err := flags.Spec()
 	if err != nil {
 		return err
 	}
 
-	if err := db.RunMigrations(conn); err != nil {
+	if err := spec.Validate(); err != nil {
 		return err
 	}
 
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultFlags.URL)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountController := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	account := &models.Account{}
-	err = accountController.GetCurrent(cmd.Context(), account)
-	if err != nil {
-		return errors.New("no account found")
-	}
-
-	err = authCtrl.Refresh(cmd.Context(), account)
-	if err != nil {
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
 		return err
 	}
 
@@ -81,29 +60,32 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	c, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
+	api, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
 	if err != nil {
 		return err
 	}
 
-	client := client.New(c)
-	sitesController := controllers.NewSitesController(client)
-	filesController := controllers.NewFilesController(client)
+	c := client.New(api)
 
-	site, err := sitesController.GetSite(cmd.Context(), spec.Sites.Name)
+	cwd, err := config.Cwd()
 	if err != nil {
 		return err
 	}
 
-	apath, err := filepath.Abs(filepath.Join(cwd, spec.Sites.Path))
+	scanDir := filepath.Base(filepath.Join(cwd, path))
+	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
+
+	site, err := c.GetSite(ctx, spec.Sites.Name)
 	if err != nil {
 		return err
 	}
 
-	model := sites.NewDeploy(cmd.Context(), site.Name, site.ID, apath, spec.Sites.Ignore, filesController)
-	_, err = tea.NewProgram(model, tea.WithContext(cmd.Context())).Run()
-	if err != nil {
-		return err
+	for _, file := range files {
+		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, path)), "/")
+		err := c.UploadFile(ctx, site.ID, cwd, file)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

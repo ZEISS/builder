@@ -1,27 +1,17 @@
 package sites
 
 import (
-	"errors"
-	"os"
-	"path/filepath"
+	"fmt"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ui/models/sites"
+	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/pkg/apis"
-	"github.com/zeiss/builder/server/middlewares/discovery"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 var CreateCmd = &cobra.Command{
@@ -31,7 +21,10 @@ var CreateCmd = &cobra.Command{
 }
 
 func runCreate(cmd *cobra.Command, _ []string) error {
-	spec, err := config.DefaultFlags.Spec()
+	ctx := cmd.Context()
+	flags := config.DefaultFlags
+
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
 	if err != nil {
 		return err
 	}
@@ -41,41 +34,22 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	spec, err := flags.Spec()
 	if err != nil {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	if err := spec.Validate(); err != nil {
+		return err
+	}
+
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	// run migrations, automatically
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultFlags.URL)
-	if err != nil {
-		return err
-	}
-
-	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountController := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	account := &models.Account{}
-	err = accountController.GetCurrent(cmd.Context(), account)
-	if err != nil {
-		return errors.New("no account found")
-	}
-
-	err = authCtrl.Refresh(cmd.Context(), account)
-	if err != nil {
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
 		return err
 	}
 
@@ -84,21 +58,19 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	c, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
+	api, err := apis.NewClientWithResponses(wellknownConfig.ApiURL, apis.WithRequestEditorFn(bearer.Intercept))
 	if err != nil {
 		return err
 	}
 
-	sitesRepo := client.New(c)
-	sitesController := controllers.NewSitesController(sitesRepo)
+	c := client.New(api)
 
-	// clear all the stdout output
-	os.Stdout.WriteString("\x1b[2J\x1b[3J\x1b[H")
-
-	_, err = tea.NewProgram(sites.NewCreateSite(cmd.Context(), spec, sitesController), tea.WithContext(cmd.Context())).Run()
-	if err != nil {
+	site := &models.Site{Name: spec.Sites.Name}
+	if err := c.Create(ctx, site); err != nil {
 		return err
 	}
+
+	fmt.Println("Site created successfully.")
 
 	return nil
 }
