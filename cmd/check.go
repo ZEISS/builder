@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/pkg/specs"
+	"github.com/zeiss/builder/internal/apps"
 )
 
 // CheckCmd is the command to check the configuration.
@@ -18,18 +16,12 @@ This command checks the configuration and displays any errors.
 }
 
 func runCheckCmd(cmd *cobra.Command, _ []string) error {
-	absPath, err := config.DefaultFlags.Abs()
+	app, err := apps.SetupApp(cmd.Context())
 	if err != nil {
 		return err
 	}
 
-	spec, err := specs.Read(absPath)
-	if err != nil {
-		return err
-	}
-
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	err = validate.Struct(spec)
+	err = app.ValidateSpec()
 	if err != nil {
 		return err
 	}
