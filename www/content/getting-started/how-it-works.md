@@ -9,7 +9,7 @@ econosystem of new things.
 
 Builder expects a couple of things:
 
-- a `.builder.yaml` file with the configuration (see the
+- a `.builder.yml` file with the configuration (see the
   [customization section](/customization/index/) for more info)
 - a clean working tree
 - willingness to create new tools

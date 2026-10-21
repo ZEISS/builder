@@ -16,12 +16,14 @@ This command checks the configuration and displays any errors.
 }
 
 func runCheckCmd(cmd *cobra.Command, _ []string) error {
-	app, err := apps.SetupApp(cmd.Context())
+	ctx := cmd.Context()
+
+	app, err := apps.SetupApp(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = app.ValidateSpec()
+	err = app.Validate()
 	if err != nil {
 		return err
 	}

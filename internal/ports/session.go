@@ -14,6 +14,14 @@ type SessionController interface {
 
 // SessionService is the service for managing sessions.
 type SessionService interface {
+	// GetAccount returns the account associated with the session.
+	GetAccount(ctx context.Context, account *models.Account) error
+	// UpdateAccount updates the account associated with the session.
+	UpdateAccount(ctx context.Context, account *models.Account) error
+	// DeleteAccount deletes the account associated with the session.
+	DeleteAccount(ctx context.Context, account *models.Account) error
+	// ListAccounts returns the list of accounts.
+	ListAccounts(ctx context.Context, accounts *[]*models.Account) error
 	// GetSession returns the session associated with the request.
 	GetSession(ctx context.Context, models *models.Session) error
 	// CreateSession creates a new session.

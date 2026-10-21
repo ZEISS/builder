@@ -70,6 +70,16 @@ func (r *readTxImpl) ListSessions(ctx context.Context, sessions *[]*models.Sessi
 	return r.conn.WithContext(ctx).Find(sessions).Error
 }
 
+// GetAccount implements the ReadTx interface.
+func (r *readTxImpl) GetAccount(ctx context.Context, account *models.Account) error {
+	return r.conn.WithContext(ctx).First(account).Error
+}
+
+// ListAccounts implements the ReadTx interface.
+func (r *readTxImpl) ListAccounts(ctx context.Context, accounts *[]*models.Account) error {
+	return r.conn.WithContext(ctx).Find(accounts).Error
+}
+
 type writeTxImpl struct {
 	conn *gorm.DB
 	readTxImpl
@@ -89,6 +99,20 @@ func (tx *writeTxImpl) CreateAccount(ctx context.Context, account *models.Accoun
 			Columns:   []clause.Column{{Name: "email"}},
 			DoUpdates: clause.AssignmentColumns([]string{"name", "current", "refresh_token", "access_token", "expires_at", "token_type", "scope", "id_token", "session_state", "updated_at"}),
 		}).Create(account).Error
+	})
+}
+
+// DeleteAccount implements the AccountRepository interface.
+func (tx *writeTxImpl) DeleteAccount(ctx context.Context, account *models.Account) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Delete(account).Error
+	})
+}
+
+// UpdateAccount implements the AccountRepository interface.
+func (tx *writeTxImpl) UpdateAccount(ctx context.Context, account *models.Account) error {
+	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Save(account).Error
 	})
 }
 

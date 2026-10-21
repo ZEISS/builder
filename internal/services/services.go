@@ -64,3 +64,38 @@ func (s *ServiceImpl) ListSessions(ctx context.Context, sessions *[]*models.Sess
 		return tx.ListSessions(ctx, sessions)
 	})
 }
+
+// GetAccount returns the account with the given ID.
+func (s *ServiceImpl) GetAccount(ctx context.Context, account *models.Account) error {
+	return s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
+		return tx.GetAccount(ctx, account)
+	})
+}
+
+// ListAccounts returns the list of accounts.
+func (s *ServiceImpl) ListAccounts(ctx context.Context, accounts *[]*models.Account) error {
+	return s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
+		return tx.ListAccounts(ctx, accounts)
+	})
+}
+
+// CreateAccount creates a new account in the database.
+func (s *ServiceImpl) CreateAccount(ctx context.Context, account *models.Account) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.CreateAccount(ctx, account)
+	})
+}
+
+// UpdateAccount updates an existing account in the database.
+func (s *ServiceImpl) UpdateAccount(ctx context.Context, account *models.Account) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.UpdateAccount(ctx, account)
+	})
+}
+
+// DeleteAccount deletes an account from the database.
+func (s *ServiceImpl) DeleteAccount(ctx context.Context, account *models.Account) error {
+	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
+		return rw.DeleteAccount(ctx, account)
+	})
+}

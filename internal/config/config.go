@@ -20,11 +20,14 @@ var DefaultConfig = NewConfig()
 
 const appName = "sparkles"
 
+// DefaultDataDir is the default data directory for the application.
+const DefaultDataDir = "sparkles.db"
+
 // DefaultClientID is the default client ID using the PKCE flow.
 const DefaultClientID = "builder-cli"
 
 // DefaultSpecFileName is the default spec file name.
-const DefaultSpecFileName = ".builder.yaml"
+const DefaultSpecFileName = ".builder.yml"
 
 // DefaultPath is the default path to store workspace data.
 const DefaultPath = ".sparkles"
@@ -151,6 +154,18 @@ func AppDirPath() (string, error) {
 	}
 
 	return filepath.Join(home, ".local", "share", appName), nil
+}
+
+// DataDir returns the path to the data directory for the application.
+func DataDir() (string, error) {
+	path, err := AppDirPath()
+	if err != nil {
+		return "", err
+	}
+
+	dataDir := filepath.Clean(filepath.Join(path, DefaultDataDir))
+
+	return dataDir, nil
 }
 
 // HomeDir returns the home directory.

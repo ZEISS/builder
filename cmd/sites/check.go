@@ -1,25 +1,15 @@
 package sites
 
 import (
-	"errors"
-	"path/filepath"
+	"fmt"
+	"net/http"
 
-	"github.com/glebarez/sqlite"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ui/models/sites"
+	"github.com/zeiss/builder/internal/apps"
 	"github.com/zeiss/builder/pkg/apis"
-	"github.com/zeiss/builder/server/middlewares/discovery"
-	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 
-	tea "charm.land/bubbletea/v2"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/cast"
 )
 
 var CheckCmd = &cobra.Command{
@@ -29,54 +19,21 @@ var CheckCmd = &cobra.Command{
 }
 
 func runCheck(cmd *cobra.Command, _ []string) error {
-	spec, err := config.DefaultFlags.Spec()
+	ctx := cmd.Context()
+
+	app, err := apps.SetupApp(ctx)
 	if err != nil {
 		return err
 	}
 
-	path, err := config.AppDirPath()
-	if err != nil {
+	if err := app.Initialize(ctx); err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
-	if err != nil {
-		return err
-	}
+	spec := app.Spec()
+	wellknownConfig := app.WellKnownConfig()
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-	if err != nil {
-		return err
-	}
-
-	// run migrations, automatically
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultFlags.URL)
-	if err != nil {
-		return err
-	}
-
-	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountController := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	account := &models.Account{}
-	err = accountController.GetCurrent(cmd.Context(), account)
-	if err != nil {
-		return errors.New("no account found")
-	}
-
-	err = authCtrl.Refresh(cmd.Context(), account)
-	if err != nil {
-		return err
-	}
-
+	account := app.Account()
 	bearer, err := securityprovider.NewSecurityProviderBearerToken(cast.Value(account.IDToken))
 	if err != nil {
 		return err
@@ -87,11 +44,17 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	siteCheck := sites.NewCheckSite(cmd.Context(), client, spec.Sites.Name)
-	_, err = tea.NewProgram(siteCheck, tea.WithContext(cmd.Context())).Run()
+	params := &apis.GetSiteParams{Name: spec.Sites.Name}
+	resp, err := client.GetSiteWithResponse(ctx, params)
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode() > http.StatusOK {
+		return fmt.Errorf("could check the site: %s", spec.Sites.Name)
+	}
+
+	fmt.Printf("site exists: %s", spec.Sites.Name)
 
 	return nil
 }

@@ -21,25 +21,23 @@ This command deletes the 'builder.db' file and resets the config to its default 
 }
 
 func runResetCmd(cmd *cobra.Command, _ []string) error {
-	app, err := apps.SetupApp(cmd.Context())
+	ctx := cmd.Context()
+	app, err := apps.SetupApp(ctx)
 	if err != nil {
 		return err
 	}
 
-	appDir, err := app.Path()
+	path := app.Path()
+	ok, err := filex.FileExists(path)
 	if err != nil {
 		return err
 	}
 
-	ok, err := filex.FileExists(appDir)
-	if err != nil {
-		return err
-	}
 	if ok && !app.Force() {
 		return fmt.Errorf("Use --force to reset the configuration")
 	}
 
-	err = os.RemoveAll(appDir)
+	err = os.RemoveAll(app.Path())
 	if err != nil {
 		return err
 	}

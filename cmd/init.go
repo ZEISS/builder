@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/zeiss/builder/internal/apps"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/pkg/specs"
 
@@ -23,19 +22,14 @@ The config will be created with default values.
 }
 
 func runInit(cmd *cobra.Command, _ []string) error {
-	app, err := apps.SetupApp(cmd.Context())
+	path, err := config.DefaultFlags.Abs()
 	if err != nil {
 		return err
 	}
 
-	specPath, err := app.SpecPath()
-	if err != nil {
-		return err
-	}
-
-	ok, _ := filex.FileExists(specPath)
+	ok, _ := filex.FileExists(path)
 	if ok && !config.DefaultFlags.Force {
-		return fmt.Errorf("use --force to overwrite the config file: %s", specPath)
+		return fmt.Errorf("use --force to overwrite the config file: %s", path)
 	}
 
 	spec, err := specs.Example()
@@ -43,7 +37,7 @@ func runInit(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	err = specs.Write(spec, specPath, config.DefaultFlags.Force)
+	err = specs.Write(spec, path, config.DefaultFlags.Force)
 	if err != nil {
 		return err
 	}
