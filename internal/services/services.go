@@ -14,6 +14,10 @@ import (
 type Service interface {
 	// Sessions is the session service.
 	ports.SessionService
+	// Accounts is the account service.
+	ports.AccountService
+	// Sites is the site service.
+	ports.SitesService
 }
 
 var _ ports.SessionService = (*ServiceImpl)(nil)
