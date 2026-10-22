@@ -38,6 +38,7 @@ func TestUdiff(t *testing.T) {
 
 	t.Run("ToUnifiedDiff", func(t *testing.T) {
 		toUnifiedDiff := func(t *testing.T, before, after string, contextLines int) udiff.UnifiedDiff {
+			t.Helper()
 			edits := udiff.Lines(before, after)
 			unifiedDiff, err := udiff.ToUnifiedDiff("main.go", "main.go", before, edits, contextLines)
 			if err != nil {
@@ -46,6 +47,7 @@ func TestUdiff(t *testing.T) {
 			return unifiedDiff
 		}
 		toJSON := func(t *testing.T, unifiedDiff udiff.UnifiedDiff) []byte {
+			t.Helper()
 			var buff bytes.Buffer
 			encoder := json.NewEncoder(&buff)
 			encoder.SetIndent("", "  ")

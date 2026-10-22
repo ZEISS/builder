@@ -28,7 +28,7 @@ func Render(width int, views ...View) string {
 	style := lipgloss.NewStyle()
 	contentWidth := width - style.GetHorizontalFrameSize()
 
-	output := make([]string, len(views))
+	output := make([]string, 0, len(views))
 	for _, view := range views {
 		output = append(output, view(contentWidth))
 	}

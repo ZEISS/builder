@@ -1,11 +1,5 @@
 package commands
 
-import (
-	"regexp"
-)
-
-var namedArgPattern = regexp.MustCompile(`\$([A-Z][A-Z0-9_]*)`)
-
 // Argument represents a command argument with its metadata.
 type Argument struct {
 	// ID is the unique identifier for the argument

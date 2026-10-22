@@ -34,7 +34,7 @@ func runResetCmd(cmd *cobra.Command, _ []string) error {
 	}
 
 	if ok && !flags.Force {
-		return fmt.Errorf("Use --force to reset the configuration")
+		return fmt.Errorf("use --force to reset the configuration")
 	}
 
 	err = os.RemoveAll(path)

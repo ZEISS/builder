@@ -209,6 +209,7 @@ func (s *Session) FullHelp() [][]key.Binding {
 			s.keyMap.ConfirmRename,
 			s.keyMap.CancelRename,
 		}
+	default:
 	}
 	for i := 0; i < len(slice); i += 4 {
 		end := min(i+4, len(slice))

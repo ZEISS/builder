@@ -116,7 +116,6 @@ func (m *OAuth) ID() string {
 // HandleMsg handles messages and state transitions.
 func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 	switch msg := msg.(type) {
-
 	case spinner.TickMsg: // spinner tick
 		spinner, cmd := m.spinner.Update(msg)
 		m.spinner = spinner
@@ -349,8 +348,7 @@ func (m *OAuth) ShortHelp() []key.Binding {
 		return nil
 
 	default:
-		submit := m.keyMap.Submit
-		submit = key.NewBinding(
+		submit := key.NewBinding(
 			key.WithKeys("enter", "ctrl+y"),
 			key.WithHelp("enter", "open browser"),
 		)

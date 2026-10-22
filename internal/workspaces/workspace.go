@@ -59,9 +59,7 @@ type WorkspaceImpl struct {
 // New returns a new WorkspaceImpl.
 func New(services services.Service, debug, yolo bool, cwd, dir string, funcs ...func() error) *WorkspaceImpl {
 	f := make([]func() error, 0, len(funcs))
-	for _, fn := range funcs {
-		f = append(f, fn)
-	}
+	f = append(f, funcs...)
 
 	return &WorkspaceImpl{
 		debug:   debug,

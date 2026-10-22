@@ -307,6 +307,7 @@ func (c *Commands) setCommandItems(commandType CommandType) {
 		for _, cmd := range c.defaultCommands() {
 			commandItems = append(commandItems, cmd)
 		}
+	default:
 	}
 
 	c.list.SetItems(commandItems...)
@@ -323,26 +324,9 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "deploy", "Deploy", "ctrl+d", ActionOpenDialog{DialogID: DeployID}),
 		NewCommandItem(c.ui.Styles, "config", "Configure", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
-	}
-
-	// Add external editor command if $EDITOR is available.
-	//
-	// TODO: Use [tea.EnvMsg] to get environment variable instead of os.Getenv;
-	// because os.Getenv does IO is breaks the TEA paradigm and is generally an
-	// antipattern.
-	// 	if os.Getenv("EDITOR") != "" {
-	// 		commands = append(commands, NewCommandItem(c.ui.Styles, "open_external_editor", "Open External Editor", "ctrl+o", ActionExternalEditor{}))
-	// 	}
-
-	commands = append(
-		commands,
 		NewCommandItem(c.ui.Styles, "toggle_help", "Toggle Help", "ctrl+g", ActionToggleHelp{}),
-	)
-
-	commands = append(
-		commands,
 		NewCommandItem(c.ui.Styles, "quit", "Quit", "ctrl+c", tea.QuitMsg{}).WithAliases("exit"),
-	)
+	}
 
 	return commands
 }

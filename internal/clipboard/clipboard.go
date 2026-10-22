@@ -84,7 +84,7 @@ func CopyToClipboardWithCallback(text, successMessage string, callback tea.Cmd) 
 		osc52 := tea.SetClipboard(text)
 
 		if errors.Is(err, ErrWriteFailed) {
-			return tea.Sequence(osc52, status.Error(errors.New("Failed to copy to clipboard")))()
+			return tea.Sequence(osc52, status.Error(errors.New("failed to copy to clipboard")))()
 		}
 
 		return tea.Sequence(osc52, callback, status.Success(successMessage))()

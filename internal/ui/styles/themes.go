@@ -29,10 +29,7 @@ func ThemeKeyForProvider(providerID string) string {
 // ID. Unknown or empty provider IDs yield the default Charmtone Pantera
 // theme.
 func ThemeForProvider(providerID string) Styles {
-	switch ThemeKeyForProvider(providerID) {
-	default:
-		return CharmtonePantera()
-	}
+	return CharmtonePantera()
 }
 
 // CharmtonePantera returns the Charmtone dark theme. It's the default style

@@ -224,34 +224,25 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 // ShortHelp implements [help.KeyMap].
 func (m *UI) ShortHelp() []key.Binding {
-	var binds []key.Binding
 	k := &m.keyMap
-
-	binds = append(
-		binds,
+	binds := []key.Binding{
 		k.Quit,
 		k.Commands,
 		k.Help,
-	)
+	}
 
 	return binds
 }
 
 // FullHelp implements [help.KeyMap].
 func (m *UI) FullHelp() [][]key.Binding {
-	var binds [][]key.Binding
-
 	k := &m.keyMap
 	help := k.Help
 	help.SetHelp("ctrl+g", "less")
 
-	binds = append(
-		binds,
-		[]key.Binding{
-			help,
-			k.Quit,
-		},
-	)
+	binds := [][]key.Binding{
+		{help, k.Quit, k.Commands, k.Help},
+	}
 
 	return binds
 }
@@ -304,7 +295,6 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	}
 
 	switch msg := action.(type) {
-
 	// Handle dialog actions.
 	case dialogs.ActionClose:
 		cmds = append(cmds, m.closeDialog())
@@ -579,7 +569,7 @@ func (m *UI) landingView() string {
 }
 
 // renderEditorView renders the editor view with attachments if any.
-func (m *UI) renderEditorView(width int) string {
+func (m *UI) renderEditorView(_ int) string {
 	var attachmentsView string
 	return strings.Join([]string{
 		attachmentsView,

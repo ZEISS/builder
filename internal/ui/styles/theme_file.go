@@ -86,7 +86,7 @@ func SaveThemeFile(path string, tf *ThemeFile) error {
 // themeDirsOverride allows tests to replace the default theme directories.
 var themeDirsOverride []string
 
-// ThemeDirs
+// ThemeDirs.
 func ThemeDirs() []string {
 	if themeDirsOverride != nil {
 		return themeDirsOverride

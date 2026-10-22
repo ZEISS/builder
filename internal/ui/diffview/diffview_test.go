@@ -322,6 +322,8 @@ func TestDiffViewYOffsetInfinite(t *testing.T) {
 }
 
 func assertLineWidth(t *testing.T, expected int, output string) {
+	t.Helper()
+
 	var lineWidth int
 	for line := range strings.SplitSeq(output, "\n") {
 		lineWidth = max(lineWidth, ansi.StringWidth(line))
@@ -332,6 +334,8 @@ func assertLineWidth(t *testing.T, expected int, output string) {
 }
 
 func assertHeight(t *testing.T, expected int, output string) {
+	t.Helper()
+
 	output = strings.TrimSuffix(output, "\n")
 	lines := strings.Count(output, "\n") + 1
 	if lines != expected {

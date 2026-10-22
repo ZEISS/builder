@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )
 

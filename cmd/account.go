@@ -9,7 +9,7 @@ import (
 func init() {
 	AccountCmd.AddCommand(account.LoginCmd)
 	AccountCmd.AddCommand(account.RefreshCmd)
-	AccountCmd.AddCommand(account.TokenCmd)
+	AccountCmd.AddCommand(account.ValidateCmd)
 }
 
 // AccountCmd is the command to manage accounts.

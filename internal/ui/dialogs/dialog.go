@@ -408,7 +408,7 @@ func matchedRanges(in []int) [][2]int {
 
 func bytePosToVisibleCharPos(str string, rng [2]int) (int, int) {
 	bytePos, byteStart, byteStop := 0, rng[0], rng[1]
-	pos, start, stop := 0, 0, 0
+	pos := 0
 	gr := uniseg.NewGraphemes(str)
 	for byteStart > bytePos {
 		if !gr.Next() {
@@ -417,7 +417,7 @@ func bytePosToVisibleCharPos(str string, rng [2]int) (int, int) {
 		bytePos += len(gr.Str())
 		pos += max(1, gr.Width())
 	}
-	start = pos
+	start := pos
 	for byteStop > bytePos {
 		if !gr.Next() {
 			break
@@ -425,7 +425,7 @@ func bytePosToVisibleCharPos(str string, rng [2]int) (int, int) {
 		bytePos += len(gr.Str())
 		pos += max(1, gr.Width())
 	}
-	stop = pos
+	stop := pos
 	return start, stop
 }
 

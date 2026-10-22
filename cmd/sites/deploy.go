@@ -11,6 +11,7 @@ import (
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
@@ -57,6 +58,15 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 
 	account := &models.Account{Current: true}
 	if err := srv.GetAccount(ctx, account); err != nil {
+		return err
+	}
+
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
+	if err != nil {
+		return err
+	}
+
+	if err := oidcProvider.Refresh(ctx, account.ToToken()); err != nil {
 		return err
 	}
 

@@ -52,6 +52,13 @@ linters:
     - errcheck
     - goconst
     - dupl
+    - unused
+    - forbidigo
+    - forcetypeassert
+    - gocritic
+    - gosec
+    - exhaustive
+    - nestif
 
   settings:
     exhaustive:

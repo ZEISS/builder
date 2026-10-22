@@ -110,7 +110,10 @@ func (f *FilterableList) FilteredItems() []Item {
 		item := items[match.Index]
 		if ms, ok := item.(MatchSettable); ok {
 			ms.SetMatch(match)
-			item = ms.(FilterableItem)
+			item, ok = ms.(FilterableItem)
+			if !ok {
+				continue
+			}
 		}
 		matchedItems = append(matchedItems, item)
 	}
