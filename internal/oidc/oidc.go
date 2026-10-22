@@ -307,3 +307,16 @@ func urlEndpointConfig(url string) oauth2.Endpoint {
 		DeviceAuthURL: fmt.Sprintf("%s/device/code", strings.TrimSuffix(url, "/")),
 	}
 }
+
+// SetupOidcProvider sets up an OIDC provider using the given configuration.
+func SetupOidcProvider(ctx context.Context, url, clientID string, opts ...Opt) (*oidcProvider, error) {
+	discv := discovery.NewClient()
+	wellknownConfig, err := discv.Discover(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	o := New(wellknownConfig.OidcIssuer, clientID, opts...)
+
+	return o, nil
+}

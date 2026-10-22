@@ -2,11 +2,16 @@ package account
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/zeiss/builder/internal/adapters/oidc"
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 
 	"github.com/spf13/cobra"
 )
@@ -22,11 +27,6 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 	flags := config.DefaultFlags
 
-	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
-	if err != nil {
-		return err
-	}
-
 	path, err := config.AppDirPath()
 	if err != nil {
 		return err
@@ -37,7 +37,11 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
+	if err != nil {
+		return err
+	}
+
 	deviceAuth, err := oidcProvider.Begin(ctx)
 	if err != nil {
 		return err
@@ -49,18 +53,20 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 	fmt.Fprintf(&s, "User code: %s\n", deviceAuth.UserCode)
 	fmt.Println(s.String())
 
-	account, err := oidcProvider.Finish(ctx, deviceAuth)
+	token, err := oidcProvider.Finish(ctx, deviceAuth)
 	if err != nil {
 		return err
 	}
-	account.Current = true
 
+	account := models.FromToken(token)
 	err = srv.CreateAccount(ctx, account)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Logged in successfully.")
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Success(fmt.Sprintf("Logged in %s successfully", account.Email)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

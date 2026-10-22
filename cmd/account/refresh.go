@@ -2,11 +2,15 @@ package account
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/zeiss/builder/internal/adapters/oidc"
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 
 	"github.com/spf13/cobra"
 )
@@ -22,11 +26,6 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
 	flags := config.DefaultFlags
 
-	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
-	if err != nil {
-		return err
-	}
-
 	path, err := config.AppDirPath()
 	if err != nil {
 		return err
@@ -37,14 +36,17 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultFlags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
+	if err != nil {
+		return err
+	}
 
 	account := &models.Account{Current: true}
 	if err := srv.GetAccount(ctx, account); err != nil {
 		return err
 	}
 
-	if err := oidcProvider.Refresh(ctx, account); err != nil {
+	if err := oidcProvider.Refresh(ctx, account.ToToken()); err != nil {
 		return err
 	}
 
@@ -53,7 +55,9 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("Refreshed account successfully.")
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Success(fmt.Sprintf("Refreshed account %s successfully", account.Email)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }
