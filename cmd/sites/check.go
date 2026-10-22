@@ -3,10 +3,14 @@ package sites
 import (
 	"fmt"
 	"net/http"
+	"os"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
 
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
@@ -73,7 +77,9 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("could check the site: %s", spec.Sites.Name)
 	}
 
-	fmt.Printf("site exists: %s", spec.Sites.Name)
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Error(fmt.Errorf("%s already exists", spec.Sites.Name)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

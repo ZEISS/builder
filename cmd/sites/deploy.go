@@ -1,13 +1,18 @@
 package sites
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
 	"github.com/zeiss/builder/pkg/utils"
 
@@ -72,21 +77,25 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	scanDir := filepath.Base(filepath.Join(cwd, path))
-	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
-
 	site, err := c.GetSite(ctx, spec.Sites.Name)
 	if err != nil {
 		return err
 	}
 
+	scanDir := filepath.Base(filepath.Join(cwd, spec.Sites.Path))
+	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
+
 	for _, file := range files {
-		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, path)), "/")
-		err := c.UploadFile(ctx, site.ID, cwd, file)
+		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, spec.Sites.Path)), "/")
+		err := c.UploadFile(ctx, site.ID, scanDir, file)
 		if err != nil {
 			return err
 		}
 	}
+
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Success(fmt.Sprintf("%d files uploaded successfully.", len(files))))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

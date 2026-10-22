@@ -2,12 +2,16 @@ package sites
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
 
 	"github.com/spf13/cobra"
@@ -70,7 +74,9 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Println("Site created successfully.")
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Error(fmt.Errorf("%s created successfully", spec.Sites.Name)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }
