@@ -135,6 +135,7 @@ func (d *Overlay) ContainsDialog(dialogID string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -190,7 +191,7 @@ func (d *Overlay) CloseDialog(dialogID string) {
 	for i, dialog := range d.dialogs {
 		if dialog.ID() == dialogID {
 			d.removeDialog(i)
-			return
+			break
 		}
 	}
 }
@@ -221,12 +222,13 @@ func (d *Overlay) removeDialog(idx int) {
 }
 
 // Dialog returns the dialog with the specified ID, or nil if not found.
-func (d *Overlay) Dialog(dialogID string) Dialog {
+func (d *Overlay) Dialog(id string) Dialog {
 	for _, dialog := range d.dialogs {
-		if dialog.ID() == dialogID {
+		if dialog.ID() == id {
 			return dialog
 		}
 	}
+
 	return nil
 }
 
@@ -235,6 +237,7 @@ func (d *Overlay) DialogLast() Dialog {
 	if len(d.dialogs) == 0 {
 		return nil
 	}
+
 	return d.dialogs[len(d.dialogs)-1]
 }
 

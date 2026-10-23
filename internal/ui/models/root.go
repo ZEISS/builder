@@ -323,6 +323,24 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// openDialog opens a dialog with the given ID.
+func (m *UI) openDialog(id string) tea.Cmd {
+	switch id {
+	case dialogs.QuitID:
+		return m.openQuitDialog()
+	case dialogs.InitID:
+		return m.openInitDialog()
+	case dialogs.ConfigID:
+		return m.openConfigDialog()
+	case dialogs.DeployID:
+		return m.openDeployDialog()
+	case dialogs.SessionsID:
+		return m.openSessionsDialog()
+	default:
+		return utils.Noop()
+	}
+}
+
 // closeDialog closes the dialog with the given ID.
 func (m *UI) closeDialog() tea.Cmd {
 	if !m.dialogs.HasDialogs() {
@@ -332,6 +350,19 @@ func (m *UI) closeDialog() tea.Cmd {
 	m.dialogs.CloseFrontDialog()
 
 	return utils.Noop()
+}
+
+// openInitDialog opens the init dialog.
+func (m *UI) openInitDialog() tea.Cmd {
+	if m.dialogs.ContainsDialog(dialogs.InitID) {
+		m.dialogs.BringToFront(dialogs.InitID)
+		return utils.Noop()
+	}
+
+	initDialog, cmd := dialogs.NewInit(m.root)
+	m.dialogs.OpenDialog(initDialog)
+
+	return cmd
 }
 
 // openConfigDialog opens the config dialog.
@@ -384,27 +415,6 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 	m.dialogs.OpenDialog(commands)
 
 	return commands.InitialCmd()
-}
-
-// openDialog opens a dialog with the given ID.
-func (m *UI) openDialog(id string) tea.Cmd {
-	if id == dialogs.QuitID {
-		return m.openQuitDialog()
-	}
-
-	if id == dialogs.ConfigID {
-		return m.openConfigDialog()
-	}
-
-	if id == dialogs.DeployID {
-		return m.openDeployDialog()
-	}
-
-	if id == dialogs.SessionsID {
-		return m.openSessionsDialog()
-	}
-
-	return utils.Noop()
 }
 
 // openQuitDialog opens the quit confirmation dialog.

@@ -14,6 +14,9 @@ type ActionClose struct{}
 // ActionQuit is a message to quit the application.
 type ActionQuit = tea.QuitMsg
 
+// ActionNoop is a message to do nothing.
+type ActionNoop = struct{}
+
 // ActionOpenDialog is a message to open a dialog.
 type ActionOpenDialog struct {
 	DialogID string

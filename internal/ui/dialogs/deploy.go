@@ -68,8 +68,9 @@ func (m *DeployDialog) HandleMsg(msg tea.Msg) Action {
 			var cmd tea.Cmd
 			return ActionCmd{cmd}
 		}
+	default:
+		return nil
 	}
-	return nil
 }
 
 // Cursor returns the cursor for the dialog.
@@ -93,6 +94,7 @@ func (m *DeployDialog) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 	cur := m.Cursor()
 	DrawCenterCursor(scr, area, view, cur)
+
 	return cur
 }
 

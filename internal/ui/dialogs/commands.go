@@ -3,16 +3,17 @@ package dialogs
 import (
 	"strings"
 
+	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/builder/internal/ui/list"
+	"github.com/zeiss/builder/internal/ui/styles"
+	"github.com/zeiss/builder/internal/ui/utils"
+
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/spinner"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/zeiss/builder/internal/ui/defaults"
-	"github.com/zeiss/builder/internal/ui/list"
-	"github.com/zeiss/builder/internal/ui/styles"
-	"github.com/zeiss/builder/internal/ui/utils"
 )
 
 // CommandsID is the identifier for the commands dialog.
@@ -324,6 +325,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.ui.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{}),
 		NewCommandItem(c.ui.Styles, "deploy", "Deploy", "ctrl+d", ActionOpenDialog{DialogID: DeployID}),
 		NewCommandItem(c.ui.Styles, "config", "Configure", "ctrl+u", ActionOpenDialog{DialogID: ConfigID}),
+		NewCommandItem(c.ui.Styles, "init", "Initialize", "ctrl+i", ActionOpenDialog{DialogID: InitID}).WithAliases("init"),
 		NewCommandItem(c.ui.Styles, "toggle_help", "Toggle Help", "ctrl+g", ActionToggleHelp{}),
 		NewCommandItem(c.ui.Styles, "quit", "Quit", "ctrl+c", tea.QuitMsg{}).WithAliases("exit"),
 	}
