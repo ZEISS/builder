@@ -1,6 +1,6 @@
 module github.com/zeiss/builder
 
-go 1.27.0
+go 1.27.3
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -41,7 +41,11 @@ require (
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/fiber/v3 v3.6.1
+<<<<<<< HEAD
 	github.com/gofiber/storage/azureblob/v2 v2.4.2
+=======
+	github.com/gofiber/storage/azureblob/v2 v2.4.1
+>>>>>>> 48f956a (chore: update fiber-goth@v3.0.9)
 	github.com/gofiber/utils v1.2.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -55,7 +59,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/zeebo/xxh3 v1.1.0
-	github.com/zeiss/fiber-goth/v3 v3.0.8
+	github.com/zeiss/fiber-goth/v3 v3.0.9
 	github.com/zeiss/pkg v0.2.4
 	golang.org/x/oauth2 v0.37.0
 	gorm.io/driver/postgres v1.6.3
@@ -302,8 +306,13 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.11.2 // indirect
 	github.com/godoc-lint/godoc-lint v0.11.2 // indirect
+<<<<<<< HEAD
 	github.com/gofiber/fiber/v2 v2.52.15 // indirect
 	github.com/gofiber/schema v1.8.8 // indirect
+=======
+	github.com/gofiber/fiber/v2 v2.52.16 // indirect
+	github.com/gofiber/schema v1.9.0 // indirect
+>>>>>>> 48f956a (chore: update fiber-goth@v3.0.9)
 	github.com/gofiber/utils/v2 v2.6.2 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -473,8 +482,13 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
+<<<<<<< HEAD
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
+=======
+	github.com/philhofer/fwd v1.2.1 // indirect
+	github.com/pierrec/lz4/v4 v4.1.30 // indirect
+>>>>>>> 48f956a (chore: update fiber-goth@v3.0.9)
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
@@ -553,7 +567,11 @@ require (
 	github.com/uudashr/gocognit v1.2.1 // indirect
 	github.com/uudashr/iface v1.5.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
+<<<<<<< HEAD
 	github.com/valyala/fasthttp v1.75.0 // indirect
+=======
+	github.com/valyala/fasthttp v1.76.0 // indirect
+>>>>>>> 48f956a (chore: update fiber-goth@v3.0.9)
 	github.com/vektra/mockery/v2 v2.53.6 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/wagoodman/go-progress v0.0.0-20230925121702-07e42b3cdba0 // indirect
