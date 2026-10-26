@@ -1,6 +1,7 @@
 package dialogs
 
 import (
+	"context"
 	"image"
 	"time"
 
@@ -66,26 +67,25 @@ func NewSessions(ui *defaults.UI, selectedSessionID string) (*Session, error) {
 	s.sessionsMode = sessionsModeNormal
 	s.ui = ui
 
-	// sessions, err := ui.Workspace.ListSessions(context.TODO())
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// s.sessions = sessions
-	// for i, sess := range sessions {
-	// 	if sess.ID == selectedSessionID {
-	// 		s.selectedSessionInx = i
-	// 		break
-	// 	}
-	// }
+	sessions, err := ui.Workspace.ListSessions(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	s.sessions = sessions
 
 	help := help.New()
 	help.Styles = ui.Styles.DialogHelpStyles()
 
 	s.help = help
-	s.list = list.NewFilterableList()
+	s.list = list.NewFilterableList(sessionItems(ui.Styles, sessionsModeNormal, s.sessions...)...)
 	s.list.Focus()
 	s.list.SetSelected(s.selectedSessionInx)
+
+	s.input = textinput.New()
+	s.input.SetVirtualCursor(false)
+	s.input.Placeholder = "Enter session name"
+	s.input.SetStyles(ui.Styles.TextInput)
+	s.input.Focus()
 
 	s.keyMap.Select = key.NewBinding(
 		key.WithKeys("enter", "tab", "ctrl+y"),

@@ -1,6 +1,11 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 // Session represents a user session, storing session-specific data.
 type Session struct {
@@ -14,4 +19,10 @@ type Session struct {
 	AccountID uuid.UUID `gorm:"type:uuid"`
 	// Account is the account associated with the session
 	Account Account `gorm:"foreignKey:AccountID"`
+	// CreatedAt is the creation time of the account.
+	CreatedAt time.Time `json:"created_at"`
+	// UpdatedAt is the update time of the account.
+	UpdatedAt time.Time `json:"updated_at"`
+	// DeletedAt is the deletion time of the account.
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }

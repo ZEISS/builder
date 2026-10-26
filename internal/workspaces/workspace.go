@@ -38,7 +38,7 @@ type Workspace interface {
 	// Session returns the session controller of the workspace.
 	Session() (*models.Session, bool)
 	// ListSessions returns the list of sessions of the workspace.
-	ListSessions() ([]*models.Session, error)
+	ListSessions(ctx context.Context) ([]*models.Session, error)
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -118,9 +118,9 @@ func (w *WorkspaceImpl) Session() (*models.Session, bool) {
 }
 
 // ListSessions returns the list of sessions of the workspace.
-func (w *WorkspaceImpl) ListSessions() ([]*models.Session, error) {
+func (w *WorkspaceImpl) ListSessions(ctx context.Context) ([]*models.Session, error) {
 	var sessions []*models.Session
-	err := w.sevices.ListSessions(context.Background(), &sessions)
+	err := w.sevices.ListSessions(ctx, &sessions)
 	return sessions, err
 }
 
