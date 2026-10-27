@@ -90,7 +90,8 @@ archives:
     name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
-  prerelease: true
+  prerelease: auto
+  mode: replace
 
 changelog:
   disable: true
