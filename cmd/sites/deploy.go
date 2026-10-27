@@ -101,11 +101,11 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-	}
 
-	tw, _, _ := term.GetSize(os.Stdout.Fd())
-	body := console.Render(tw, console.Success(fmt.Sprintf("%d files uploaded successfully.", len(files))))
-	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
+		tw, _, _ := term.GetSize(os.Stdout.Fd())
+		body := console.Render(tw, console.Success(fmt.Sprintf("%s file uploaded successfully.", file)))
+		fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
+	}
 
 	return nil
 }
