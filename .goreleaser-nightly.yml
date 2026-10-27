@@ -80,7 +80,14 @@ dockers_v2:
       "org.opencontainers.image.version": "{{.Version}}"
 
 archives:
-  ids: [server, builder]
+  - id: server
+    ids:
+      - server
+    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
+  - id: builder
+    ids:
+      - builder
+    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
   disable: true
