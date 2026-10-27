@@ -7,13 +7,28 @@ import (
 
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/defaults"
-	"github.com/zeiss/builder/internal/ui/list"
 )
+
+// ListItemGenerator is an interface for generating list items.
+type ListItemGenerator[S ~[]R, R any] func(s S) []R
+
+func sessionListGenerator(sessions ...*models.Session) []list.Item {
+	items := make([]list.Item, 0, len(sessions))
+	for _, s := range sessions {
+		item := SessionItem{
+			session: s,
+		}
+		items = append(items, item)
+	}
+
+	return items
+}
 
 // SessionsID is the identifier for the session selector dialog.
 const SessionsID = "sessions"
@@ -33,7 +48,6 @@ type Session struct {
 	ui *defaults.UI
 
 	help               help.Model
-	list               *list.FilterableList
 	input              textinput.Model
 	selectedSessionInx int
 	sessions           []*models.Session
@@ -43,6 +57,8 @@ type Session struct {
 	mouseScrolled bool
 	lastClickTime time.Time
 	lastClickID   string
+
+	list list.Model
 
 	keyMap struct {
 		Select        key.Binding
@@ -57,6 +73,8 @@ type Session struct {
 		CancelDelete  key.Binding
 		Close         key.Binding
 	}
+
+	delegateKeys *delegateKeyMap
 }
 
 var _ Dialog = (*Session)(nil)
@@ -66,6 +84,9 @@ func NewSessions(ui *defaults.UI, selectedSessionID string) (*Session, error) {
 	s := new(Session)
 	s.sessionsMode = sessionsModeNormal
 	s.ui = ui
+
+	delegateKeys := newDelegateKeyMap()
+	s.delegateKeys = delegateKeys
 
 	sessions, err := ui.Workspace.ListSessions(context.Background())
 	if err != nil {
@@ -77,9 +98,16 @@ func NewSessions(ui *defaults.UI, selectedSessionID string) (*Session, error) {
 	help.Styles = ui.Styles.DialogHelpStyles()
 
 	s.help = help
-	s.list = list.NewFilterableList(sessionItems(ui.Styles, sessionsModeNormal, s.sessions...)...)
-	s.list.Focus()
-	s.list.SetSelected(s.selectedSessionInx)
+
+	delegate := NewSessionItemDelegate(delegateKeys, ui.Styles)
+	items := sessionListGenerator(sessions...)
+
+	sessionList := list.New(items, delegate, 0, 0)
+	s.list = sessionList
+
+	// s.list = list.NewFilterableList(sessionItems(ui.Styles, sessionsModeNormal, s.sessions...)...)
+	// s.list.Focus()
+	// s.list.SetSelected(s.selectedSessionInx)
 
 	s.input = textinput.New()
 	s.input.SetVirtualCursor(false)
@@ -139,7 +167,14 @@ func (s *Session) ID() string {
 
 // HandleMsg implements Dialog.
 func (s *Session) HandleMsg(msg tea.Msg) Action {
-	return nil
+	var cmds []tea.Cmd
+
+	// This will also call our delegate's update function.
+	newListModel, cmd := s.list.Update(msg)
+	s.list = newListModel
+	cmds = append(cmds, cmd)
+
+	return tea.Batch(cmds...)
 }
 
 // Draw implements [Dialog].
@@ -147,13 +182,16 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	t := s.ui.Styles
 
 	width := max(0, min(defaultDialogMaxWidth, area.Dx()-t.Dialog.View.GetHorizontalBorderSize()))
+	height := max(0, min(defaultDialogHeight, area.Dy()-t.Dialog.View.GetVerticalBorderSize()))
 	innerWidth := width - t.Dialog.View.GetHorizontalFrameSize()
+
+	s.list.SetSize(height, width)
 
 	var cur *tea.Cursor
 	rc := NewRenderContext(t, width)
 	rc.Title = "Sessions"
 
-	bodyView := t.Dialog.List.Height(s.list.Height()).Render(s.list.Render())
+	bodyView := t.Dialog.List.Height(s.list.Height()).Render(s.list.View())
 	rc.AddPart(bodyView)
 	rc.Help = renderDialogHelp(t, &s.help, s, innerWidth)
 
