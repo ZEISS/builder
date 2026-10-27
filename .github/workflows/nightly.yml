@@ -13,6 +13,7 @@ permissions: {}
 
 env:
   DOCKER_IMAGE_REPO: ghcr.io/zeiss/builder
+  TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
 
 jobs:
   release:
