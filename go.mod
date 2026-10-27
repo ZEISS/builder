@@ -1,6 +1,6 @@
 module github.com/zeiss/builder
 
-go 1.27.0
+go 1.27.3
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -55,7 +55,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/zeebo/xxh3 v1.1.0
-	github.com/zeiss/fiber-goth/v3 v3.0.8
+	github.com/zeiss/fiber-goth/v3 v3.0.9
 	github.com/zeiss/pkg v0.2.4
 	golang.org/x/oauth2 v0.37.0
 	gorm.io/driver/postgres v1.6.3
