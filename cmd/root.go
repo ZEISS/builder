@@ -9,6 +9,7 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/defaults"
 	exitbanner "github.com/zeiss/builder/internal/ui/exit"
+	"github.com/zeiss/builder/internal/ui/experimental"
 	ui "github.com/zeiss/builder/internal/ui/models"
 	"github.com/zeiss/builder/internal/versions"
 	"github.com/zeiss/builder/internal/workspaces"
@@ -38,6 +39,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&config.DefaultFlags.Force, "force", "f", config.DefaultFlags.Force, "force init")
 	RootCmd.PersistentFlags().BoolVar(&config.DefaultFlags.Debug, "debug", config.DefaultFlags.Debug, "debug mode")
 	RootCmd.PersistentFlags().BoolVarP(&config.DefaultFlags.Yolo, "yolo", "y", config.DefaultFlags.Yolo, "yolo mode")
+	RootCmd.PersistentFlags().BoolVar(&config.DefaultFlags.Experimental, "experimental", config.DefaultFlags.Experimental, "experimental mode")
 
 	// Runtime
 	RootCmd.PersistentFlags().StringSliceVar(&config.DefaultFlags.Plugins, "plugin", config.DefaultFlags.Plugins, "plugin")
@@ -55,6 +57,11 @@ var RootCmd = &cobra.Command{
 }
 
 func runRootCmd(cmd *cobra.Command, args []string) error {
+	if !config.DefaultFlags.Experimental {
+		printExperimentalBanner()
+		return nil
+	}
+
 	workspace, err := workspaces.SetupWithProgressBar(cmd.Context(), config.DefaultFlags)
 	if err != nil {
 		return err
@@ -89,6 +96,16 @@ func runRootCmd(cmd *cobra.Command, args []string) error {
 	printExitBanner(session)
 
 	return nil
+}
+
+func printExperimentalBanner() {
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := experimental.Render(versions.VersionString, tw)
+	if body == "" {
+		return
+	}
+
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 }
 
 func printExitBanner(session *models.Session) {

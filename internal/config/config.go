@@ -66,13 +66,16 @@ type Flags struct {
 	Session string
 	// Continue indicates whether to continue a session.
 	Continue bool
+	// Experimental indicates whether to enable experimental features.
+	Experimental bool
 }
 
 // NewFlags returns a new flags.
 func NewFlags() Flags {
 	return Flags{
-		Config: DefaultSpecFileName,
-		Path:   DefaultPath,
+		Config:       DefaultSpecFileName,
+		Experimental: false,
+		Path:         DefaultPath,
 	}
 }
 
