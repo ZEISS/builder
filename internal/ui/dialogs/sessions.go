@@ -186,7 +186,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	innerWidth := width - t.Dialog.View.GetHorizontalFrameSize()
 	innerHeight := height - t.Dialog.View.GetVerticalFrameSize()
 
-	s.list.SetSize(height, width)
+	s.list.SetSize(innerWidth, innerHeight)
 
 	var cur *tea.Cursor
 	rc := NewRenderContext(t, width)
