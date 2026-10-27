@@ -90,18 +90,25 @@ archives:
     name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
-  name_template: "{{ .Version }}"
-  header: |
-    ## {{.Version}} Release ({{ .Date }})
-
-    Welcome to this new release :rocket:!
-  footer: |
-    ## Thanks!
-
-    Those were the changes on {{ .Tag }}!
+  prerelease: auto
+  mode: replace
 
 changelog:
-  disable: true
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?bug(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - typo
+      - (?i)foo
 
 checksum:
   name_template: "builder_checksums.txt"
