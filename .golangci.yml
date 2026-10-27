@@ -59,6 +59,7 @@ linters:
     - gosec
     - exhaustive
     - nestif
+    - prealloc
 
   settings:
     exhaustive:

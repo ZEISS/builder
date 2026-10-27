@@ -57,6 +57,7 @@ func NewSessionItemDelegate(keys *delegateKeyMap, styles *styles.Styles) list.De
 				if len(m.Items()) == 0 {
 					keys.remove.SetEnabled(false)
 				}
+
 				return m.NewStatusMessage(styles.ToolCallSuccess.Render("Deleted " + title))
 			}
 		}
