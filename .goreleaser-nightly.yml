@@ -42,27 +42,6 @@ builds:
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
-homebrew_casks:
-  - repository:
-      owner: zeiss
-      name: homebrew-builder-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    homepage: https://github.com/zeiss/builder
-    description: A teeny-tiny tool to build stuff
-    url:
-      template: "https://github.com/zeiss/builder/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    directory: Casks
-    name: builder
-    ids:
-      - builder
-    binaries:
-      - builder
-    hooks:
-      post:
-        install_steps: |
-          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
-    license: APACHE-2.0
-
 dockers_v2:
   - id: builder
     dockerfile: Dockerfile.builder
@@ -101,7 +80,7 @@ dockers_v2:
       "org.opencontainers.image.version": "{{.Version}}"
 
 archives:
-  - ids: [server, builder]
+  ids: [server, builder]
 
 release:
   disable: true
