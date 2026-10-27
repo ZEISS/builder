@@ -184,6 +184,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	width := max(0, min(defaultDialogMaxWidth, area.Dx()-t.Dialog.View.GetHorizontalBorderSize()))
 	height := max(0, min(defaultDialogHeight, area.Dy()-t.Dialog.View.GetVerticalBorderSize()))
 	innerWidth := width - t.Dialog.View.GetHorizontalFrameSize()
+	innerHeight := height - t.Dialog.View.GetVerticalFrameSize()
 
 	s.list.SetSize(height, width)
 
@@ -192,6 +193,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	rc.Title = "Sessions"
 
 	bodyView := t.Dialog.List.Height(s.list.Height()).Render(s.list.View())
+	bodyView = defaults.JoinScrollbar(t, bodyView, innerWidth, innerHeight, s.list.Height(), s.list.Index())
 	rc.AddPart(bodyView)
 	rc.Help = renderDialogHelp(t, &s.help, s, innerWidth)
 

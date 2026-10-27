@@ -1,6 +1,7 @@
 package defaults
 
 import (
+	"charm.land/lipgloss/v2"
 	"github.com/zeiss/builder/internal/ui/styles"
 	"github.com/zeiss/builder/internal/workspaces"
 )
@@ -22,4 +23,12 @@ func DefaultUI(workspace workspaces.Workspace) *UI {
 		Workspace: workspace,
 		Styles:    &s,
 	}
+}
+
+// JoinScrollbar joins a view with a scrollbar if needed.
+func JoinScrollbar(t *styles.Styles, view string, height, contentSize, viewportSize, offset int) string {
+	if sb := Scrollbar(t, height, contentSize, viewportSize, offset); sb != "" {
+		return lipgloss.JoinHorizontal(lipgloss.Top, view, sb)
+	}
+	return view
 }
