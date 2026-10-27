@@ -59,8 +59,8 @@ homebrew_casks:
       - builder
     hooks:
       post:
-        install: |
-          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+        install_steps: |
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
     license: APACHE-2.0
 
 dockers_v2:
@@ -101,14 +101,7 @@ dockers_v2:
       "org.opencontainers.image.version": "{{.Version}}"
 
 archives:
-  - id: server
-    builds:
-      - server
-    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
-  - id: builder
-    builds:
-      - builder
-    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
+  - ids: [server, builder]
 
 release:
   disable: true
