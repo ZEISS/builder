@@ -1,6 +1,6 @@
 module github.com/zeiss/builder
 
-go 1.27.0
+go 1.27.3
 
 tool (
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
@@ -306,7 +306,7 @@ require (
 	github.com/go-toolsmith/typep v1.1.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.3 // indirect
-	github.com/gobwas/glob v1.0.1-0.20260908094521-7112f0049462 // indirect
+	github.com/gobwas/glob v1.1.0-rc.1 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/godoc-lint/godoc-lint v0.11.4 // indirect
 	github.com/gofiber/fiber/v2 v2.52.15 // indirect
