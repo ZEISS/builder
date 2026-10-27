@@ -95,6 +95,8 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 	scanDir := filepath.Base(filepath.Join(cwd, spec.Sites.Path))
 	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
 
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+
 	for _, file := range files {
 		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, spec.Sites.Path)), "/")
 		err := c.UploadFile(ctx, site.ID, scanDir, file)
@@ -102,10 +104,12 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 
-		tw, _, _ := term.GetSize(os.Stdout.Fd())
-		body := console.Render(tw, console.Success(fmt.Sprintf("%s file uploaded successfully.", file)))
+		body := console.Render(tw, console.Success(fmt.Sprintf("%s file", file)))
 		fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 	}
+
+	body := console.Render(tw, console.Success(fmt.Sprintf("%d files uploaded successfully.", len(files))))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }
