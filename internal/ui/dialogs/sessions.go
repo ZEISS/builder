@@ -103,6 +103,8 @@ func NewSessions(ui *defaults.UI, selectedSessionID string) (*Session, error) {
 	items := sessionListGenerator(sessions...)
 
 	sessionList := list.New(items, delegate, 0, 0)
+	sessionList.SetShowTitle(false)
+	sessionList.SetShowStatusBar(false)
 	s.list = sessionList
 
 	// s.list = list.NewFilterableList(sessionItems(ui.Styles, sessionsModeNormal, s.sessions...)...)
