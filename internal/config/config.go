@@ -1,76 +1,94 @@
 package config
 
 import (
+	"cmp"
+	"context"
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 
+	"github.com/zeiss/builder/internal/adapters/db"
+	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/pkg/specs"
-	"github.com/zeiss/pkg/filex"
+	"github.com/zeiss/builder/server/middlewares/discovery"
+
+	"github.com/zeiss/pkg/dbx"
+	"github.com/zeiss/pkg/utilx"
 )
+
+// DefaultFlags holds the default command line flags.
+var DefaultFlags = NewFlags()
+
+// DefaultConfig holds the configuration for the builder.
+var DefaultConfig = NewConfig()
+
+const appName = "sparkles"
+
+// DefaultDataDir is the default data directory for the application.
+const DefaultDataDir = "sparkles.db"
 
 // DefaultClientID is the default client ID using the PKCE flow.
 const DefaultClientID = "builder-cli"
 
 // DefaultSpecFileName is the default spec file name.
-const DefaultSpecFileName = ".builder.yaml"
+const DefaultSpecFileName = ".builder.yml"
 
-// DefaultPath is the default store file name.
-const DefaultPath = "~/.builder/builder.db"
+// DefaultPath is the default path to store workspace data.
+const DefaultPath = ".sparkles"
 
 // UnknownCwd is the unknown current working directory.
 const UnknownCwd = ""
 
-// DefaultConfig is the default configuration.
-var DefaultConfig = New()
-
 // Flags contains the command line flags.
 type Flags struct {
-	// URL is the URL of the OIDC provider.
+	// URL is the URL of the builder server.
 	URL string
 	// Plugins contains the plugins to use.
 	Plugins []string
 	// Vars contains the variables to use.
 	Vars []string
-	// Dry indicates whether to print dry run messages.
-	Dry bool
 	// Force indicates whether to force overwrite.
 	Force bool
-	// Root is the root directory of the project.
-	Root bool
 	// Verbose indicates whether to print verbose messages.
 	Verbose bool
-	// Version indicates whether to print version.
-	Version bool
+	// Debug indicates whether to enable debug mode.
+	Debug bool
+	// Yolo indicates whether to enable yolo mode.
+	Yolo bool
 	// TaskFlags contains the flags for a task.
 	TaskFlags TaskFlags
-	// Path is the path to the project.
+	// Config is the path to the config file.
+	Config string
+	// Path is the path to the store file.
 	Path string
+	// Session is the session ID to use.
+	Session string
+	// Continue indicates whether to continue a session.
+	Continue bool
+	// Experimental indicates whether to enable experimental features.
+	Experimental bool
 }
 
 // NewFlags returns a new flags.
 func NewFlags() Flags {
-	return Flags{}
-}
-
-// NewDefaultFlags returns the default flags.
-func NewDefaultFlags() Flags {
 	return Flags{
-		Path: DefaultPath,
-		URL:  "http://builder.internal:3000",
+		Config:       DefaultSpecFileName,
+		Experimental: false,
+		Path:         DefaultPath,
 	}
 }
 
 // Config contains the configuration.
 type Config struct {
-	File     string
-	FileMode os.FileMode
-	Flags    Flags
-	Stderr   *os.File
-	Stdin    *os.File
-	Stdout   *os.File
-	Task     TaskFlags
-	Verbose  bool
+	// Stderr is the stderr file.
+	Stderr *os.File
+	// Stdin is the stdin file.
+	Stdin *os.File
+	// Stdout is the stdout file.
+	Stdout *os.File
+	// Task contains the flags for a task.
+	Task TaskFlags
 }
 
 // TaskFlags contains the flags for a task.
@@ -80,109 +98,42 @@ type TaskFlags struct {
 }
 
 // New returns a new config.
-func New() Config {
+func NewConfig() Config {
 	return Config{
-		File:   DefaultSpecFileName,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Flags:  NewDefaultFlags(),
 	}
-}
-
-// Vars returns the variables.
-func (c *Config) Vars() []string {
-	return c.Flags.Vars
-}
-
-// HomeDir returns the home directory.
-func (c *Config) HomeDir() (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-
-	return usr.HomeDir, err
-}
-
-// StorePath returns the path to the store file.
-func (c *Config) StorePath() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return "", err
-	}
-
-	abs, err := filepath.Abs(filepath.Clean(path))
-	if err != nil {
-		return "", err
-	}
-
-	return abs, nil
-}
-
-// Cwd return the current working directory.
-// Which is the path in which the builder spec is located.
-func (c *Config) Cwd() (string, error) {
-	abs, err := filepath.Abs(filepath.Clean(c.File))
-	if err != nil {
-		return UnknownCwd, err
-	}
-
-	return filepath.Dir(filepath.Clean(abs)), nil
 }
 
 // Spec is a helper to load the spec from the config file.
-func (c *Config) Spec() (*specs.Spec, error) {
-	path, err := c.Abs()
+func (f *Flags) Spec() (*specs.Spec, error) {
+	path, err := f.ConfigPath()
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := os.ReadFile(path)
+	s, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	spec := &specs.Spec{}
-	if err := spec.UnmarshalYAML(f); err != nil {
+	if err := spec.UnmarshalYAML(s); err != nil {
 		return nil, err
 	}
 
 	return spec, nil
 }
 
-// Path returns the expanded path of the config file.
-func (c *Config) Path() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return "", err
-	}
-
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return "", err
-	}
-
-	return abs, nil
-}
-
-// DeleteStore deletes the session store.
-func (c *Config) DeleteStore() error {
-	path, err := filex.ExpandHomeFolder(c.Flags.Path)
-	if err != nil {
-		return err
-	}
-
-	return os.RemoveAll(path)
-}
-
 // Abs returns the absolute path of the config file.
-func (c *Config) Abs() (string, error) {
-	path, err := filex.ExpandHomeFolder(c.File)
+func (f *Flags) ConfigPath() (string, error) {
+	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 
+	path := filepath.Join(cwd, f.Config)
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
@@ -191,17 +142,88 @@ func (c *Config) Abs() (string, error) {
 	return filepath.Clean(abs), nil
 }
 
-// ExpandConfigPath expands the config path and creates the store folder.
-func ExpandConfigPath(path string) (string, error) {
-	path, err := filex.ExpandHomeFolder(path)
+// AppDirPath returns the path to the main data directory for the application.
+func AppDirPath() (string, error) {
+	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); utilx.NotEmpty(xdgDataHome) {
+		return filepath.Join(xdgDataHome, appName), nil
+	}
+
+	if runtime.GOOS == "windows" {
+		localAppData := cmp.Or(
+			os.Getenv("LOCALAPPDATA"),
+			filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local"),
+		)
+		return filepath.Join(localAppData, appName), nil
+	}
+
+	home, err := HomeDir()
 	if err != nil {
 		return "", err
 	}
 
-	err = os.MkdirAll(filepath.Dir(path), 0o777)
+	return filepath.Join(home, ".local", "share", appName), nil
+}
+
+// DataDir returns the path to the data directory for the application.
+func DataDir() (string, error) {
+	path, err := AppDirPath()
 	if err != nil {
 		return "", err
 	}
 
-	return path, nil
+	dataDir := filepath.Clean(filepath.Join(path, DefaultDataDir))
+
+	return dataDir, nil
+}
+
+// HomeDir returns the home directory.
+func HomeDir() (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	return usr.HomeDir, err
+}
+
+// Cwd returns the current working directory.
+func Cwd() (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Clean(wd), nil
+}
+
+// DiscoverWellKnownConfig discovers the well-known configuration for the given URL.
+func DiscoverWellKnownConfig(ctx context.Context, url string) (*discovery.WellKnownConfig, error) {
+	discv := discovery.NewClient()
+	wellknownConfig, err := discv.Discover(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+
+	return wellknownConfig, nil
+}
+
+// SetupServices sets up the services for the application.
+func SetupServices(ctx context.Context, path string) (services.Service, error) {
+	database, err := db.NewDB(db.WithSqlite3(path))
+	if err != nil {
+		return nil, err
+	}
+
+	err = database.Migrate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	store, err := dbx.NewDatabase(database.Conn(), db.NewReadTx(), db.NewWriteTx())
+	if err != nil {
+		return nil, err
+	}
+	srv := services.NewService(store)
+
+	return srv, nil
 }

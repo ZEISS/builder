@@ -1,19 +1,18 @@
 package account
 
 import (
-	"path/filepath"
+	"fmt"
+	"os"
 
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/internal/oidc"
+	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 
-	"github.com/glebarez/sqlite"
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 // RefreshCmd is the command for refreshing the account.
@@ -25,53 +24,40 @@ var RefreshCmd = &cobra.Command{
 
 func runRefreshCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
 	if err != nil {
 		return err
 	}
 
-	if err := db.RunMigrations(conn); err != nil {
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
 		return err
 	}
 
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, config.DefaultConfig.Flags.URL)
+	if err := oidcProvider.Refresh(ctx, account.ToToken()); err != nil {
+		return err
+	}
+
+	err = srv.UpdateAccount(ctx, account)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	current := &models.Account{}
-	err = accountCtrl.GetCurrent(ctx, current)
-	if err != nil {
-		return err
-	}
-
-	err = authCtrl.Refresh(ctx, current)
-	if err != nil {
-		return err
-	}
-
-	err = accountCtrl.Update(ctx, current)
-	if err != nil {
-		return err
-	}
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Success(fmt.Sprintf("Refreshed account %s successfully", account.Email)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

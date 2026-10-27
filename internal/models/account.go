@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/zeiss/builder/internal/oidc"
+	"github.com/zeiss/pkg/cast"
 	"gorm.io/gorm"
 )
 
@@ -68,4 +70,31 @@ func (a *Account) BeforeCreate(tx *gorm.DB) (err error) {
 	a.Current = true
 
 	return nil
+}
+
+// ToToken converts the account to a token.
+func (a *Account) ToToken() *oidc.Token {
+	return &oidc.Token{
+		ProviderType: a.Provider,
+		AccessToken:  cast.Value(a.AccessToken),
+		RefreshToken: cast.Value(a.RefreshToken),
+		Expiry:       cast.Value(a.ExpiresAt),
+		TokenType:    cast.Value(a.TokenType),
+		IDToken:      cast.Value(a.IDToken),
+	}
+}
+
+// FromToken creates an account from a token.
+func FromToken(token *oidc.Token) *Account {
+	return &Account{
+		Type:         AccountTypeOAuth2,
+		Email:        token.Claims.Email,
+		Name:         token.Claims.Name,
+		Provider:     token.ProviderType,
+		AccessToken:  cast.Ptr(token.AccessToken),
+		RefreshToken: cast.Ptr(token.RefreshToken),
+		ExpiresAt:    cast.Ptr(token.Expiry),
+		TokenType:    cast.Ptr(token.TokenType),
+		IDToken:      cast.Ptr(token.IDToken), // save id token for the API
+	}
 }

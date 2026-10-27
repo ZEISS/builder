@@ -1,20 +1,19 @@
 package account
 
 import (
-	"path/filepath"
+	"fmt"
+	"os"
+	"strings"
 
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ui/models/account"
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/oidc"
+	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/glebarez/sqlite"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 )
 
 // LoginCmd is the command for logging in to builder.
@@ -26,45 +25,48 @@ var LoginCmd = &cobra.Command{
 
 func runLoginCmd(cmd *cobra.Command, args []string) error {
 	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
 	if err != nil {
 		return err
 	}
 
-	if err := db.RunMigrations(conn); err != nil {
-		return err
-	}
-
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, config.DefaultConfig.Flags.URL)
+	deviceAuth, err := oidcProvider.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
+	var s strings.Builder
 
-	store := db.New(conn)
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
+	fmt.Fprintf(&s, "Open the following URL to verify your device: %s\n\n", deviceAuth.VerificationURI)
+	fmt.Fprintf(&s, "User code: %s\n", deviceAuth.UserCode)
+	fmt.Println(s.String())
 
-	app := account.New(ctx, authCtrl, accountCtrl)
-	program := tea.NewProgram(app, tea.WithContext(cmd.Context()))
-
-	_, err = program.Run()
+	token, err := oidcProvider.Finish(ctx, deviceAuth)
 	if err != nil {
 		return err
 	}
+
+	account := models.FromToken(token)
+	err = srv.CreateAccount(ctx, account)
+	if err != nil {
+		return err
+	}
+
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Success(fmt.Sprintf("Logged in %s successfully", account.Email)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

@@ -29,12 +29,7 @@ func ThemeKeyForProvider(providerID string) string {
 // ID. Unknown or empty provider IDs yield the default Charmtone Pantera
 // theme.
 func ThemeForProvider(providerID string) Styles {
-	switch ThemeKeyForProvider(providerID) {
-	case "hyper":
-		return HypercrushObsidiana()
-	default:
-		return CharmtonePantera()
-	}
+	return CharmtonePantera()
 }
 
 // CharmtonePantera returns the Charmtone dark theme. It's the default style
@@ -159,11 +154,6 @@ func charmtoneOverrides(s Styles) Styles {
 		Foreground(charmtone.Violet)
 
 	return s
-}
-
-// HypercrushObsidiana returns the Hypercrush dark theme.
-func HypercrushObsidiana() Styles {
-	return CharmtonePantera()
 }
 
 // gruvboxDarkOpts returns the quickStyleOpts for the Gruvbox Dark theme,

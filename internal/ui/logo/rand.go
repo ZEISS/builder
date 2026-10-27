@@ -18,7 +18,7 @@ func cachedRandN(n int) int {
 		return nPrime
 	}
 
-	r := rand.IntN(n) //nolint:gosec
+	r := rand.IntN(n)
 	randCaches[n] = r
 	return r
 }

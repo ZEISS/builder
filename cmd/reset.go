@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
-	"github.com/zeiss/builder/internal/ui/models"
+	"fmt"
+	"os"
 
-	tea "charm.land/bubbletea/v2"
+	"github.com/zeiss/builder/internal/config"
+	"github.com/zeiss/pkg/filex"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,12 +21,23 @@ This command deletes the 'builder.db' file and resets the config to its default 
 }
 
 func runResetCmd(cmd *cobra.Command, _ []string) error {
-	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	accountCtrl := controllers.NewAccountController(config.DefaultConfig, nil)
-	app := models.NewReset(ctx, accountCtrl)
+	path, err := config.AppDirPath()
+	if err != nil {
+		return err
+	}
 
-	_, err := tea.NewProgram(app, tea.WithContext(ctx)).Run()
+	ok, err := filex.FileExists(path)
+	if err != nil {
+		return err
+	}
+
+	if ok && !flags.Force {
+		return fmt.Errorf("use --force to reset the configuration")
+	}
+
+	err = os.RemoveAll(path)
 	if err != nil {
 		return err
 	}

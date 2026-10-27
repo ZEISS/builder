@@ -1,23 +1,24 @@
-// Package exitbanner renders what Crush prints after the TUI exits.
+// Package exitbanner is
 package exitbanner
 
 import (
 	"math/rand/v2"
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ui/logo"
 	"github.com/zeiss/builder/internal/ui/styles"
+	"github.com/zeiss/builder/internal/versions"
+
+	"charm.land/lipgloss/v2"
 )
 
 // FallbackWidth is used when stdout is not a terminal, so the banner still
 // wraps to something sane when output is piped or captured.
 const FallbackWidth = 80
 
-// Render returns the exit banner for the given style, or an empty string when
-// there is nothing to print. A nil or untitled session means the resume hint is
-// omitted, which for the compact banner leaves nothing at all.
-func Render(version string, width int) string {
+// Render returns the exit banner for the given style.
+func Render(session *models.Session, version string, width int) string {
 	if width <= 0 {
 		width = FallbackWidth
 	}
@@ -25,23 +26,37 @@ func Render(version string, width int) string {
 	style := lipgloss.NewStyle().Padding(1, 3)
 	contentWidth := width - style.GetHorizontalFrameSize()
 
-	sections := []string{logoSection(version, contentWidth)}
+	sections := []string{
+		logoSection(contentWidth),
+		sessionSection(session, contentWidth),
+	}
+
 	return style.Render(strings.Join(sections, "\n\n"))
 }
 
+// sessionSection returns the session section of the exit banner.
+func sessionSection(session *models.Session, contentWidth int) string {
+	return lipgloss.NewStyle().Width(contentWidth).Render("Session: " + session.ID.String())
+}
+
 // logoSection returns the ASCII art logo followed by the parting message.
-func logoSection(version string, contentWidth int) string {
+func logoSection(contentWidth int) string {
 	t := styles.ThemeForProvider("")
-	crushLogo := logo.Render(t.Logo.GradCanvas, version, true, logo.Opts{
-		FieldColor:   t.Logo.FieldColor,
-		TitleColorA:  t.Logo.TitleColorA,
-		TitleColorB:  t.Logo.TitleColorB,
-		CharmColor:   t.Logo.CharmColor,
-		VersionColor: t.Logo.VersionColor,
-	})
-	// Wrap the greeting and the message together: wrapping only the message
-	// leaves the greeting's own width unaccounted for and overflows the frame.
-	return crushLogo + "\n" +
+
+	sparklesLogo := logo.Render(
+		t.Logo.GradCanvas,
+		versions.VersionString,
+		true,
+		logo.Opts{
+			FieldColor:   t.Logo.FieldColor,
+			TitleColorA:  t.Logo.TitleColorA,
+			TitleColorB:  t.Logo.TitleColorB,
+			CharmColor:   t.Logo.CharmColor,
+			VersionColor: t.Logo.VersionColor,
+		},
+	)
+
+	return sparklesLogo + "\n" +
 		lipgloss.NewStyle().Width(contentWidth).Render("It's sparkling! "+randomExitMessage())
 }
 
@@ -70,5 +85,5 @@ func randomExitMessage() string {
 		"Where did I leave my sunglasses?",
 		"It’s cocoa o’clock.",
 	}
-	return messages[rand.IntN(len(messages))] //nolint:gosec
+	return messages[rand.IntN(len(messages))]
 }

@@ -16,13 +16,3 @@ type DeviceAuthRepository interface {
 	// Refresh is a method that refreshes the device authentication token.
 	Refresh(ctx context.Context, model *models.Account) error
 }
-
-// DeviceAuthController is an interface that defines the methods for device authentication operations.
-type DeviceAuthController interface {
-	// Begin is a method that begins the device authentication process.
-	Begin(ctx context.Context) (*models.DeviceAuth, error)
-	// Finish is a method that finishes the device authentication process.
-	Finish(ctx context.Context, deviceAuth *models.DeviceAuth) (*models.Account, error)
-	// Refresh is a method that refreshes the device authentication token.
-	Refresh(ctx context.Context, model *models.Account) error
-}

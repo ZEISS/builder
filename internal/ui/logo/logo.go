@@ -39,7 +39,7 @@ type Opts struct {
 // The compact argument determines whether it renders compact for the sidebar
 // or wider for the main pane.
 func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
-	builder := "Builder"
+	builder := "Builder by Zeiss"
 
 	fg := func(c color.Color, s string) string {
 		return lipgloss.NewStyle().Foreground(c).Render(s)
@@ -66,7 +66,7 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 		stretchIndex = cachedRandN(len(sparklesLetterforms))
 	} else if !compact && o.Unstable {
 		// Stretch a random letterform on every render.
-		stretchIndex = rand.IntN(len(sparklesLetterforms)) //nolint:gosec
+		stretchIndex = rand.IntN(len(sparklesLetterforms))
 	}
 
 	sparkles := renderWord(spacing, stretchIndex, sparklesLetterforms...)

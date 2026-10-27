@@ -8,7 +8,7 @@ A site is self-service, citizen-development internal hosting service.
 
 ## Example
 
-```yaml {filename=".builder.yaml"}
+```yaml {filename=".builder.yml"}
 sites:
   path: .
   name: fizzy-buzzy

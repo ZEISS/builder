@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/ui/models"
-
-	tea "charm.land/bubbletea/v2"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/builder/internal/config"
 )
 
 // CheckCmd is the command to check the configuration.
@@ -19,16 +16,14 @@ This command checks the configuration and displays any errors.
 }
 
 func runCheckCmd(cmd *cobra.Command, _ []string) error {
-	ctx := cmd.Context()
+	flags := config.DefaultFlags
 
-	specPath, err := config.DefaultConfig.Abs()
+	spec, err := flags.Spec()
 	if err != nil {
 		return err
 	}
 
-	app := models.NewCheck(ctx, specPath)
-	_, err = tea.NewProgram(app, tea.WithContext(ctx)).Run()
-	if err != nil {
+	if err := spec.Validate(); err != nil {
 		return err
 	}
 

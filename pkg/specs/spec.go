@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/zeiss/pkg/filex"
 
 	"github.com/goccy/go-yaml"
@@ -13,6 +14,8 @@ import (
 
 //go:embed example.yml
 var Examples embed.FS
+
+var validate = validator.New(validator.WithRequiredStructEnabled())
 
 const (
 	// Default values for the spec.
@@ -194,6 +197,15 @@ func (s *Spec) UnmarshalYAML(data []byte) error {
 	return nil
 }
 
+// Validate validates the spec.
+func (s *Spec) Validate() error {
+	if err := validate.Struct(s); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Write is the write function for the spec.
 func Write(s *Spec, file string, force bool) error {
 	ok, _ := filex.FileExists(filepath.Clean(file))
@@ -213,4 +225,25 @@ func Write(s *Spec, file string, force bool) error {
 	}
 
 	return nil
+}
+
+// Read reads a spec from a file.
+func Read(file string) (*Spec, error) {
+	data, err := os.ReadFile(filepath.Clean(file))
+	if err != nil {
+		return nil, err
+	}
+
+	s := Default()
+	if err := yaml.Unmarshal(data, s); err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+// Exists checks if a spec file exists at the given path.
+func Exists(file string) bool {
+	ok, _ := filex.FileExists(filepath.Clean(file))
+	return ok
 }

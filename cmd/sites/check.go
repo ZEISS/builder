@@ -1,25 +1,22 @@
 package sites
 
 import (
-	"errors"
-	"path/filepath"
+	"fmt"
+	"net/http"
+	"os"
 
-	"github.com/glebarez/sqlite"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
-	"github.com/zeiss/builder/internal/adapters/db"
-	"github.com/zeiss/builder/internal/adapters/oidc"
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/zeiss/builder/internal/config"
-	"github.com/zeiss/builder/internal/controllers"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ui/models/sites"
+	"github.com/zeiss/builder/internal/oidc"
+	"github.com/zeiss/builder/internal/services"
+	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
-	"github.com/zeiss/builder/server/middlewares/discovery"
-	"github.com/zeiss/pkg/cast"
-	"github.com/zeiss/pkg/filex"
-	"gorm.io/gorm"
 
-	tea "charm.land/bubbletea/v2"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
+	"github.com/zeiss/pkg/cast"
 )
 
 var CheckCmd = &cobra.Command{
@@ -29,51 +26,44 @@ var CheckCmd = &cobra.Command{
 }
 
 func runCheck(cmd *cobra.Command, _ []string) error {
-	spec, err := config.DefaultConfig.Spec()
+	ctx := cmd.Context()
+	flags := config.DefaultFlags
+
+	wellknownConfig, err := config.DiscoverWellKnownConfig(ctx, flags.URL)
 	if err != nil {
 		return err
 	}
 
-	path, err := config.DefaultConfig.Path()
+	path, err := config.AppDirPath()
 	if err != nil {
 		return err
 	}
 
-	err = filex.MkdirAll(filepath.Dir(path), 0o777)
+	spec, err := flags.Spec()
 	if err != nil {
 		return err
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	if err := spec.Validate(); err != nil {
+		return err
+	}
+
+	srv, err := services.SetupServices(ctx, path)
 	if err != nil {
 		return err
 	}
 
-	// run migrations, automatically
-	if err := db.RunMigrations(conn); err != nil {
+	account := &models.Account{Current: true}
+	if err := srv.GetAccount(ctx, account); err != nil {
 		return err
 	}
 
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(cmd.Context(), config.DefaultConfig.Flags.URL)
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
 	if err != nil {
 		return err
 	}
 
-	oidcProvider := oidc.New(config.DefaultConfig.Flags.URL, config.DefaultClientID, oidc.WithWellKnownConfig(wellknownConfig))
-
-	store := db.New(conn)
-	accountController := controllers.NewAccountController(config.DefaultConfig, store)
-	authCtrl := controllers.NewDeviceAuthController(oidcProvider, store)
-
-	account := &models.Account{}
-	err = accountController.GetCurrent(cmd.Context(), account)
-	if err != nil {
-		return errors.New("no account found")
-	}
-
-	err = authCtrl.Refresh(cmd.Context(), account)
-	if err != nil {
+	if err := oidcProvider.Refresh(ctx, account.ToToken()); err != nil {
 		return err
 	}
 
@@ -87,11 +77,19 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	siteCheck := sites.NewCheckSite(cmd.Context(), client, spec.Sites.Name)
-	_, err = tea.NewProgram(siteCheck, tea.WithContext(cmd.Context())).Run()
+	params := &apis.GetSiteParams{Name: spec.Sites.Name}
+	resp, err := client.GetSiteWithResponse(ctx, params)
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode() > http.StatusOK {
+		return fmt.Errorf("could check the site: %s", spec.Sites.Name)
+	}
+
+	tw, _, _ := term.GetSize(os.Stdout.Fd())
+	body := console.Render(tw, console.Error(fmt.Errorf("%s already exists", spec.Sites.Name)))
+	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil
 }

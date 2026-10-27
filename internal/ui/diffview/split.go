@@ -55,8 +55,6 @@ func hunkToSplit(h *udiff.Hunk) (sh splitHunk) {
 		inner:
 			for i, l := range lines {
 				switch l.Kind {
-				case udiff.Delete:
-					continue
 				case udiff.Insert:
 					var ll udiff.Line
 					ll, lines, _ = slice.DeleteAt(lines, i)
@@ -64,6 +62,8 @@ func hunkToSplit(h *udiff.Hunk) (sh splitHunk) {
 					break inner
 				case udiff.Equal:
 					break inner
+				default:
+					continue
 				}
 			}
 		}

@@ -2,34 +2,22 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/charmbracelet/fang"
 	"github.com/zeiss/builder/cmd"
-)
-
-const (
-	versionFmt = "%s (%s %s)"
-)
-
-var (
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
+	"github.com/zeiss/builder/internal/versions"
 )
 
 func main() {
 	log.SetFlags(0)
 	log.SetOutput(os.Stderr)
 
-	v := fmt.Sprintf(versionFmt, version, commit, date)
-
 	err := fang.Execute(
 		context.Background(),
 		cmd.RootCmd,
-		fang.WithVersion(v),
+		fang.WithVersion(versions.VersionString),
 	)
 	if err != nil {
 		os.Exit(1)
