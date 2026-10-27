@@ -111,15 +111,8 @@ archives:
     name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
-  name_template: "v{{ .Version }}"
-  header: |
-    ## {{.Version}} Release ({{ .Date }})
-
-    Welcome to this new release :rocket:!
-  footer: |
-    ## Thanks!
-
-    Those were the changes on {{ .Tag }}!
+  prerelease: auto
+  mode: replace
 
 changelog:
   groups:
