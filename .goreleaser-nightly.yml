@@ -18,7 +18,7 @@ builds:
     env:
       - CGO_ENABLED=1
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+      - -s -w -X internal/versions.Version={{.Version}} -X internal/versions.Commit={{.Commit}} -X internal/versions.Date={{.Date}}
     overrides:
       - goos: darwin
         goarch: amd64

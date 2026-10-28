@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/charmbracelet/fang"
 	"github.com/zeiss/builder/cmd"
 	"github.com/zeiss/builder/internal/versions"
+
+	"github.com/charmbracelet/fang"
 )
 
 func main() {
