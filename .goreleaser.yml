@@ -60,8 +60,8 @@ homebrew_casks:
     hooks:
       post:
         install: |
-          run "/usr/bin/mv", args: ["#{staged_path}/sparkles", "#{staged_path}/builder"]
-          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+          system_command "/usr/bin/mv", args: ["#{staged_path}/sparkles", "#{staged_path}/builder"]
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
     license: APACHE-2.0
   - repository:
       owner: zeiss
@@ -80,7 +80,7 @@ homebrew_casks:
     hooks:
       post:
         install: |
-          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sparkles"] if OS.mac?
+          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sparkles"] if OS.mac?
     license: APACHE-2.0
 
 dockers_v2:
