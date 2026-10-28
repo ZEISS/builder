@@ -64,7 +64,7 @@ homebrew_casks:
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{staged_path}}/sparkles"] if OS.mac?
         uninstall_steps: |
           remove "~/.local/share/sparkles" if OS.mac?
-          remove "~/.config/sparkles" if OS.linux?
+          remove "~/.local/share/sparkles" if OS.linux?
     license: APACHE-2.0
   - repository:
       owner: zeiss
@@ -86,7 +86,7 @@ homebrew_casks:
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{staged_path}}/builder"] if OS.mac?
         uninstall_steps: |
           remove "~/.local/share/sparkles" if OS.mac?
-          remove "~/.config/sparkles" if OS.linux?
+          remove "~/.local/share/sparkles" if OS.linux?
     license: APACHE-2.0
 
 dockers_v2:
