@@ -65,7 +65,7 @@ require (
 	go.yaml.in/yaml/v2 v2.4.4
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/oauth2 v0.37.0
-	gorm.io/driver/postgres v1.5.7
+	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
 )
 
