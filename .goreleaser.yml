@@ -62,6 +62,8 @@ homebrew_casks:
         install_steps: |
           run "/usr/bin/mv", args: ["#{staged_path}/sparkles", "#{staged_path}/builder"]
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+        uninstall_steps: |
+          remove "~/local/share/sparkles"
     license: APACHE-2.0
   - repository:
       owner: zeiss
@@ -81,6 +83,8 @@ homebrew_casks:
       post:
         install_steps: |
           run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sparkles"] if OS.mac?
+        uninstall_steps: |
+          remove "~/local/share/sparkles"
     license: APACHE-2.0
 
 dockers_v2:
