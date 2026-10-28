@@ -1,0 +1,79 @@
+version: 2
+before:
+  hooks:
+    - go mod tidy
+
+env:
+  - DOCKER_IMAGE_REPO={{ envOrDefault "DOCKER_IMAGE_REPO" "builder" }}
+
+builds:
+  - id: server
+    binary: server
+    main: server/main.go
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
+
+dockers_v2:
+  - id: server
+    dockerfile: Dockerfile.server
+    images:
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}"
+      - latest
+    ids:
+      - server
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+
+archives:
+  - id: server
+    builds:
+      - server
+    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+release:
+  mode: append
+  name_template: "v{{ .Version }}"
+  header: |
+    ## {{.Version}} Release ({{ .Date }})
+
+    Welcome to this new release :rocket:!
+  footer: |
+    ## Thanks!
+
+    Those were the changes on {{ .Tag }}!
+
+changelog:
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?bug(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - typo
+      - (?i)foo
+
+checksum:
+  name_template: "builder_checksums.txt"
