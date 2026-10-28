@@ -2,7 +2,6 @@ version: 2
 before:
   hooks:
     - go mod tidy
-
 env:
   - DOCKER_IMAGE_REPO={{ envOrDefault "DOCKER_IMAGE_REPO" "builder" }}
 
