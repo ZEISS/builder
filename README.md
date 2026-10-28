@@ -67,36 +67,40 @@ builder --help
 There are a couple of basic features.
 
 ```bash
-builder
+  sparkles
 
   USAGE
 
 
-    builder [command] [--flags]
+    sparkles [command] [--flags]
 
 
   COMMANDS
 
-    account [command]         Manage accounts
-    completion [command]      Generate the autocompletion script for the specified shell
-    help [command]            Help about any command
-    init                      Initialize a new config
-    reset                     Reset the configuration
-    sites [command]           Manages sites
-    task [command] [--flags]  Manage tasks
+    account [command]     Manage accounts
+    check                 Check the configuration
+    completion [command]  Generate the autocompletion script for the specified shell
+    help [command]        Help about any command
+    init                  Initialize a new config
+    reset                 Reset the configuration
+    sites [command]       Manages sites
 
   FLAGS
 
-    -c --config               Config file (.builder.yml)
-    -d --dry                  Dry run
-    -f --force                Force init
-    -h --help                 Help for builder
-    -p --plugin               Plugin
-    -r --root                 Run as root
-    -u --url                  Url (http://builder.internal:3000)
-    --var                     Variables
-    -v --verbose              Verbose output
-    --version                 Version for builder
+    -c --config           Config file (.builder.yml)
+    --continue            Continue
+    --debug               Debug mode
+    --experimental        Experimental mode
+    -f --force            Force init
+    -h --help             Help for sparkles
+    -p --path             Path (.sparkles)
+    --plugin              Plugin
+    -s --session          Session
+    -u --url              Url
+    --var                 Variables
+    -v --verbose          Verbose output
+    --version             Version for sparkles
+    -y --yolo             Yolo mode
 ```
 
 ## Server
