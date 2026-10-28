@@ -10,6 +10,10 @@ Builder is a tool that implements the builder specification. It is the specifica
 
 🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify and [Magic](https://engineering.wealthsimple.com/from-prompt-to-url-the-magic-behind-magic) by WealthSimple.
 
+> [!WARNING]
+> There will be an upcoming change to a full rename to `sparkles`.
+> This will effect the CLI and configuration.
+
 ## Usage
 
 * 👨‍🎨 Design
