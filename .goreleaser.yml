@@ -60,8 +60,8 @@ homebrew_casks:
     hooks:
       post:
         install_steps: |
-          run "/usr/bin/mv", args: ["{{staged_path}/}sparkles", "{{staged_path}}/builder"]
-          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{staged_path}}/sparkles"] if OS.mac?
+          run "/usr/bin/mv", args: [{{ "{{staged_path}}" }}/sparkles", "{{ "{{staged_path}}" }}/builder"]
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/sparkles"] if OS.mac?
         uninstall_steps: |
           remove "~/.local/share/sparkles" if OS.mac?
           remove "~/.local/share/sparkles" if OS.linux?
@@ -83,7 +83,7 @@ homebrew_casks:
     hooks:
       post:
         install_steps: |
-          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{staged_path}}/builder"] if OS.mac?
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/builder"] if OS.mac?
         uninstall_steps: |
           remove "~/.local/share/sparkles" if OS.mac?
           remove "~/.local/share/sparkles" if OS.linux?
