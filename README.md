@@ -14,7 +14,7 @@ Builder is a tool that implements the builder specification. It is the specifica
 > There will be an upcoming change to a full rename to `sparkles`.
 > This will effect the CLI and configuration.
 
-## Usage
+## 🔧 Usage
 
 * 👨‍🎨 Design
 * 🏗️ Build
@@ -24,13 +24,13 @@ Builder is a tool that implements the builder specification. It is the specifica
 builder help
 ```
 
-## Installation
+## 📦 Installation
 
 ```bash
 brew install zeiss/builder-tap/builder
 ```
 
-## Features
+##  Features
 
 * 🏛️ Static site hosting
 * 🧭 Spec-driven building
@@ -52,7 +52,7 @@ GET /.well-known/builder-configuration
 
 This is a way to simplify the configuration.
 
-## Authentication
+##  Authentication
 
 The builder authenticates to the server using OpenID Connect. The authentication flow is handled by the server. It supports [dex](https://github.com/dexidp/dex) as an OpenID Connect provider.
 
