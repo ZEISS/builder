@@ -15,20 +15,20 @@ Builder is a tool that implements the builder specification.
 
 There are two components to builder.
 
-- The `builder` CLI tool
-- The `server` that runs the builder service
+- The `sparkles` CLI tool
+- The `server` that runs the builder interface
 
 🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify and [Magic](https://engineering.wealthsimple.com/from-prompt-to-url-the-magic-behind-magic) by WealthSimple.
 
 ## 🔨 Installation
 
-Use Homebrew to install Builder on macOS or Linux.
+Use Homebrew to install the `sparkles` CLI tool on macOS or Linux.
 
 ```
-brew install zeiss/builder-tap/builder
+brew install zeiss/builder-tap/sparkles
 ```
 
-> This installs the `builder` tool.
+> This installs the `sparkles` tool.
 
 ## 🎨 Customize 
 

@@ -24,8 +24,8 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
-  - id: builder
-    binary: builder
+  - id: sparkles
+    binary: sparkles
     main: main.go
     goos:
       - linux
@@ -48,31 +48,51 @@ homebrew_casks:
       name: homebrew-builder-tap
       token: "{{ .Env.TAP_GITHUB_TOKEN }}"
     homepage: https://github.com/zeiss/builder
-    description: A teeny-tiny tool to build stuff
+    description: A teeny-tiny tool to build stuff (deprecated)
     url:
       template: "https://github.com/zeiss/builder/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
     directory: Casks
     name: builder
     ids:
-      - builder
+      - sparkles
     binaries:
-      - builder
+      - sparkles
     hooks:
       post:
         install: |
-          system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+          run "/usr/bin/mv", args: ["#{staged_path}/sparkles", "#{staged_path}/builder"]
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/builder"] if OS.mac?
+    license: APACHE-2.0
+  - repository:
+      owner: zeiss
+      name: homebrew-builder-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/zeiss/builder
+    description: A teeny-tiny tool to build stuff
+    url:
+      template: "https://github.com/zeiss/builder/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    directory: Casks
+    name: sparkles
+    ids:
+      - sparkles
+    binaries:
+      - sparkles
+    hooks:
+      post:
+        install: |
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/sparkles"] if OS.mac?
     license: APACHE-2.0
 
 dockers_v2:
-  - id: builder
-    dockerfile: Dockerfile.builder
+  - id: sparkles
+    dockerfile: Dockerfile.sparkles
     images:
-      - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/sparkles"
     tags:
       - "{{ .Version }}"
       - latest
     ids:
-      - builder
+      - sparkles
     platforms:
       - linux/amd64
       - linux/arm64
@@ -105,10 +125,10 @@ archives:
     builds:
       - server
     name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
-  - id: builder
+  - id: sparkles
     builds:
-      - builder
-    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
+      - sparkles
+    name_template: "sparkles_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
   name_template: "v{{ .Version }}"

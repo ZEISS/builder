@@ -24,8 +24,8 @@ builds:
       - CGO_ENABLED=0
     ldflags:
       - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
-  - id: builder
-    binary: builder
+  - id: sparkles
+    binary: sparkles
     main: main.go
     goos:
       - linux
@@ -43,10 +43,10 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 dockers_v2:
-  - id: builder
-    dockerfile: Dockerfile.builder
+  - id: sparkles
+    dockerfile: Dockerfile.sparkles
     images:
-      - "{{ .Env.DOCKER_IMAGE_REPO }}/builder"
+      - "{{ .Env.DOCKER_IMAGE_REPO }}/sparkles"
     tags:
       - "{{ .Version }}"
       - latest
@@ -86,8 +86,8 @@ archives:
     name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
   - id: builder
     ids:
-      - builder
-    name_template: "builder_{{.Version}}_{{.Os}}_{{.Arch}}"
+      - sparkles
+    name_template: "sparkles_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 release:
   prerelease: auto

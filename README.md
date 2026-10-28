@@ -6,7 +6,7 @@
 [![Volkswagen](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Builder is a tool that implements the builder specification. It is the specification to build and deploy software projects with agents. It focuses on speed and simplicity.
+Builder is a tool that implements the builder specification. It is the specification to build and deploy software projects with agents. It has a server and a CLI.
 
 🤹‍♀️ This is inspired by [quick](https://shopify.engineering/quick) from Shopify and [Magic](https://engineering.wealthsimple.com/from-prompt-to-url-the-magic-behind-magic) by WealthSimple.
 
@@ -21,13 +21,13 @@ Builder is a tool that implements the builder specification. It is the specifica
 * 🚢 Ship
 
 ```bash
-builder help
+sparkles help
 ```
 
 ## 📦 Installation
 
 ```bash
-brew install zeiss/builder-tap/builder
+brew install zeiss/builder-tap/sparkles
 ```
 
 ##  Features
@@ -56,16 +56,16 @@ This is a way to simplify the configuration.
 
 The builder authenticates to the server using OpenID Connect. The authentication flow is handled by the server. It supports [dex](https://github.com/dexidp/dex) as an OpenID Connect provider.
 
-To authenticate, the builder uses a [dex](https://github.com/dexidp/dex) client ID and secret. These are configured in the builder tool.
+To authenticate, builder uses a [dex](https://github.com/dexidp/dex) client ID and secret. These are configured in the builder tool.
 
 ```bash
-builder account login --url <builder-server>
+sparkles account login --url <builder-server>
 ```
 
 This logs you in to the builder server.
 
 ```bash
-builder --help
+sparkles --help
 ```
 
 There are a couple of basic features.
