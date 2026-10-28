@@ -7,53 +7,6 @@ env:
   - DOCKER_IMAGE_REPO={{ envOrDefault "DOCKER_IMAGE_REPO" "builder" }}
 
 builds:
-  - id: server
-    binary: server
-    main: server/main.go
-    goos:
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    ignore:
-      - goos: darwin
-        goarch: 386
-    env:
-      - CGO_ENABLED=1
-    overrides:
-      - goos: darwin
-        goarch: amd64
-        env:
-          - CGO_ENABLED=1
-          - CC=clang
-          - CXX=clang++
-          - MACOSX_DEPLOYMENT_TARGET=12.0
-          - CGO_CFLAGS=-mmacosx-version-min=12.0
-          - CGO_LDFLAGS=-mmacosx-version-min=12.0
-      - goos: darwin
-        goarch: arm64
-        env:
-          - CGO_ENABLED=1
-          - CC=clang
-          - CXX=clang++
-          - MACOSX_DEPLOYMENT_TARGET=12.0
-          - CGO_CFLAGS=-mmacosx-version-min=12.0
-          - CGO_LDFLAGS=-mmacosx-version-min=12.0
-      - goos: linux
-        goarch: amd64
-        env:
-          - CGO_ENABLED=1
-          - CC=zig cc -target x86_64-linux-gnu.2.17
-          - CXX=zig c++ -target x86_64-linux-gnu.2.17
-      - goos: linux
-        goarch: arm64
-        env:
-          - CGO_ENABLED=1
-          - CC=zig cc -target aarch64-linux-gnu.2.17
-          - CXX=zig c++ -target aarch64-linux-gnu.2.17
-    ldflags:
-      - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
   - id: sparkles
     binary: sparkles
     main: main.go
@@ -62,59 +15,14 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm
       - arm64
-    ignore:
-      - goos: darwin
-        goarch: 386
     env:
       - CGO_ENABLED=1
       -
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
-dockers_v2:
-  - id: sparkles
-    dockerfile: Dockerfile.sparkles
-    images:
-      - "{{ .Env.DOCKER_IMAGE_REPO }}/sparkles"
-    tags:
-      - "{{ .Version }}"
-      - latest
-    ids:
-      - sparkles
-    platforms:
-      - linux/amd64
-      - linux/arm64
-    labels:
-      "org.opencontainers.image.created": "{{.Date}}"
-      "org.opencontainers.image.revision": "{{.FullCommit}}"
-      "org.opencontainers.image.version": "{{.Version}}"
-
-  - id: server
-    dockerfile: Dockerfile.server
-    images:
-      - "{{ .Env.DOCKER_IMAGE_REPO }}/server"
-    tags:
-      - "{{ .Version }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - "{{ .Major }}"
-      - latest
-    ids:
-      - server
-    platforms:
-      - linux/amd64
-      - linux/arm64
-    labels:
-      "org.opencontainers.image.created": "{{.Date}}"
-      "org.opencontainers.image.revision": "{{.FullCommit}}"
-      "org.opencontainers.image.version": "{{.Version}}"
-
 archives:
-  - id: server
-    ids:
-      - server
-    name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
   - id: sparkles
     ids:
       - sparkles
