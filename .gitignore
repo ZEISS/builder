@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/go,hugo,intellij,webstorm,dotenv
-# Edit at https://www.toptal.com/developers/gitignore?templates=go,hugo,intellij,webstorm,dotenv
+# Created by https://www.toptal.com/developers/gitignore/api/go,hugo,dotenv,intellij,webstorm,zig
+# Edit at https://www.toptal.com/developers/gitignore?templates=go,hugo,dotenv,intellij,webstorm,zig
 
 ### dotenv ###
 .env
@@ -20,7 +20,6 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-__debug_bin*
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -231,4 +230,13 @@ fabric.properties
 # Azure Toolkit for IntelliJ plugin
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 
-# End of https://www.toptal.com/developers/gitignore/api/go,hugo,intellij,webstorm,dotenv
+### zig ###
+# Zig programming language
+
+zig-cache/
+zig-out/
+build/
+build-*/
+docgen_tmp/
+
+# End of https://www.toptal.com/developers/gitignore/api/go,hugo,dotenv,intellij,webstorm,zig
