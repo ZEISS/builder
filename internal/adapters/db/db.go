@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/glebarez/sqlite"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
 
+	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/zeiss/pkg/dbx"
