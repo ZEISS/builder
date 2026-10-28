@@ -15,15 +15,40 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm
       - arm64
-    ignore:
-      - goos: darwin
-        goarch: 386
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target {{ .Target }}
-      - CXX=zig c++ -target {{ .Target }}
+    overrides:
+      - goos: darwin
+        goarch: amd64
+        env:
+          - CGO_ENABLED=1
+          - CC=clang
+          - CXX=clang++
+          - MACOSX_DEPLOYMENT_TARGET=12.0
+          - CGO_CFLAGS=-mmacosx-version-min=12.0
+          - CGO_LDFLAGS=-mmacosx-version-min=12.0
+      - goos: darwin
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=clang
+          - CXX=clang++
+          - MACOSX_DEPLOYMENT_TARGET=12.0
+          - CGO_CFLAGS=-mmacosx-version-min=12.0
+          - CGO_LDFLAGS=-mmacosx-version-min=12.0
+      - goos: linux
+        goarch: amd64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target x86_64-linux-gnu.2.17
+          - CXX=zig c++ -target x86_64-linux-gnu.2.17
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target aarch64-linux-gnu.2.17
+          - CXX=zig c++ -target aarch64-linux-gnu.2.17
     ldflags:
       - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
   - id: sparkles
@@ -34,15 +59,40 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm
       - arm64
-    ignore:
-      - goos: darwin
-        goarch: 386
     env:
       - CGO_ENABLED=1
-      - CC=zig cc -target {{ .Target }}
-      - CXX=zig c++ -target {{ .Target }}
+    overrides:
+      - goos: darwin
+        goarch: amd64
+        env:
+          - CGO_ENABLED=1
+          - CC=clang
+          - CXX=clang++
+          - MACOSX_DEPLOYMENT_TARGET=12.0
+          - CGO_CFLAGS=-mmacosx-version-min=12.0
+          - CGO_LDFLAGS=-mmacosx-version-min=12.0
+      - goos: darwin
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=clang
+          - CXX=clang++
+          - MACOSX_DEPLOYMENT_TARGET=12.0
+          - CGO_CFLAGS=-mmacosx-version-min=12.0
+          - CGO_LDFLAGS=-mmacosx-version-min=12.0
+      - goos: linux
+        goarch: amd64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target x86_64-linux-gnu.2.17
+          - CXX=zig c++ -target x86_64-linux-gnu.2.17
+      - goos: linux
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target aarch64-linux-gnu.2.17
+          - CXX=zig c++ -target aarch64-linux-gnu.2.17
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
