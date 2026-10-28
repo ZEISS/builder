@@ -15,6 +15,10 @@ build: ## Build the binary file.
 release: ## Release the binary file.
 	$(GO_RELEASER) release --clean
 
+.PHONY: release-server
+release-server: ## Release the server binary file.
+	$(GO_RELEASER) release --clean --config .goreleaser.server.yml
+
 .PHONY: nightly
 nightly: ## Release the nightly binary file.
 	$(GO_RELEASER) release --clean --config .goreleaser-nightly.yml --skip validate,announce
