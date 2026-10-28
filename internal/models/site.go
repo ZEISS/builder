@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
+	fiber_goth "github.com/zeiss/fiber-goth/v3/adapters"
 	"gorm.io/gorm"
 )
 
@@ -18,4 +20,8 @@ type Site struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 	// DeletedAt is the time the deployment was deleted.
 	DeletedAt gorm.DeletedAt `json:"deletedAt"`
+	// OwnedBy is the ID of the account that owns the site.
+	OwnedBy fiber_goth.GothUser `json:"ownedBy" gorm:"foreignKey:OwnerID"`
+	// OwnerID is the ID of the account that owns the site.
+	OwnerID uuid.UUID `json:"ownerId" gorm:"type:uuid;unique;not null" example:""`
 }
