@@ -50,7 +50,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/oapi-codegen/oapi-codegen/v2 v2.8.1
 	github.com/oapi-codegen/runtime v1.6.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
