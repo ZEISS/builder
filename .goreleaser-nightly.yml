@@ -51,7 +51,7 @@ dockers_v2:
       - "{{ .Version }}"
       - latest
     ids:
-      - builder
+      - sparkles
     platforms:
       - linux/amd64
       - linux/arm64
@@ -84,7 +84,7 @@ archives:
     ids:
       - server
     name_template: "server_{{.Version}}_{{.Os}}_{{.Arch}}"
-  - id: builder
+  - id: sparkles
     ids:
       - sparkles
     name_template: "sparkles_{{.Version}}_{{.Os}}_{{.Arch}}"
