@@ -21,7 +21,9 @@ builds:
       - goos: darwin
         goarch: 386
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
+      - CC=zig cc -target {{ .Target }}
+      - CXX=zig c++ -target {{ .Target }}
     ldflags:
       - -s -w -X github.com/zeiss/builder/server/cmd.version={{.Version}} -X github.com/zeiss/builder/server/cmd.commit={{.Commit}} -X github.com/zeiss/builder/server/cmd.date={{.Date}}
   - id: sparkles
@@ -38,7 +40,9 @@ builds:
       - goos: darwin
         goarch: 386
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
+      - CC=zig cc -target {{ .Target }}
+      - CXX=zig c++ -target {{ .Target }}
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
