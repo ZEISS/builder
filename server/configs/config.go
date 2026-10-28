@@ -1,8 +1,6 @@
 package configs
 
-import (
-	"os"
-)
+import "os"
 
 var DefaultConfig = New()
 
