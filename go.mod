@@ -29,7 +29,7 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/fang v1.0.0
 	github.com/charmbracelet/ultraviolet v0.0.0-20260812204455-68fa937c71be
-	github.com/charmbracelet/x/ansi v0.11.8
+	github.com/charmbracelet/x/ansi v0.11.9
 	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260622092256-25656177ba8e
 	github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f
 	github.com/charmbracelet/x/exp/slice v0.1.0
