@@ -3,12 +3,13 @@ package models
 import (
 	"strings"
 
+	"github.com/zeiss/builder/internal/ui/defaults"
+	"github.com/zeiss/builder/internal/ui/status"
+
 	"charm.land/bubbles/v2/help"
 	"charm.land/lipgloss/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/zeiss/builder/internal/ui/defaults"
-	"github.com/zeiss/builder/internal/ui/status"
 )
 
 // badgeLeftInset is the number of cells between the status bar's left edge

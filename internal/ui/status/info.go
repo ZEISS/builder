@@ -93,3 +93,10 @@ func Success(msg string) tea.Cmd {
 func Msg(cmd tea.Cmd) tea.Msg {
 	return cmd()
 }
+
+// Cmd returns a command that displays a message.
+func Cmd(msg InfoMsg) tea.Cmd {
+	return func() tea.Msg {
+		return msg
+	}
+}

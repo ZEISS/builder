@@ -5,14 +5,15 @@ import (
 	"image"
 	"time"
 
+	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/internal/ui/defaults"
+
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/list"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/ui/defaults"
 )
 
 // ListItemGenerator is an interface for generating list items.
@@ -32,8 +33,6 @@ func sessionListGenerator(sessions ...*models.Session) []list.Item {
 
 // SessionsID is the identifier for the session selector dialog.
 const SessionsID = "sessions"
-
-const sessionDoubleClickThreshold = 400 * time.Millisecond
 
 type sessionsMode uint8
 
@@ -99,7 +98,7 @@ func NewSessions(ui *defaults.UI, selectedSessionID string) (*Session, error) {
 
 	s.help = help
 
-	delegate := NewSessionItemDelegate(delegateKeys, ui.Styles)
+	delegate := NewSessionItemDelegate(delegateKeys, ui.Styles, ui.Workspace)
 	items := sessionListGenerator(sessions...)
 
 	sessionList := list.New(items, delegate, 0, 0)

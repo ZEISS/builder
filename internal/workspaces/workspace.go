@@ -39,6 +39,8 @@ type Workspace interface {
 	Session() (*models.Session, bool)
 	// ListSessions returns the list of sessions of the workspace.
 	ListSessions(ctx context.Context) ([]*models.Session, error)
+	// DeleteSession deletes a session of the workspace.
+	DeleteSession(ctx context.Context, session *models.Session) error
 }
 
 var _ Workspace = (*WorkspaceImpl)(nil)
@@ -122,6 +124,11 @@ func (w *WorkspaceImpl) ListSessions(ctx context.Context) ([]*models.Session, er
 	var sessions []*models.Session
 	err := w.sevices.ListSessions(ctx, &sessions)
 	return sessions, err
+}
+
+// DeleteSession deletes a session of the workspace.
+func (w *WorkspaceImpl) DeleteSession(ctx context.Context, session *models.Session) error {
+	return w.sevices.DeleteSession(ctx, session)
 }
 
 // SetupWithProgressBar sets up the progress bar for the workspaces view.

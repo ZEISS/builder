@@ -316,6 +316,9 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		m.status.ToggleHelp()
 		m.dialogs.CloseDialog(dialogs.CommandsID)
 
+	case tea.Cmd:
+		cmds = append(cmds, msg)
+
 	default:
 		cmds = append(cmds, utils.Noop())
 	}
