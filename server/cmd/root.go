@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
-	"github.com/zeiss/builder/server/middlewares/auth/oidc"
 	"github.com/zeiss/builder/server/middlewares/discovery"
 	"github.com/zeiss/builder/server/middlewares/healthz"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
@@ -23,6 +23,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
+	humaz "github.com/zeiss/fiber-authz/v3/oas/huma"
 	goth "github.com/zeiss/fiber-goth/v3"
 	gorm_adapter "github.com/zeiss/fiber-goth/v3/adapters/gorm"
 	"github.com/zeiss/fiber-goth/v3/providers"
@@ -223,7 +224,17 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
-		spec.UseMiddleware(oidc.NewAuthMiddleware(spec, configs.DefaultConfig.Flags.OIDCIssuer, configs.DefaultConfig.Flags.OIDCAudience))
+
+		client := retryablehttp.NewClient()
+		client.HTTPClient = humaz.DefaultClient
+		client.Logger = nil
+
+		oidcWellknownConfig, err := humaz.GetConfiguration(ctx, client, s.cfg.Flags.OIDCIssuer)
+		if err != nil {
+			return err
+		}
+
+		spec.UseMiddleware(humaz.NewHumanMiddleware(spec, humaz.WithWellknownConfig(oidcWellknownConfig), humaz.WithAudience(s.cfg.Flags.OIDCAudience)))
 		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)
