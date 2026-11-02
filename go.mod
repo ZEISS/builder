@@ -60,7 +60,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/zeebo/xxh3 v1.1.0
-	github.com/zeiss/fiber-goth/v3 v3.0.10
+	github.com/zeiss/fiber-goth/v3 v3.0.11
 	github.com/zeiss/pkg v0.2.4
 	go.yaml.in/yaml/v2 v2.4.4
 	golang.design/x/clipboard v0.11.0
