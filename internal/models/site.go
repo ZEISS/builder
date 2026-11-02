@@ -19,9 +19,9 @@ type Site struct {
 	// UpdatedAt is the time the deployment was last updated.
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
 	// DeletedAt is the time the deployment was deleted.
-	DeletedAt gorm.DeletedAt `json:"deletedAt"`
+	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 	// OwnedBy is the ID of the account that owns the site.
-	OwnedBy fiber_goth.GothUser `json:"ownedBy" gorm:"foreignKey:OwnerID"`
+	OwnedBy *fiber_goth.GothUser `json:"ownedBy" gorm:"foreignKey:OwnerID"`
 	// OwnerID is the ID of the account that owns the site.
-	OwnerID uuid.UUID `json:"ownerId" gorm:"type:uuid;unique;not null" example:""`
+	OwnerID uuid.UUID `json:"ownerId" gorm:"type:uuid" example:"6c785b65-e689-4653-ae78-81621226c48c"`
 }
