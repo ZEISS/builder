@@ -3,30 +3,32 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
-	"github.com/zeiss/builder/server/middlewares/auth/oidc"
 	"github.com/zeiss/builder/server/middlewares/discovery"
-	"github.com/zeiss/builder/server/middlewares/healthz"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/gofiber/storage/azureblob/v2"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
+	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
 	goth "github.com/zeiss/fiber-goth/v3"
 	gorm_adapter "github.com/zeiss/fiber-goth/v3/adapters/gorm"
 	"github.com/zeiss/fiber-goth/v3/providers"
 	"github.com/zeiss/fiber-goth/v3/providers/dex"
+	healthz "github.com/zeiss/fiber-healthz"
+	slogx "github.com/zeiss/fiber-slogx"
 	"github.com/zeiss/pkg/dbx/pg"
 	"github.com/zeiss/pkg/server"
 	"gorm.io/driver/postgres"
@@ -137,6 +139,11 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		)
 		providers.RegisterProvider(dex)
 
+		wellknown, err := humax.GetConfiguration(ctx, humax.DefaultClient, s.cfg.Flags.OIDCIssuer)
+		if err != nil {
+			return err
+		}
+
 		// This is one and only option that we have to use right now.
 		storage := azureblob.New(
 			azureblob.Config{
@@ -155,12 +162,19 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		filesCtrl := controllers.NewFilesController(files)
 		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
 
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		logger = logger.With("env", s.cfg.Flags.Environment)
+		cfg := slogx.Config{}
+
 		c := fiber.Config{}
 		app := fiber.New(c)
 		app.Use(requestid.New())
-		app.Use(logger.New())
+		app.Use(slogx.New(logger.WithGroup("http"), cfg))
 
-		app.Get("/healthz", healthz.New())
+		app.Get(healthz.Healthz, healthz.New())
+		app.Get(healthz.Readiness, healthz.New())
+		app.Get(healthz.Liveness, healthz.New())
+		app.Get(healthz.Startup, healthz.New())
 
 		ga := gorm_adapter.New(conn)
 
@@ -223,7 +237,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
-		spec.UseMiddleware(oidc.NewAuthMiddleware(spec, configs.DefaultConfig.Flags.OIDCIssuer, configs.DefaultConfig.Flags.OIDCAudience))
+		spec.UseMiddleware(humax.NewHumanMiddleware(spec, humax.WithWellknownConfig(wellknown), humax.WithAudience(configs.DefaultConfig.Flags.OIDCAudience)))
 		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)
