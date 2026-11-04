@@ -82,7 +82,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 
 	c := client.New(api)
 
-	cwd, err := config.Cwd()
+	root, err := flags.ConfigPath()
 	if err != nil {
 		return err
 	}
@@ -92,13 +92,14 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	scanDir := filepath.Base(filepath.Join(cwd, spec.Sites.Path))
+	scanDir := filepath.Dir(filepath.Join(root, spec.Sites.Path))
 	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
 
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
 
 	for _, file := range files {
-		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, spec.Sites.Path)), "/")
+		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, scanDir)), "/")
+		fmt.Println(site.ID, scanDir, file)
 		err := c.UploadFile(ctx, site.ID, scanDir, file)
 		if err != nil {
 			return err

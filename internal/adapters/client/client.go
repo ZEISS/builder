@@ -48,6 +48,10 @@ func (c *client) Create(ctx context.Context, site *models.Site) error {
 		return ErrSiteExists
 	}
 
+	if resp.StatusCode > http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
 	return nil
 }
 

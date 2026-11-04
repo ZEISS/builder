@@ -10,8 +10,11 @@ import (
 func ScanDir(path string, ignore []string) []string {
 	files := []string{}
 
-	// Scan
 	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		for _, i := range ignore {
 			if strings.Contains(path, i) {
 				return nil
