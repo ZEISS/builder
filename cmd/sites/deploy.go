@@ -99,7 +99,6 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 
 	for _, file := range files {
 		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, scanDir)), "/")
-		fmt.Println(site.ID, scanDir, file)
 		err := c.UploadFile(ctx, site.ID, scanDir, file)
 		if err != nil {
 			return err
