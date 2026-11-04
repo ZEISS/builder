@@ -24,7 +24,7 @@ type Site struct {
 }
 
 // BeforeCreate is a GORM hook that is called before a site is created.
-func (s *Site) BeforeCreate(tx *gorm.DB) (err error) {
+func (s *Site) BeforeCreate(tx *gorm.DB) error {
 	s.ID = uuid.New().String()
-	return
+	return nil
 }
