@@ -7,6 +7,7 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/ports"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -25,6 +26,7 @@ func NewDatabase(conn *gorm.DB) *Database {
 // CreateSite creates a new site with the given name.
 func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		site.ID = uuid.New().String()
 		err := gorm.G[models.Site](tx).Create(ctx, site)
 		if err != nil {
 			return err

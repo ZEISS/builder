@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -20,4 +21,10 @@ type Site struct {
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 	// Owner is the email of the account that owns the site.
 	OwnedBy *string `json:"ownedBy" gorm:"type:string;uniqueIndex:idx_owned_by;default:NULL" example:"indy@jones.com"`
+}
+
+// BeforeCreate is a GORM hook that is called before a site is created.
+func (s *Site) BeforeCreate(tx *gorm.DB) (err error) {
+	s.ID = uuid.New().String()
+	return
 }
