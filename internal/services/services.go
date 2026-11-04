@@ -16,8 +16,6 @@ type Service interface {
 	ports.SessionService
 	// Accounts is the account service.
 	ports.AccountService
-	// Sites is the site service.
-	ports.SitesService
 }
 
 var _ ports.SessionService = (*ServiceImpl)(nil)

@@ -90,6 +90,13 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
+	// PatchSiteOwnedBy Change the owner of a site
+	//
+	// Changes the owner of a site to the given email.
+	//
+	// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
+	PatchSiteOwnedBy(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetSite Get a site
 	//
 	// Gets a site by its name.
@@ -123,6 +130,23 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBody(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+// PatchSiteOwnedBy Change the owner of a site
+//
+// Changes the owner of a site to the given email.
+//
+// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
+func (c *Client) PatchSiteOwnedBy(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPatchSiteOwnedByRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 // GetSite Get a site
@@ -197,6 +221,40 @@ func (c *Client) UploadFileWithBody(ctx context.Context, siteId string, params *
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewPatchSiteOwnedByRequest constructs an http.Request for the PatchSiteOwnedBy method
+func NewPatchSiteOwnedByRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/site/%s/owner", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetSiteRequest constructs an http.Request for the GetSite method
@@ -392,6 +450,15 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
+	// PatchSiteOwnedByWithResponse Change the owner of a site
+	//
+	// Changes the owner of a site to the given email.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
+	PatchSiteOwnedByWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*PatchSiteOwnedByResponse, error)
+
 	// GetSiteWithResponse Get a site
 	//
 	// Gets a site by its name.
@@ -427,6 +494,40 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sites/{siteId}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBodyWithResponse(ctx context.Context, siteId string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
+}
+
+type PatchSiteOwnedByResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// GetBody returns the raw response body bytes
+func (r PatchSiteOwnedByResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r PatchSiteOwnedByResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PatchSiteOwnedByResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PatchSiteOwnedByResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetSiteResponse struct {
@@ -559,6 +660,21 @@ func (r UploadFileResponse) ContentType() string {
 	return ""
 }
 
+// PatchSiteOwnedByWithResponse Change the owner of a site
+//
+// Changes the owner of a site to the given email.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
+func (c *ClientWithResponses) PatchSiteOwnedByWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*PatchSiteOwnedByResponse, error) {
+	rsp, err := c.PatchSiteOwnedBy(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePatchSiteOwnedByResponse(rsp)
+}
+
 // GetSiteWithResponse Get a site
 //
 // Gets a site by its name.
@@ -617,6 +733,22 @@ func (c *ClientWithResponses) UploadFileWithBodyWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseUploadFileResponse(rsp)
+}
+
+// ParsePatchSiteOwnedByResponse parses an HTTP response from a PatchSiteOwnedByWithResponse call
+func ParsePatchSiteOwnedByResponse(rsp *http.Response) (*PatchSiteOwnedByResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PatchSiteOwnedByResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
 }
 
 // ParseGetSiteResponse parses an HTTP response from a GetSiteWithResponse call

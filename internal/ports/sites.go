@@ -12,6 +12,8 @@ type SitesRepository interface {
 	Create(ctx context.Context, site *models.Site) error
 	// GetSite is a method that gets a site by name.
 	GetSite(ctx context.Context, name string) (models.Site, error)
+	// ClaimSite is a method that claims a site.
+	ClaimSite(ctx context.Context, name string) error
 }
 
 // SitesService contains the methods for sites operations.
@@ -24,4 +26,6 @@ type SitesService interface {
 	UpdateSite(ctx context.Context, site *models.Site) error
 	// DeleteSite deletes a site.
 	DeleteSite(ctx context.Context, site *models.Site) error
+	// UpdateSiteOwnedBy updates the owner of a site.
+	UpdateSiteOwnedBy(ctx context.Context, name, owner string) error
 }

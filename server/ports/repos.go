@@ -14,6 +14,10 @@ type Sites interface {
 	GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error)
 	// GetSiteById returns the site with the given id.
 	GetSiteById(ctx context.Context, site *models.Site) (models.Site, error)
+	// TransferSite transfers the site with the given name to the given owner.
+	TransferSite(ctx context.Context, name, owner, newOwner string) error
+	// UpdateOwnedBy changes the owner of the site with the given name.
+	UpdateOwnedBy(ctx context.Context, name, newOwner string) error
 	// UpdateSite updates the site with the given name.
 	UpdateSite(ctx context.Context, site *models.Site) error
 	// DeleteSite deletes the site with the given name.

@@ -19,5 +19,5 @@ type Site struct {
 	// DeletedAt is the time the deployment was deleted.
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 	// Owner is the email of the account that owns the site.
-	OwnedBy *string `json:"ownedBy" gorm:"type:string;uniqueIndex:idx_owned_by" example:"indy@jones.com"`
+	OwnedBy *string `json:"ownedBy" gorm:"type:string;uniqueIndex:idx_owned_by;default:NULL" example:"indy@jones.com"`
 }

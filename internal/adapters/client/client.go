@@ -103,3 +103,17 @@ func (c *client) UploadFile(ctx context.Context, name, cwd, file string) error {
 
 	return nil
 }
+
+// ClaimSite is a method that claims a site.
+func (c *client) ClaimSite(ctx context.Context, name string) error {
+	res, err := c.apis.PatchSiteOwnedByWithResponse(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode() > http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", res.StatusCode())
+	}
+
+	return nil
+}
