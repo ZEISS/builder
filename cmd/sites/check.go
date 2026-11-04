@@ -87,8 +87,10 @@ func runCheck(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("could check the site: %s", spec.Sites.Name)
 	}
 
+	ownedBy := cast.Value(resp.JSON200.Site.OwnedBy)
+
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
-	body := console.Render(tw, console.Error(fmt.Errorf("%s already exists", spec.Sites.Name)))
+	body := console.Render(tw, console.Error(fmt.Errorf("%s already exists (%s)", spec.Sites.Name, ownedBy)))
 	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil

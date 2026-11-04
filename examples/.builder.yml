@@ -8,8 +8,11 @@ root: .builder
 
 # Sites is a deployment target for the builder CLI.
 sites:
-  path: www
+  path: .
   name: fizzy-buzzy
+  ignore:
+    - .builder.yml
+    - docker-compose.yml
 
 # Rules define the builder's behavior and code generation rules.
 rules:

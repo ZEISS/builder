@@ -3,13 +3,16 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/ports"
-	"gorm.io/gorm"
+	"github.com/zeiss/pkg/cast"
 
 	"github.com/danielgtaylor/huma/v2"
+	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
+	"gorm.io/gorm"
 )
 
 type sitesHandler struct {
@@ -36,9 +39,24 @@ type CreateSiteOutput struct {
 
 // CreateSite creates a new site with the given name.
 func (h *sitesHandler) CreateSite(ctx context.Context, input *CreateSiteInput) (*CreateSiteOutput, error) {
+	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
+	if !ok {
+		return nil, errors.New("no token found")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
 	site := &models.Site{
-		ID:   uuid.New().String(),
-		Name: input.Body.Name,
+		Name:    input.Body.Name,
+		OwnedBy: cast.Ptr(email),
 	}
 
 	err := h.sitesCtrl.CreateSite(ctx, site)
@@ -67,13 +85,29 @@ type UploadFileOutput struct {
 
 // UploadFile handles the upload of a file to the site.
 func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error) {
+	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
+	if !ok {
+		return nil, errors.New("no token found")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
 	file := &models.File{
 		Name: input.Filename,
 		Data: input.RawBody,
 	}
 
 	site, err := h.sitesCtrl.GetSiteById(ctx, &models.Site{
-		ID: input.ID,
+		ID:      input.ID,
+		OwnedBy: cast.Ptr(email),
 	})
 	if err != nil {
 		return nil, err
@@ -109,6 +143,9 @@ func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSi
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(site)
+
 	body := GetSiteOutputBody{Site: site}
 
 	return &GetSiteOutput{Body: body}, nil

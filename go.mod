@@ -57,7 +57,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/zeebo/xxh3 v1.1.0
-	github.com/zeiss/fiber-authz/v3 v3.0.0-beta.2.0.20261103205110-da6732ca4a0e
+	github.com/zeiss/fiber-authz/v3 v3.0.0-beta.3
 	github.com/zeiss/fiber-goth/v3 v3.0.11
 	github.com/zeiss/fiber-healthz v0.0.0-20261103203419-916041f1cc56
 	github.com/zeiss/fiber-slogx v0.0.0-20261103074940-815d64c403aa

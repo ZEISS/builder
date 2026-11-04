@@ -6,13 +6,14 @@ package main
 import (
 	"fmt"
 
+	"github.com/zeiss/builder/server/adapters/handlers"
+	"github.com/zeiss/builder/server/controllers"
+
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humafiber"
 	"github.com/danielgtaylor/huma/v2/humacli"
 	"github.com/gofiber/fiber/v3"
 	"github.com/spf13/cobra"
-	"github.com/zeiss/builder/server/adapters/handlers"
-	"github.com/zeiss/builder/server/controllers"
 )
 
 // Options for the CLI.

@@ -10,7 +10,7 @@ import (
 // Session represents a user session, storing session-specific data.
 type Session struct {
 	// ID is the unique identifier for the session
-	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:(gen_random_uuid())"`
+	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	// Name is the name of the session
 	Name string `gorm:"type:text"`
 	// Description is the description of the session

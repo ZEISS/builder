@@ -39,7 +39,7 @@ func (db *Database) GetSiteByName(ctx context.Context, site *models.Site) (model
 
 // GetSiteById returns the site with the given id.
 func (db *Database) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).Where("id = ?", site.ID).First(ctx)
+	return gorm.G[models.Site](db.conn).Where("id = ?", site.ID).Where("owned_by = ?", site.OwnedBy).First(ctx)
 }
 
 // UpdateSite updates the site with the given name.

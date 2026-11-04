@@ -85,7 +85,7 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 	}
 
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
-	body := console.Render(tw, console.Error(fmt.Errorf("%s created successfully", spec.Sites.Name)))
+	body := console.Render(tw, console.Success(fmt.Sprintf("%s created successfully", spec.Sites.Name)))
 	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil

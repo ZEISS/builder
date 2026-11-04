@@ -2,15 +2,26 @@ services:
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     container_name: azurite
+    restart: unless-stopped
     networks:
       - builder
     ports:
       - "10000:10000"
-    command: ["azurite", "--blobHost", "0.0.0.0", "--blobPort", "10000", "--skipApiVersionCheck"]
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - azurite-data:/data
+    command: [
+      "azurite",
+      "--blobHost", "0.0.0.0",
+      "--blobPort", "10000",
+      "--skipApiVersionCheck",
+    ]
 
   postgres:
       image: postgres:17
       container_name: postgres
+      restart: unless-stopped
       networks:
         - builder
       ports:

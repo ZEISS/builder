@@ -92,7 +92,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	scanDir := filepath.Dir(filepath.Join(root, spec.Sites.Path))
+	scanDir := filepath.Join(filepath.Dir(root), spec.Sites.Path)
 	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
 
 	tw, _, _ := term.GetSize(os.Stdout.Fd())

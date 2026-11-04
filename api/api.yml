@@ -114,6 +114,10 @@ components:
         name:
           example: fizzy-buzzy
           type: string
+        ownedBy:
+          example: indy@jones.com
+          nullable: true
+          type: string
         updatedAt:
           format: date-time
           type: string
@@ -123,6 +127,7 @@ components:
         - createdAt
         - updatedAt
         - deletedAt
+        - ownedBy
       type: object
   securitySchemes:
     openid:
