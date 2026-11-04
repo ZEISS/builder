@@ -30,6 +30,12 @@ sparkles help
 brew install zeiss/builder-tap/sparkles
 ```
 
+## ⛑️ Upgrade
+
+```bash
+brew upgrade zeiss/builder-tap/sparkles
+```
+
 ##  Features
 
 * 🏛️ Static site hosting

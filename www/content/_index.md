@@ -30,6 +30,12 @@ brew install zeiss/builder-tap/sparkles
 
 > This installs the `sparkles` tool.
 
+## ⛑️ Upgrade
+
+```bash
+brew upgrade zeiss/builder-tap/sparkles
+```
+
 ## 🎨 Customize 
 
 You can customize Builder in the `.builder.yml` configuration file.
