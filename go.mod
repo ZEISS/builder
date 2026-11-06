@@ -63,7 +63,7 @@ require (
 	github.com/zeiss/fiber-healthz v0.0.0-20261103203419-916041f1cc56
 	github.com/zeiss/fiber-slogx v0.0.0-20261103074940-815d64c403aa
 	github.com/zeiss/pkg v0.2.4
-	go.yaml.in/yaml/v2 v2.4.4
+	go.yaml.in/yaml/v2 v2.4.5
 	golang.design/x/clipboard v0.11.0
 	golang.org/x/oauth2 v0.37.0
 	gorm.io/driver/postgres v1.6.3
