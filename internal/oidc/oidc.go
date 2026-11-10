@@ -5,10 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/pkg/utils"
+	discovery "github.com/zeiss/fiber-discovery"
 	"github.com/zeiss/fiber-goth/v3/providers"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -309,14 +311,21 @@ func urlEndpointConfig(url string) oauth2.Endpoint {
 }
 
 // SetupOidcProvider sets up an OIDC provider using the given configuration.
-func SetupOidcProvider(ctx context.Context, url, clientID string, opts ...Opt) (*oidcProvider, error) {
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, url)
+func SetupOidcProvider(ctx context.Context, u, clientID string, opts ...Opt) (*oidcProvider, error) {
+	config := &utils.WellknownConfig{}
+
+	uri, err := url.JoinPath(u, ".well-known", "builder-configuration")
 	if err != nil {
 		return nil, err
 	}
 
-	o := New(wellknownConfig.OidcIssuer, clientID, opts...)
+	discv := discovery.NewClient()
+	err = discv.Discover(ctx, uri, config)
+	if err != nil {
+		return nil, err
+	}
+
+	o := New(config.OidcIssuer, clientID, opts...)
 
 	return o, nil
 }

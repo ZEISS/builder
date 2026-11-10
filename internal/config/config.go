@@ -3,6 +3,7 @@ package config
 import (
 	"cmp"
 	"context"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -11,8 +12,9 @@ import (
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/pkg/specs"
-	"github.com/zeiss/builder/server/middlewares/discovery"
+	"github.com/zeiss/builder/pkg/utils"
 
+	discovery "github.com/zeiss/fiber-discovery"
 	"github.com/zeiss/pkg/dbx"
 	"github.com/zeiss/pkg/utilx"
 )
@@ -197,14 +199,21 @@ func Cwd() (string, error) {
 }
 
 // DiscoverWellKnownConfig discovers the well-known configuration for the given URL.
-func DiscoverWellKnownConfig(ctx context.Context, url string) (*discovery.WellKnownConfig, error) {
-	discv := discovery.NewClient()
-	wellknownConfig, err := discv.Discover(ctx, url)
+func DiscoverWellKnownConfig(ctx context.Context, u string) (*utils.WellknownConfig, error) {
+	config := &utils.WellknownConfig{}
+
+	uri, err := url.JoinPath(u, ".well-known", "builder-configuration")
 	if err != nil {
 		return nil, err
 	}
 
-	return wellknownConfig, nil
+	client := discovery.NewClient()
+	err = client.Discover(ctx, uri, config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
 
 // SetupServices sets up the services for the application.

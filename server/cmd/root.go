@@ -6,12 +6,12 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/zeiss/builder/pkg/utils"
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
 	"github.com/zeiss/builder/server/adapters/handlers"
 	"github.com/zeiss/builder/server/configs"
 	"github.com/zeiss/builder/server/controllers"
-	"github.com/zeiss/builder/server/middlewares/discovery"
 	sites_middleware "github.com/zeiss/builder/server/middlewares/sites"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -23,6 +23,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/cobra"
 	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
+	discovery "github.com/zeiss/fiber-discovery"
 	goth "github.com/zeiss/fiber-goth/v3"
 	gorm_adapter "github.com/zeiss/fiber-goth/v3/adapters/gorm"
 	"github.com/zeiss/fiber-goth/v3/providers"
@@ -187,15 +188,12 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		root := app.Domain(s.cfg.Flags.Domain)
 		root.Use(goth.Session(gothConfig))
 
-		wellknownConfig := discovery.DefaultConfig()
-		wellknownConfig.WellKnownFunc = func() discovery.WellKnownConfig {
-			return discovery.WellKnownConfig{
-				OidcIssuer: s.cfg.Flags.OIDCIssuer,
-				ApiURL:     fmt.Sprintf("https://%s/api/v1", s.cfg.Flags.Domain),
-			}
+		wellknownConfig := utils.WellknownConfig{
+			OidcIssuer: s.cfg.Flags.OIDCIssuer,
+			ApiURL:     fmt.Sprintf("https://%s/api/v1", s.cfg.Flags.Domain),
 		}
 
-		root.Get(discovery.WellKnownConfigurationURL, discovery.New(wellknownConfig))
+		root.Get(discovery.WellknownURL(utils.WellknownConfigURL), discovery.New(wellknownConfig))
 
 		root.Get("/session", goth.NewSessionHandler(gothConfig))
 		root.Get("/login/:provider", goth.NewBeginAuthHandler(gothConfig))
