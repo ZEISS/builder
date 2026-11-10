@@ -65,7 +65,7 @@ require (
 	github.com/zeiss/pkg v0.2.4
 	go.yaml.in/yaml/v2 v2.4.5
 	golang.design/x/clipboard v0.11.0
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.38.0
 	gorm.io/driver/postgres v1.6.3
 	gorm.io/gorm v1.31.2
 )
