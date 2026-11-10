@@ -3,6 +3,7 @@ module github.com/zeiss/builder
 go 1.27.3
 
 tool (
+	github.com/air-verse/air
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/goreleaser/goreleaser/v2
 	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
@@ -136,6 +137,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.5.2 // indirect
 	github.com/Songmu/retry v0.1.0 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
+	github.com/air-verse/air v1.67.4 // indirect
 	github.com/alecthomas/go-check-sumtype v0.5.1-0.20260828200218-ae6904d28606 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.6 // indirect
 	github.com/alexkohler/prealloc v1.1.0 // indirect
@@ -143,6 +145,7 @@ require (
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/alingse/nilnesserr v0.2.0 // indirect
 	github.com/anchore/go-macholibre v0.0.0-20250826193721-3cd206ca93aa // indirect
+	github.com/andybalholm/brotli v1.2.3 // indirect
 	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -178,7 +181,10 @@ require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bep/godartsass/v2 v2.5.0 // indirect
+	github.com/bep/golibsass v1.2.0 // indirect
 	github.com/bitfield/gotestdox v0.2.2 // indirect
+	github.com/bits-and-blooms/bitset v1.24.6 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blacktop/go-dwarf v1.0.14 // indirect
 	github.com/blacktop/go-macho v1.1.263 // indirect
@@ -314,6 +320,8 @@ require (
 	github.com/gofiber/utils/v2 v2.6.4 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/gohugoio/hashstructure v0.6.0 // indirect
+	github.com/gohugoio/hugo v0.164.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -542,6 +550,7 @@ require (
 	github.com/stbenjam/no-sprintf-host-port v0.3.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/tdewolff/parse/v2 v2.8.12 // indirect
 	github.com/tetafro/godot v1.5.6 // indirect
 	github.com/theupdateframework/go-tuf v0.7.0 // indirect
 	github.com/theupdateframework/go-tuf/v2 v2.4.2 // indirect
@@ -573,8 +582,8 @@ require (
 	github.com/yeya24/promlinter v0.3.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.5 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
-	github.com/yuin/goldmark v1.7.17 // indirect
-	github.com/yuin/goldmark-emoji v1.0.5 // indirect
+	github.com/yuin/goldmark v1.8.2 // indirect
+	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	gitlab.com/gitlab-org/api/client-go v1.46.0 // indirect

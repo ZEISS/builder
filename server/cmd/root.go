@@ -70,10 +70,8 @@ func init() {
 }
 
 func initConfig() {
-	_ = godotenv.Load() // ignore error
-
-	err := envconfig.Process("", configs.DefaultConfig.Flags)
-	cobra.CheckErr(err)
+	cobra.CheckErr(godotenv.Load())
+	cobra.CheckErr(envconfig.Process("", configs.DefaultConfig.Flags))
 }
 
 var Root = &cobra.Command{

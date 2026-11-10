@@ -6,6 +6,7 @@ GO_RELEASER 		?= $(GO_TOOL) github.com/goreleaser/goreleaser/v2
 GO_LINT 				?= $(GO_TOOL) github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 GO_TOOL 				?= $(GO) tool
 GO_TEST 				?= $(GO_TOOL) gotest.tools/gotestsum --format pkgname
+GO_AIR 					?= $(GO_TOOL) github.com/air-verse/air
 
 .PHONY: build
 build: ## Build the binary file.
@@ -38,6 +39,13 @@ dex: ## Generate mocks.
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	$(GO_TOOL) mvdan.cc/gofumpt -w .
+
+.PHONY: air
+air: ## Run air.
+	$(GO_AIR) -c .air.toml
+
+.PHONY: start
+start: air ## Run the application.
 
 .PHONY: vet
 vet: ## Run go vet against code.
