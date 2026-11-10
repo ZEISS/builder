@@ -53,7 +53,7 @@ service:
   port: 8080
 
 database:
-  prefix: service_lens_
+  prefix: builder_
   uri:
   uriSecret:
   maxCacheSize:
