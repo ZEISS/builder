@@ -21,8 +21,8 @@ type Site struct {
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 	// Owner is the email of the account that owns the site.
 	OwnedBy *string `json:"ownedBy" gorm:"type:string;uniqueIndex:idx_owned_by;default:NULL" example:"indy@jones.com"`
-	// Owners is the list of ownerships of the site.
-	Owners []Ownership `gorm:"polymorphic:Ownable;"`
+	// Ownership is the list of ownerships of the site.
+	Ownership []Ownership `gorm:"polymorphic:Ownable;polymorphicType:OwnableType;polymorphicId:OwnableID;polymorphicValue:site"`
 }
 
 // BeforeCreate is a GORM hook that is called before a site is created.

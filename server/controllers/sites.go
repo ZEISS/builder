@@ -54,6 +54,11 @@ func (c *SitesController) UpdateOwnedBy(ctx context.Context, name, newOwner stri
 	return c.db.UpdateOwnedBy(ctx, name, newOwner)
 }
 
+// ListOwners lists the owners of the site with the given name.
+func (c *SitesController) ListOwners(ctx context.Context, name string) ([]models.User, error) {
+	return c.db.ListOwners(ctx, name)
+}
+
 // DeleteSite deletes the site with the given name.
 func (c *SitesController) DeleteSite(ctx context.Context, site *models.Site) error {
 	err := c.db.DeleteSite(ctx, site)

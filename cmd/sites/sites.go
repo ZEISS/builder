@@ -9,6 +9,7 @@ func init() {
 	SitesCmd.AddCommand(CheckCmd)
 	SitesCmd.AddCommand(CreateCmd)
 	SitesCmd.AddCommand(ClaimCmd)
+	SitesCmd.AddCommand(OwnersCmd)
 }
 
 var SitesCmd = &cobra.Command{

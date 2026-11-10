@@ -55,8 +55,14 @@ func (h *sitesHandler) CreateSite(ctx context.Context, input *CreateSiteInput) (
 	}
 
 	site := &models.Site{
-		Name:    input.Body.Name,
-		OwnedBy: cast.Ptr(email),
+		Name: input.Body.Name,
+		Ownership: []models.Ownership{
+			{
+				User: models.User{
+					Email: email,
+				},
+			},
+		},
 	}
 
 	err := h.sitesCtrl.CreateSite(ctx, site)
@@ -183,6 +189,33 @@ func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSi
 	return &GetSiteOutput{Body: body}, nil
 }
 
+// ListOwnersInput is the input for the ListOwners operation.
+type ListOwnersInput struct {
+	Name string `json:"name" path:"name" example:"my-site" doc:"The name of the site to retrieve."`
+}
+
+// ListOwnersOutput is the output for the ListOwners operation.
+type ListOwnersOutput struct {
+	Body ListOwnersOutputBody `json:"body"`
+}
+
+// ListOwnersOutputBody is the body of the ListOwners output.
+type ListOwnersOutputBody struct {
+	Owners []models.User `json:"owners"`
+}
+
+// ListOwners lists the owners of a site.
+func (h *sitesHandler) ListOwners(ctx context.Context, input *ListOwnersInput) (*ListOwnersOutput, error) {
+	owners, err := h.sitesCtrl.ListOwners(ctx, input.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ListOwnersOutputBody{Owners: owners}
+
+	return &ListOwnersOutput{Body: body}, nil
+}
+
 // Register registers the sites handler with the given Huma API.
 func Register(api huma.API, h *sitesHandler) {
 	huma.Register(api, huma.Operation{
@@ -250,6 +283,40 @@ func Register(api huma.API, h *sitesHandler) {
 		},
 	}, h.UpdateSiteOwnedBy)
 
+	// List owners of a site
+	huma.Register(api, huma.Operation{
+		OperationID:   "listOwners",
+		DefaultStatus: 200,
+		Method:        "GET",
+		Path:          "/sites/{name}/owners",
+		Summary:       "List owners of a site",
+		Description:   "Lists the owners of a site by its name.",
+		Tags:          []string{"Sites"},
+		Parameters: []*huma.Param{
+			{
+				Name:        "name",
+				In:          "path",
+				Description: "The name of the site.",
+				Required:    true,
+				Schema: &huma.Schema{
+					Type: "string",
+				},
+			},
+		},
+		Responses: map[string]*huma.Response{
+			"200": {
+				Description: "The sites have been queried.",
+			},
+			"404": {
+				Description: "No site found.",
+			},
+			"500": {
+				Description: "An internal server error occurred.",
+			},
+		},
+	}, h.ListOwners)
+
+	// Get a site
 	huma.Register(api, huma.Operation{
 		OperationID:   "getSite",
 		DefaultStatus: 200,

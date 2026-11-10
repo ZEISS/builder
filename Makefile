@@ -26,6 +26,7 @@ nightly: ## Release the nightly binary file.
 
 .PHONY: generate
 generate: ## Generate code.
+	$(GO) run api/gen.go openapi > api/api.yml
 	$(GO) generate ./...
 
 .PHONY: mocks

@@ -94,6 +94,57 @@ components:
       required:
         - site
       type: object
+    ListOwnersOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/ListOwnersOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        owners:
+          items:
+            $ref: "#/components/schemas/User"
+          nullable: true
+          type: array
+      required:
+        - owners
+      type: object
+    Ownership:
+      additionalProperties: false
+      properties:
+        CreatedAt:
+          format: date-time
+          type: string
+        DeletedAt:
+          $ref: "#/components/schemas/DeletedAt"
+        ID:
+          format: int32
+          maximum: 255
+          minimum: 0
+          type: integer
+        UpdatedAt:
+          format: date-time
+          type: string
+        User:
+          $ref: "#/components/schemas/User"
+        ownable_id:
+          type: string
+        ownable_type:
+          type: string
+        user_id:
+          type: string
+      required:
+        - ID
+        - user_id
+        - User
+        - ownable_id
+        - ownable_type
+        - CreatedAt
+        - UpdatedAt
+        - DeletedAt
+      type: object
     Site:
       additionalProperties: false
       properties:
@@ -103,6 +154,11 @@ components:
           format: uri
           readOnly: true
           type: string
+        Ownership:
+          items:
+            $ref: "#/components/schemas/Ownership"
+          nullable: true
+          type: array
         createdAt:
           format: date-time
           type: string
@@ -128,6 +184,29 @@ components:
         - updatedAt
         - deletedAt
         - ownedBy
+        - Ownership
+      type: object
+    User:
+      additionalProperties: false
+      properties:
+        CreatedAt:
+          format: date-time
+          type: string
+        DeletedAt:
+          $ref: "#/components/schemas/DeletedAt"
+        ID:
+          type: string
+        UpdatedAt:
+          format: date-time
+          type: string
+        email:
+          type: string
+      required:
+        - ID
+        - email
+        - CreatedAt
+        - UpdatedAt
+        - DeletedAt
       type: object
   securitySchemes:
     openid:
@@ -222,6 +301,31 @@ paths:
         "500":
           description: An internal server error occurred.
       summary: Create a new site
+      tags:
+        - Sites
+  /sites/{name}/owners:
+    get:
+      description: Lists the owners of a site by its name.
+      operationId: listOwners
+      parameters:
+        - description: The name of the site.
+          in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListOwnersOutputBody"
+          description: The sites have been queried.
+        "404":
+          description: No site found.
+        "500":
+          description: An internal server error occurred.
+      summary: List owners of a site
       tags:
         - Sites
   /sites/{siteId}/files/upload:

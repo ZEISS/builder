@@ -122,6 +122,13 @@ type ClientInterface interface {
 	// Corresponds with POST /sites (the `CreateSite` operationId).
 	CreateSite(ctx context.Context, body CreateSiteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListOwners List owners of a site
+	//
+	// Lists the owners of a site by its name.
+	//
+	// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
+	ListOwners(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UploadFileWithBody This endpoint uploads a new file to the site.
 	//
 	// Upload a new file to the site.
@@ -194,6 +201,23 @@ func (c *Client) CreateSiteWithBody(ctx context.Context, contentType string, bod
 // Corresponds with POST /sites (the `CreateSite` operationId).
 func (c *Client) CreateSite(ctx context.Context, body CreateSiteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateSiteRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ListOwners List owners of a site
+//
+// Lists the owners of a site by its name.
+//
+// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
+func (c *Client) ListOwners(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListOwnersRequest(c.Server, name)
 	if err != nil {
 		return nil, err
 	}
@@ -347,6 +371,40 @@ func NewCreateSiteRequestWithBody(server string, contentType string, body io.Rea
 	return req, nil
 }
 
+// NewListOwnersRequest constructs an http.Request for the ListOwners method
+func NewListOwnersRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sites/%s/owners", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewUploadFileRequestWithBody constructs an http.Request for the UploadFile method, with any body, and a specified content type
 func NewUploadFileRequestWithBody(server string, siteId string, params *UploadFileParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
@@ -486,6 +544,15 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with POST /sites (the `CreateSite` operationId).
 	CreateSiteWithResponse(ctx context.Context, body CreateSiteJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSiteResponse, error)
 
+	// ListOwnersWithResponse List owners of a site
+	//
+	// Lists the owners of a site by its name.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
+	ListOwnersWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*ListOwnersResponse, error)
+
 	// UploadFileWithBodyWithResponse This endpoint uploads a new file to the site.
 	//
 	// Upload a new file to the site.
@@ -612,6 +679,47 @@ func (r CreateSiteResponse) ContentType() string {
 	return ""
 }
 
+type ListOwnersResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ListOwnersOutputBody
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListOwnersResponse) GetJSON200() *ListOwnersOutputBody {
+	return r.JSON200
+}
+
+// GetBody returns the raw response body bytes
+func (r ListOwnersResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListOwnersResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListOwnersResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListOwnersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type UploadFileResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -720,6 +828,21 @@ func (c *ClientWithResponses) CreateSiteWithResponse(ctx context.Context, body C
 	return ParseCreateSiteResponse(rsp)
 }
 
+// ListOwnersWithResponse List owners of a site
+//
+// Lists the owners of a site by its name.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
+func (c *ClientWithResponses) ListOwnersWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*ListOwnersResponse, error) {
+	rsp, err := c.ListOwners(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListOwnersResponse(rsp)
+}
+
 // UploadFileWithBodyWithResponse This endpoint uploads a new file to the site.
 //
 // Upload a new file to the site.
@@ -808,6 +931,38 @@ func ParseCreateSiteResponse(rsp *http.Response) (*CreateSiteResponse, error) {
 		break // No content-type
 
 	case rsp.StatusCode == 409:
+		break // No content-type
+
+	case rsp.StatusCode == 500:
+		break // No content-type
+
+	}
+
+	return response, nil
+}
+
+// ParseListOwnersResponse parses an HTTP response from a ListOwnersWithResponse call
+func ParseListOwnersResponse(rsp *http.Response) (*ListOwnersResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListOwnersResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListOwnersOutputBody
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case rsp.StatusCode == 404:
 		break // No content-type
 
 	case rsp.StatusCode == 500:

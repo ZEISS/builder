@@ -190,7 +190,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		wellknownConfig := utils.WellknownConfig{
 			OidcIssuer: s.cfg.Flags.OIDCIssuer,
-			ApiURL:     fmt.Sprintf("https://%s/api/v1", s.cfg.Flags.Domain),
+			ApiURL:     fmt.Sprintf("http://%s:3000/api/v1", s.cfg.Flags.Domain),
 		}
 
 		root.Get(discovery.WellknownURL(utils.WellknownConfigURL), discovery.New(wellknownConfig))

@@ -22,6 +22,8 @@ type Sites interface {
 	UpdateSite(ctx context.Context, site *models.Site) error
 	// DeleteSite deletes the site with the given name.
 	DeleteSite(ctx context.Context, site *models.Site) error
+	// ListOwners lists the owners of the site with the given name.
+	ListOwners(ctx context.Context, name string) ([]models.User, error)
 }
 
 // Files is an interface for managing files.

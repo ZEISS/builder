@@ -7,7 +7,6 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/ports"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -26,23 +25,38 @@ func NewDatabase(conn *gorm.DB) *Database {
 // CreateSite creates a new site with the given name.
 func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		site.ID = uuid.New().String()
 		err := gorm.G[models.Site](tx).Create(ctx, site)
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
 }
 
 // GetSiteByName returns the site with the given name.
 func (db *Database) GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).Where("name = ?", site.Name).First(ctx)
+	return gorm.G[models.Site](db.conn).Preload("Ownership.User", nil).Where("name = ?", site.Name).First(ctx)
 }
 
 // GetSiteById returns the site with the given id.
 func (db *Database) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
 	return gorm.G[models.Site](db.conn).Where("id = ?", site.ID).Where("owned_by = ?", site.OwnedBy).First(ctx)
+}
+
+// ListOwners lists the owners of the site with the given name.
+func (db *Database) ListOwners(ctx context.Context, name string) ([]models.User, error) {
+	site, err := gorm.G[models.Site](db.conn).Preload("Ownership.User", nil).Where("name = ?", name).First(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	owners := make([]models.User, 0, len(site.Ownership))
+	for _, ownership := range site.Ownership {
+		owners = append(owners, ownership.User)
+	}
+
+	return owners, nil
 }
 
 // TransferSite transfers the site with the given name to the given owner.
