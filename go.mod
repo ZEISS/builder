@@ -42,7 +42,7 @@ require (
 	github.com/go-openapi/testify/v2 v2.8.0
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/goccy/go-yaml v1.19.2
-	github.com/gofiber/fiber/v3 v3.6.1
+	github.com/gofiber/fiber/v3 v3.7.0
 	github.com/gofiber/storage/azureblob/v2 v2.4.3
 	github.com/gofiber/utils v1.2.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -567,7 +567,7 @@ require (
 	github.com/uudashr/gocognit v1.3.0 // indirect
 	github.com/uudashr/iface v1.5.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.77.0 // indirect
+	github.com/valyala/fasthttp v1.78.0 // indirect
 	github.com/vektra/mockery/v2 v2.53.8 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/wagoodman/go-progress v0.0.0-20230925121702-07e42b3cdba0 // indirect
