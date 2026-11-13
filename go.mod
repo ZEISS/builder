@@ -39,7 +39,7 @@ require (
 	github.com/danielgtaylor/huma/v2 v2.40.0
 	github.com/getkin/kin-openapi v0.153.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/go-openapi/testify/v2 v2.8.0
+	github.com/go-openapi/testify/v2 v2.8.1
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/fiber/v3 v3.7.0
