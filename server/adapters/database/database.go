@@ -35,8 +35,13 @@ func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
 }
 
 // GetSiteByName returns the site with the given name.
-func (db *Database) GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).Preload("Ownership.User", nil).Where("name = ?", site.Name).First(ctx)
+func (db *Database) GetSiteByName(ctx context.Context, name, ownedBy string) (models.Site, error) {
+	return gorm.G[models.Site](db.conn).
+		Where("name = ? AND id IN (?)", name, gorm.G[models.Ownership](db.conn).
+			Select("ownable_id").
+			Where("ownable_type = ? AND user_id IN (?)", "site", gorm.G[models.User](db.conn).
+				Select("id").
+				Where("email = ?", ownedBy))).First(ctx)
 }
 
 // GetSiteById returns the site with the given id.

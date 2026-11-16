@@ -165,7 +165,9 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		logger = logger.With("env", s.cfg.Flags.Environment)
 		cfg := slogx.Config{}
 
-		c := fiber.Config{}
+		c := fiber.Config{
+			BodyLimit: 10 * 1024 * 1024, // 10 MB
+		}
 		app := fiber.New(c)
 		app.Use(requestid.New())
 		app.Use(slogx.New(logger.WithGroup("http"), cfg))

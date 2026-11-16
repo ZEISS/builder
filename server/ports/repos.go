@@ -11,7 +11,7 @@ type Sites interface {
 	// CreateSite creates a new site with the given name.
 	CreateSite(ctx context.Context, site *models.Site) error
 	// GetSiteByName returns the site with the given name.
-	GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error)
+	GetSiteByName(ctx context.Context, name, ownedBy string) (models.Site, error)
 	// GetSiteById returns the site with the given id.
 	GetSiteById(ctx context.Context, site *models.Site) (models.Site, error)
 	// TransferSite transfers the site with the given name to the given owner.

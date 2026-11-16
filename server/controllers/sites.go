@@ -25,8 +25,8 @@ func (c *SitesController) CreateSite(ctx context.Context, site *models.Site) err
 }
 
 // GetSiteByName returns the site with the given name.
-func (c *SitesController) GetSiteByName(ctx context.Context, site *models.Site) (models.Site, error) {
-	return c.db.GetSiteByName(ctx, site)
+func (c *SitesController) GetSiteByName(ctx context.Context, name, ownedBy string) (models.Site, error) {
+	return c.db.GetSiteByName(ctx, name, ownedBy)
 }
 
 // GetSiteById returns the site with the given id.

@@ -8,7 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/server/ports"
-	"github.com/zeiss/pkg/cast"
 
 	"github.com/danielgtaylor/huma/v2"
 	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
@@ -113,9 +112,12 @@ func (h *sitesHandler) UpdateSiteOwnedBy(ctx context.Context, input *UpdateSiteO
 
 // UploadFileInput is the input for the UploadFile operation.
 type UploadFileInput struct {
-	ID       string `path:"siteId" json:"siteId" example:"1bd3f34f-8d15-4818-816e-6fe6c0a3a847" doc:"The ID of the site."`
+	// Name is the name of the site.
+	Name string `path:"name" json:"name" example:"fizzy-buzzy" doc:"The name of the site."`
+	// Filename is the name of the file to upload.
 	Filename string `query:"fileName" json:"fileName" example:"index.html" doc:"The filename of the file."`
-	RawBody  []byte
+	// RawBody is the raw body of the file to upload.
+	RawBody []byte
 }
 
 // UploadFileOutput is the output of the UploadFile operation.
@@ -145,10 +147,7 @@ func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (
 		Data: input.RawBody,
 	}
 
-	site, err := h.sitesCtrl.GetSiteById(ctx, &models.Site{
-		ID:      input.ID,
-		OwnedBy: cast.Ptr(email),
-	})
+	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name, email)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +178,22 @@ type GetSiteOutputBody struct {
 
 // GetSite retrieves a site by its name.
 func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSiteOutput, error) {
-	site, err := h.sitesCtrl.GetSiteByName(ctx, &models.Site{Name: input.Name})
+	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
+	if !ok {
+		return nil, errors.New("no token found")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return nil, errors.New("invalid token claims format")
+	}
+
+	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name, email)
 	if err != nil {
 		return nil, err
 	}
@@ -353,17 +367,18 @@ func Register(api huma.API, h *sitesHandler) {
 		OperationID:   "uploadFile",
 		DefaultStatus: 200,
 		Method:        "POST",
-		Path:          "/sites/{siteId}/files/upload",
+		Path:          "/sites/{name}/files/upload",
 		Summary:       "This endpoint uploads a new file to the site.",
 		Description:   "Upload a new file to the site.",
 		Tags:          []string{"Sites"},
+		MaxBodyBytes:  10 * 1024 * 1024, // 10 MiB,
 		Parameters: []*huma.Param{
 			{
-				Name:        "siteId",
+				Name:        "name",
 				In:          "path",
-				Description: "The ID of the site.",
+				Description: "The name of the site.",
 				Required:    true,
-				Example:     "1bd3edd9-0310-4bca-b88a-2b16d8ca7116",
+				Example:     "fizzy-buzzy",
 				Schema: &huma.Schema{
 					Type: "string",
 				},

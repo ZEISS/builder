@@ -87,11 +87,6 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	site, err := c.GetSite(ctx, spec.Sites.Name)
-	if err != nil {
-		return err
-	}
-
 	scanDir := filepath.Join(filepath.Dir(root), spec.Sites.Path)
 	files := utils.ScanDir(scanDir, spec.Sites.Ignore)
 
@@ -99,7 +94,7 @@ func runDeploy(cmd *cobra.Command, _ []string) error {
 
 	for _, file := range files {
 		file = strings.TrimPrefix(filepath.Clean(strings.TrimPrefix(file, scanDir)), "/")
-		err := c.UploadFile(ctx, site.ID, scanDir, file)
+		err := c.UploadFile(ctx, spec.Sites.Name, scanDir, file)
 		if err != nil {
 			return err
 		}

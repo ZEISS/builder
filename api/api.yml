@@ -303,40 +303,15 @@ paths:
       summary: Create a new site
       tags:
         - Sites
-  /sites/{name}/owners:
-    get:
-      description: Lists the owners of a site by its name.
-      operationId: listOwners
-      parameters:
-        - description: The name of the site.
-          in: path
-          name: name
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ListOwnersOutputBody"
-          description: The sites have been queried.
-        "404":
-          description: No site found.
-        "500":
-          description: An internal server error occurred.
-      summary: List owners of a site
-      tags:
-        - Sites
-  /sites/{siteId}/files/upload:
+  /sites/{name}/files/upload:
     post:
       description: Upload a new file to the site.
       operationId: uploadFile
       parameters:
-        - description: The ID of the site.
-          example: 1bd3edd9-0310-4bca-b88a-2b16d8ca7116
+        - description: The name of the site.
+          example: fizzy-buzzy
           in: path
-          name: siteId
+          name: name
           required: true
           schema:
             type: string
@@ -368,6 +343,31 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: This endpoint uploads a new file to the site.
+      tags:
+        - Sites
+  /sites/{name}/owners:
+    get:
+      description: Lists the owners of a site by its name.
+      operationId: listOwners
+      parameters:
+        - description: The name of the site.
+          in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListOwnersOutputBody"
+          description: The sites have been queried.
+        "404":
+          description: No site found.
+        "500":
+          description: An internal server error occurred.
+      summary: List owners of a site
       tags:
         - Sites
 
