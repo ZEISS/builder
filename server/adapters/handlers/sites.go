@@ -5,23 +5,29 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/golang-jwt/jwt/v5"
 	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
 	"gorm.io/gorm"
 )
 
 type sitesHandler struct {
-	sitesCtrl ports.Sites
-	filesCtrl ports.Files
+	sitesCtrl       ports.Sites
+	filesCtrl       ports.Files
+	permissionsCtrl ports.Permissions
 }
 
 // NewSitesHandler creates a new SitesHandler with the given Sites controller.
-func NewSitesHandler(sitesCtrl ports.Sites, filesCtrl ports.Files) *sitesHandler {
-	return &sitesHandler{sitesCtrl: sitesCtrl, filesCtrl: filesCtrl}
+func NewSitesHandler(sitesCtrl ports.Sites, filesCtrl ports.Files, permissionsCtrl ports.Permissions) *sitesHandler {
+	return &sitesHandler{
+		sitesCtrl:       sitesCtrl,
+		filesCtrl:       filesCtrl,
+		permissionsCtrl: permissionsCtrl,
+	}
 }
 
 // CreateSiteInput is the input for the CreateSite operation.
@@ -33,38 +39,17 @@ type CreateSiteInput struct {
 
 // CreateSiteOutput is the output for the CreateSite operation.
 type CreateSiteOutput struct {
-	Body *models.Site
+	Body sbac.Site
 }
 
 // CreateSite creates a new site with the given name.
 func (h *sitesHandler) CreateSite(ctx context.Context, input *CreateSiteInput) (*CreateSiteOutput, error) {
-	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
-	if !ok {
-		return nil, errors.New("no token found")
+	email, err := humax.GetClaim(ctx, "email")
+	if err != nil {
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
-	}
-
-	site := &models.Site{
-		Name: input.Body.Name,
-		Ownership: []models.Ownership{
-			{
-				User: models.User{
-					Email: email,
-				},
-			},
-		},
-	}
-
-	err := h.sitesCtrl.CreateSite(ctx, site)
+	site, err := h.sitesCtrl.CreateSite(ctx, input.Body.Name, email)
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		return nil, huma.Error409Conflict("duplicate site", err)
 	}
@@ -113,7 +98,7 @@ func (h *sitesHandler) UpdateSiteOwnedBy(ctx context.Context, input *UpdateSiteO
 // UploadFileInput is the input for the UploadFile operation.
 type UploadFileInput struct {
 	// Name is the name of the site.
-	Name string `path:"name" json:"name" example:"fizzy-buzzy" doc:"The name of the site."`
+	SiteName string `path:"name" json:"name" example:"fizzy-buzzy" doc:"The name of the site."`
 	// Filename is the name of the file to upload.
 	Filename string `query:"fileName" json:"fileName" example:"index.html" doc:"The filename of the file."`
 	// RawBody is the raw body of the file to upload.
@@ -127,19 +112,9 @@ type UploadFileOutput struct {
 
 // UploadFile handles the upload of a file to the site.
 func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error) {
-	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
-	if !ok {
-		return nil, errors.New("no token found")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
+	err := h.permissionsCtrl.Allowed(ctx, input.SiteName, "admin")
+	if err != nil {
+		return nil, err
 	}
 
 	file := &models.File{
@@ -147,7 +122,7 @@ func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (
 		Data: input.RawBody,
 	}
 
-	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name, email)
+	site, err := h.sitesCtrl.GetSiteByName(ctx, input.SiteName)
 	if err != nil {
 		return nil, err
 	}
@@ -173,27 +148,17 @@ type GetSiteOutput struct {
 
 // GetSiteOutputBody is the body of the GetSite output.
 type GetSiteOutputBody struct {
-	Site models.Site `json:"site"`
+	Site sbac.Site `json:"site"`
 }
 
 // GetSite retrieves a site by its name.
 func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSiteOutput, error) {
-	token, ok := ctx.Value(humax.OidcTokenKey).(*jwt.Token)
-	if !ok {
-		return nil, errors.New("no token found")
+	err := h.permissionsCtrl.Allowed(ctx, input.Name, "admin")
+	if err != nil {
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		return nil, errors.New("invalid token claims format")
-	}
-
-	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name, email)
+	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -215,11 +180,16 @@ type ListOwnersOutput struct {
 
 // ListOwnersOutputBody is the body of the ListOwners output.
 type ListOwnersOutputBody struct {
-	Owners []models.User `json:"owners"`
+	Owners []*sbac.User `json:"owners"`
 }
 
 // ListOwners lists the owners of a site.
 func (h *sitesHandler) ListOwners(ctx context.Context, input *ListOwnersInput) (*ListOwnersOutput, error) {
+	err := h.permissionsCtrl.Allowed(ctx, input.Name, "admin")
+	if err != nil {
+		return nil, err
+	}
+
 	owners, err := h.sitesCtrl.ListOwners(ctx, input.Name)
 	if err != nil {
 		return nil, err

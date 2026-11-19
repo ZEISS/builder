@@ -6,6 +6,7 @@ import (
 	"github.com/zeiss/builder/internal/adapters/db"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/pkg/sbac"
 
 	"github.com/zeiss/pkg/dbx"
 )
@@ -107,28 +108,28 @@ func (s *ServiceImpl) DeleteAccount(ctx context.Context, account *models.Account
 }
 
 // GetSite returns a site from the database.
-func (s *ServiceImpl) GetSite(ctx context.Context, site *models.Site) error {
+func (s *ServiceImpl) GetSite(ctx context.Context, site *sbac.Site) error {
 	return s.store.ReadTx(ctx, func(ctx context.Context, tx ports.ReadTx) error {
 		return tx.GetSite(ctx, site)
 	})
 }
 
 // CreateSite creates a new site in the database.
-func (s *ServiceImpl) CreateSite(ctx context.Context, site *models.Site) error {
+func (s *ServiceImpl) CreateSite(ctx context.Context, site *sbac.Site) error {
 	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
 		return rw.CreateSite(ctx, site)
 	})
 }
 
 // DeleteSite deletes a site from the database.
-func (s *ServiceImpl) DeleteSite(ctx context.Context, site *models.Site) error {
+func (s *ServiceImpl) DeleteSite(ctx context.Context, site *sbac.Site) error {
 	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
 		return rw.DeleteSite(ctx, site)
 	})
 }
 
 // UpdateSite updates a site in the database.
-func (s *ServiceImpl) UpdateSite(ctx context.Context, site *models.Site) error {
+func (s *ServiceImpl) UpdateSite(ctx context.Context, site *sbac.Site) error {
 	return s.store.ReadWriteTx(ctx, func(ctx context.Context, rw ports.ReadWriteTx) error {
 		return rw.UpdateSite(ctx, site)
 	})

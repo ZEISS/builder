@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/pkg/apis"
 )
 
@@ -35,7 +35,7 @@ func New(api *apis.ClientWithResponses) *client {
 }
 
 // Create is a method that creates a new site.
-func (c *client) Create(ctx context.Context, site *models.Site) error {
+func (c *client) Create(ctx context.Context, site *sbac.Site) error {
 	body := apis.CreateSiteJSONRequestBody{Name: site.Name}
 	resp, err := c.apis.CreateSite(ctx, body)
 	if err != nil {
@@ -56,9 +56,9 @@ func (c *client) Create(ctx context.Context, site *models.Site) error {
 }
 
 // GetSite is a method that gets a site by name.
-func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) {
+func (c *client) GetSite(ctx context.Context, name string) (sbac.Site, error) {
 	params := &apis.GetSiteParams{Name: name}
-	site := models.Site{}
+	site := sbac.Site{}
 
 	resp, err := c.apis.GetSiteWithResponse(ctx, params)
 	if err != nil {
@@ -70,7 +70,6 @@ func (c *client) GetSite(ctx context.Context, name string) (models.Site, error) 
 	}
 
 	site.Name = resp.JSON200.Site.Name
-	site.ID = resp.JSON200.Site.Id
 	site.CreatedAt = resp.JSON200.Site.CreatedAt
 	site.UpdatedAt = resp.JSON200.Site.UpdatedAt
 

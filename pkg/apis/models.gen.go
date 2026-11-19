@@ -101,16 +101,26 @@ type ListOwnersOutputBody struct {
 	Owners *[]User `json:"owners"`
 }
 
-// Ownership defines model for Ownership.
-type Ownership struct {
+// Permission defines model for Permission.
+type Permission struct {
 	CreatedAt   time.Time `json:"CreatedAt"`
 	DeletedAt   DeletedAt `json:"DeletedAt"`
-	ID          int32     `json:"ID"`
+	Roles       *[]Role   `json:"Roles"`
 	UpdatedAt   time.Time `json:"UpdatedAt"`
-	User        User      `json:"User"`
-	OwnableId   string    `json:"ownable_id"`
-	OwnableType string    `json:"ownable_type"`
-	UserId      string    `json:"user_id"`
+	Description *string   `json:"description"`
+	Id          int64     `json:"id"`
+	Scope       string    `json:"scope"`
+}
+
+// Role defines model for Role.
+type Role struct {
+	CreatedAt   time.Time     `json:"CreatedAt"`
+	DeletedAt   DeletedAt     `json:"DeletedAt"`
+	Description string        `json:"Description"`
+	ID          string        `json:"ID"`
+	Name        string        `json:"Name"`
+	Permissions *[]Permission `json:"Permissions"`
+	UpdatedAt   time.Time     `json:"UpdatedAt"`
 }
 
 // Site defines model for Site.
@@ -118,20 +128,15 @@ type Site struct {
 	// Schema A URL to the JSON Schema for this object.
 	//
 	// Example: https://example.com/schemas/Site.json
-	Schema    *string      `json:"$schema,omitempty"`
-	Ownership *[]Ownership `json:"Ownership"`
-	CreatedAt time.Time    `json:"createdAt"`
-	DeletedAt DeletedAt    `json:"deletedAt"`
-
-	// Id Example: 6c785b65-e689-4653-ae78-81621226c48c
-	Id string `json:"id"`
-
-	// Name Example: fizzy-buzzy
-	Name string `json:"name"`
-
-	// OwnedBy Example: indy@jones.com
-	OwnedBy   *string   `json:"ownedBy"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Schema      *string   `json:"$schema,omitempty"`
+	CreatedAt   time.Time `json:"CreatedAt"`
+	DeletedAt   DeletedAt `json:"DeletedAt"`
+	UpdatedAt   time.Time `json:"UpdatedAt"`
+	Users       *[]User   `json:"Users"`
+	Description *string   `json:"description"`
+	Id          string    `json:"id"`
+	Name        string    `json:"name"`
+	Slug        string    `json:"slug"`
 }
 
 // User defines model for User.
@@ -139,6 +144,8 @@ type User struct {
 	CreatedAt time.Time `json:"CreatedAt"`
 	DeletedAt DeletedAt `json:"DeletedAt"`
 	ID        string    `json:"ID"`
+	Roles     *[]Role   `json:"Roles"`
+	Sites     *[]Site   `json:"Sites"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	Email     string    `json:"email"`
 }
@@ -163,36 +170,36 @@ type CreateSiteJSONRequestBody = CreateSiteInputBody
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"/wA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

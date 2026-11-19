@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/term"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
@@ -14,7 +11,11 @@ import (
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
+	"github.com/zeiss/builder/pkg/sbac"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
 )
@@ -79,7 +80,7 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 
 	c := client.New(api)
 
-	site := &models.Site{Name: spec.Sites.Name}
+	site := &sbac.Site{Name: spec.Sites.Name}
 	if err := c.Create(ctx, site); err != nil {
 		return err
 	}

@@ -111,7 +111,7 @@ components:
       required:
         - owners
       type: object
-    Ownership:
+    Permission:
       additionalProperties: false
       properties:
         CreatedAt:
@@ -119,28 +119,59 @@ components:
           type: string
         DeletedAt:
           $ref: "#/components/schemas/DeletedAt"
-        ID:
-          format: int32
-          maximum: 255
-          minimum: 0
-          type: integer
+        Roles:
+          items:
+            $ref: "#/components/schemas/Role"
+          nullable: true
+          type: array
         UpdatedAt:
           format: date-time
           type: string
-        User:
-          $ref: "#/components/schemas/User"
-        ownable_id:
+        description:
+          nullable: true
           type: string
-        ownable_type:
+        id:
+          format: int64
+          minimum: 0
+          type: integer
+        scope:
           type: string
-        user_id:
+      required:
+        - id
+        - scope
+        - description
+        - Roles
+        - CreatedAt
+        - UpdatedAt
+        - DeletedAt
+      type: object
+    Role:
+      additionalProperties: false
+      properties:
+        CreatedAt:
+          format: date-time
+          type: string
+        DeletedAt:
+          $ref: "#/components/schemas/DeletedAt"
+        Description:
+          type: string
+        ID:
+          type: string
+        Name:
+          type: string
+        Permissions:
+          items:
+            $ref: "#/components/schemas/Permission"
+          nullable: true
+          type: array
+        UpdatedAt:
+          format: date-time
           type: string
       required:
         - ID
-        - user_id
-        - User
-        - ownable_id
-        - ownable_type
+        - Name
+        - Description
+        - Permissions
         - CreatedAt
         - UpdatedAt
         - DeletedAt
@@ -154,37 +185,37 @@ components:
           format: uri
           readOnly: true
           type: string
-        Ownership:
+        CreatedAt:
+          format: date-time
+          type: string
+        DeletedAt:
+          $ref: "#/components/schemas/DeletedAt"
+        UpdatedAt:
+          format: date-time
+          type: string
+        Users:
           items:
-            $ref: "#/components/schemas/Ownership"
+            $ref: "#/components/schemas/User"
           nullable: true
           type: array
-        createdAt:
-          format: date-time
-          type: string
-        deletedAt:
-          $ref: "#/components/schemas/DeletedAt"
-        id:
-          example: 6c785b65-e689-4653-ae78-81621226c48c
-          type: string
-        name:
-          example: fizzy-buzzy
-          type: string
-        ownedBy:
-          example: indy@jones.com
+        description:
           nullable: true
           type: string
-        updatedAt:
-          format: date-time
+        id:
+          type: string
+        name:
+          type: string
+        slug:
           type: string
       required:
         - id
         - name
-        - createdAt
-        - updatedAt
-        - deletedAt
-        - ownedBy
-        - Ownership
+        - slug
+        - description
+        - Users
+        - CreatedAt
+        - UpdatedAt
+        - DeletedAt
       type: object
     User:
       additionalProperties: false
@@ -196,6 +227,16 @@ components:
           $ref: "#/components/schemas/DeletedAt"
         ID:
           type: string
+        Roles:
+          items:
+            $ref: "#/components/schemas/Role"
+          nullable: true
+          type: array
+        Sites:
+          items:
+            $ref: "#/components/schemas/Site"
+          nullable: true
+          type: array
         UpdatedAt:
           format: date-time
           type: string
@@ -204,6 +245,8 @@ components:
       required:
         - ID
         - email
+        - Sites
+        - Roles
         - CreatedAt
         - UpdatedAt
         - DeletedAt

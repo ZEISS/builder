@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/ports"
+	"github.com/zeiss/builder/pkg/sbac"
 
 	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
@@ -61,7 +62,7 @@ func (r *readTxImpl) GetCurrentAccount(ctx context.Context, account *models.Acco
 }
 
 // GetSite implements the ReadTx interface.
-func (r *readTxImpl) GetSite(ctx context.Context, site *models.Site) error {
+func (r *readTxImpl) GetSite(ctx context.Context, site *sbac.Site) error {
 	return r.conn.WithContext(ctx).First(site).Error
 }
 
@@ -122,21 +123,21 @@ func (tx *writeTxImpl) UpdateAccount(ctx context.Context, account *models.Accoun
 }
 
 // CreateSite implements the SiteRepository interface.
-func (tx *writeTxImpl) CreateSite(ctx context.Context, site *models.Site) error {
+func (tx *writeTxImpl) CreateSite(ctx context.Context, site *sbac.Site) error {
 	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Create(site).Error
 	})
 }
 
 // UpdateSite implements the SiteRepository interface.
-func (tx *writeTxImpl) UpdateSite(ctx context.Context, site *models.Site) error {
+func (tx *writeTxImpl) UpdateSite(ctx context.Context, site *sbac.Site) error {
 	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Save(site).Error
 	})
 }
 
 // DeleteSite implements the SiteRepository interface.
-func (tx *writeTxImpl) DeleteSite(ctx context.Context, site *models.Site) error {
+func (tx *writeTxImpl) DeleteSite(ctx context.Context, site *sbac.Site) error {
 	return tx.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Delete(site).Error
 	})
@@ -209,7 +210,6 @@ func RunMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.Account{},
 		&models.Session{},
-		&models.Site{},
 	)
 }
 

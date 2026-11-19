@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 
 	"gorm.io/gorm"
@@ -23,51 +23,56 @@ func NewDatabase(conn *gorm.DB) *Database {
 }
 
 // CreateSite creates a new site with the given name.
-func (db *Database) CreateSite(ctx context.Context, site *models.Site) error {
-	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		err := gorm.G[models.Site](tx).Create(ctx, site)
+func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.Site, error) {
+	site := sbac.Site{Name: name, Slug: name}
+
+	err := db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		err := gorm.G[sbac.Site](db.conn).Create(ctx, &site)
 		if err != nil {
 			return err
 		}
 
-		return nil
+		user := sbac.User{Email: ownedBy, Sites: []sbac.Site{site}}
+		if err := tx.Where(sbac.User{Email: ownedBy}).Attrs(sbac.User{Email: ownedBy}).FirstOrCreate(&user).Error; err != nil {
+			return err
+		}
+
+		role, err := gorm.G[sbac.Role](tx).Where("name = ?", "Owner").First(ctx)
+		if err != nil {
+			return err
+		}
+
+		userRole := sbac.UserRole{SiteID: site.ID, UserID: user.ID, RoleID: role.ID}
+		return gorm.G[sbac.UserRole](tx).Create(ctx, &userRole)
 	})
+
+	return site, err
 }
 
 // GetSiteByName returns the site with the given name.
-func (db *Database) GetSiteByName(ctx context.Context, name, ownedBy string) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).
-		Where("name = ? AND id IN (?)", name, gorm.G[models.Ownership](db.conn).
-			Select("ownable_id").
-			Where("ownable_type = ? AND user_id IN (?)", "site", gorm.G[models.User](db.conn).
-				Select("id").
-				Where("email = ?", ownedBy))).First(ctx)
+func (db *Database) GetSiteByName(ctx context.Context, name string) (sbac.Site, error) {
+	return gorm.G[sbac.Site](db.conn).Where("slug = ?", name).First(ctx)
 }
 
 // GetSiteById returns the site with the given id.
-func (db *Database) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
-	return gorm.G[models.Site](db.conn).Where("id = ?", site.ID).Where("owned_by = ?", site.OwnedBy).First(ctx)
+func (db *Database) GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error) {
+	return gorm.G[sbac.Site](db.conn).Where("id = ?", site.ID).First(ctx)
 }
 
 // ListOwners lists the owners of the site with the given name.
-func (db *Database) ListOwners(ctx context.Context, name string) ([]models.User, error) {
-	site, err := gorm.G[models.Site](db.conn).Preload("Ownership.User", nil).Where("name = ?", name).First(ctx)
+func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, error) {
+	site, err := gorm.G[sbac.Site](db.conn).Preload("Users", nil).Where("slug = ?", name).First(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	owners := make([]models.User, 0, len(site.Ownership))
-	for _, ownership := range site.Ownership {
-		owners = append(owners, ownership.User)
-	}
-
-	return owners, nil
+	return site.Users, nil
 }
 
 // TransferSite transfers the site with the given name to the given owner.
 func (db *Database) TransferSite(ctx context.Context, name, owner, newOwner string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		rows, err := gorm.G[models.Site](tx).Where("name = ? AND owned_by = ?", name, owner).Update(ctx, "owned_by", newOwner)
+		rows, err := gorm.G[sbac.Site](tx).Where("name = ? AND owned_by = ?", name, owner).Update(ctx, "owned_by", newOwner)
 		if err != nil {
 			return err
 		}
@@ -83,7 +88,7 @@ func (db *Database) TransferSite(ctx context.Context, name, owner, newOwner stri
 // UpdateOwnedBy updates the owner of the site with the given name.
 func (db *Database) UpdateOwnedBy(ctx context.Context, name, newOwner string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		rows, err := gorm.G[models.Site](tx).Where("name = ? AND owned_by IS NULL", name).Update(ctx, "owned_by", newOwner)
+		rows, err := gorm.G[sbac.Site](tx).Where("name = ? AND owned_by IS NULL", name).Update(ctx, "owned_by", newOwner)
 		if err != nil {
 			return err
 		}
@@ -97,11 +102,11 @@ func (db *Database) UpdateOwnedBy(ctx context.Context, name, newOwner string) er
 }
 
 // UpdateSite updates the site with the given name.
-func (db *Database) UpdateSite(ctx context.Context, site *models.Site) error {
+func (db *Database) UpdateSite(ctx context.Context, site *sbac.Site) error {
 	return nil
 }
 
 // DeleteSite deletes the site with the given name.
-func (db *Database) DeleteSite(ctx context.Context, site *models.Site) error {
+func (db *Database) DeleteSite(ctx context.Context, site *sbac.Site) error {
 	return nil
 }

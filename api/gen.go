@@ -30,7 +30,8 @@ func main() {
 
 		siteController := controllers.NewSitesController(nil)
 		filesController := controllers.NewFilesController(nil)
-		sitesHandler := handlers.NewSitesHandler(siteController, filesController)
+		permissionsController := controllers.NewPermissionsController(nil)
+		sitesHandler := handlers.NewSitesHandler(siteController, filesController, permissionsController)
 
 		apiConfig := huma.DefaultConfig("Builder API", "1.0.0")
 		apiConfig.Components.SecuritySchemes = map[string]*huma.SecurityScheme{

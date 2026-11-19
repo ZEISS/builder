@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
 )
 
 // ReadTx is a read-only transaction interface.
@@ -19,7 +20,7 @@ type ReadTx interface {
 	// ListAccounts retrieves the list of accounts from the database.
 	ListAccounts(ctx context.Context, accounts *[]*models.Account) error
 	// GetSite retrieves the site from the database.
-	GetSite(ctx context.Context, site *models.Site) error
+	GetSite(ctx context.Context, site *sbac.Site) error
 }
 
 // ReadWriteTx is a read-write transaction interface.
@@ -37,11 +38,11 @@ type ReadWriteTx interface {
 	// DeleteAccount deletes an account in the database.
 	DeleteAccount(ctx context.Context, account *models.Account) error
 	// CreateSite creates a new site in the database.
-	CreateSite(ctx context.Context, site *models.Site) error
+	CreateSite(ctx context.Context, site *sbac.Site) error
 	// UpdateSite updates an existing site in the database.
-	UpdateSite(ctx context.Context, site *models.Site) error
+	UpdateSite(ctx context.Context, site *sbac.Site) error
 	// DeleteSite deletes a site in the database.
-	DeleteSite(ctx context.Context, site *models.Site) error
+	DeleteSite(ctx context.Context, site *sbac.Site) error
 
 	ReadTx
 }

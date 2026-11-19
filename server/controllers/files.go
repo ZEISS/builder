@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 )
 
@@ -20,6 +21,6 @@ func NewFilesController(fs ports.Files) *FilesController {
 }
 
 // UploadFile uploads a file to the site.
-func (c *FilesController) UploadFile(ctx context.Context, site *models.Site, file *models.File) error {
+func (c *FilesController) UploadFile(ctx context.Context, site *sbac.Site, file *models.File) error {
 	return c.fs.UploadFile(ctx, site, file)
 }

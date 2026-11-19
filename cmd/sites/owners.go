@@ -83,7 +83,7 @@ func runOwners(cmd *cobra.Command, _ []string) error {
 	}
 
 	if resp.StatusCode() > http.StatusOK {
-		return fmt.Errorf("could check the site: %s", spec.Sites.Name)
+		return fmt.Errorf("could not check the site: %s", spec.Sites.Name)
 	}
 
 	tw, _, _ := term.GetSize(os.Stdout.Fd())

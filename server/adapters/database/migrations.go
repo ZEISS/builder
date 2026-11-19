@@ -1,8 +1,6 @@
 package database
 
 import (
-	"github.com/zeiss/builder/internal/models"
-
 	fiber_goth "github.com/zeiss/fiber-goth/v3/adapters"
 	"gorm.io/gorm"
 )
@@ -15,8 +13,5 @@ func RunMigrations(db *gorm.DB) error {
 		&fiber_goth.GothUser{},
 		&fiber_goth.GothCsrfToken{},
 		&fiber_goth.GothVerificationToken{},
-		&models.Site{},
-		&models.Ownership{},
-		&models.User{},
 	)
 }

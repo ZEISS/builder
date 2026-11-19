@@ -7,12 +7,11 @@ import (
 
 // User is the model for a user.
 type User struct {
+	gorm.Model
 	// ID is the unique identifier of the user.
 	ID uuid.UUID `json:"ID" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	// Email is the email of the user.
 	Email string `json:"email" gorm:"unique" validate:"required,email"`
-
-	gorm.Model
 }
 
 // BeforeCreate is a GORM hook that is called before a user is created.

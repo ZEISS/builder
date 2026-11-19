@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 
-	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 )
 
@@ -20,22 +20,23 @@ func NewSitesController(db ports.Sites) *SitesController {
 }
 
 // CreateSite creates a new site with the given name.
-func (c *SitesController) CreateSite(ctx context.Context, site *models.Site) error {
-	return c.db.CreateSite(ctx, site)
+func (c *SitesController) CreateSite(ctx context.Context, name, ownedBy string) (sbac.Site, error) {
+	return c.db.CreateSite(ctx, name, ownedBy)
 }
 
 // GetSiteByName returns the site with the given name.
-func (c *SitesController) GetSiteByName(ctx context.Context, name, ownedBy string) (models.Site, error) {
-	return c.db.GetSiteByName(ctx, name, ownedBy)
+func (c *SitesController) GetSiteByName(ctx context.Context, name string) (sbac.Site, error) {
+
+	return c.db.GetSiteByName(ctx, name)
 }
 
 // GetSiteById returns the site with the given id.
-func (c *SitesController) GetSiteById(ctx context.Context, site *models.Site) (models.Site, error) {
+func (c *SitesController) GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error) {
 	return c.db.GetSiteById(ctx, site)
 }
 
 // UpdateSite updates the site with the given name.
-func (c *SitesController) UpdateSite(ctx context.Context, site *models.Site) error {
+func (c *SitesController) UpdateSite(ctx context.Context, site *sbac.Site) error {
 	err := c.db.UpdateSite(ctx, site)
 	if err != nil {
 		return err
@@ -55,12 +56,12 @@ func (c *SitesController) UpdateOwnedBy(ctx context.Context, name, newOwner stri
 }
 
 // ListOwners lists the owners of the site with the given name.
-func (c *SitesController) ListOwners(ctx context.Context, name string) ([]models.User, error) {
+func (c *SitesController) ListOwners(ctx context.Context, name string) ([]*sbac.User, error) {
 	return c.db.ListOwners(ctx, name)
 }
 
 // DeleteSite deletes the site with the given name.
-func (c *SitesController) DeleteSite(ctx context.Context, site *models.Site) error {
+func (c *SitesController) DeleteSite(ctx context.Context, site *sbac.Site) error {
 	err := c.db.DeleteSite(ctx, site)
 	if err != nil {
 		return err

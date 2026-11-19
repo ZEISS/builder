@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/pkg/utils"
 	"github.com/zeiss/builder/server/adapters/database"
 	"github.com/zeiss/builder/server/adapters/files"
@@ -128,6 +129,16 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 			return err
 		}
 
+		err = sbac.RunMigrations(conn)
+		if err != nil {
+			return err
+		}
+
+		err = sbac.RunSeeds(ctx, conn)
+		if err != nil {
+			return err
+		}
+
 		db := database.NewDatabase(conn)
 		dex := dex.New(
 			s.cfg.Flags.DexFlags.ClientID,
@@ -156,10 +167,13 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 			},
 		)
 
+		checker := sbac.NewSBAC(conn)
 		files := files.New(storage)
-		sitesCtrl := controllers.NewSitesController(db)
+
+		permissionsCtrl := controllers.NewPermissionsController(checker)
 		filesCtrl := controllers.NewFilesController(files)
-		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl)
+		sitesCtrl := controllers.NewSitesController(db)
+		sitesHandler := handlers.NewSitesHandler(sitesCtrl, filesCtrl, permissionsCtrl)
 
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 		logger = logger.With("env", s.cfg.Flags.Environment)
@@ -235,7 +249,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		}
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
-		spec.UseMiddleware(humax.NewHumanMiddleware(spec, humax.WithWellknownConfig(wellknown), humax.WithAudience(configs.DefaultConfig.Flags.OIDCAudience)))
+		spec.UseMiddleware(humax.NewHumaMiddleware(spec, humax.WithWellknownConfig(wellknown), humax.WithAudience(configs.DefaultConfig.Flags.OIDCAudience), humax.WithValidators(humax.HasEmail)))
 		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)
