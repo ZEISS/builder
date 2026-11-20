@@ -259,9 +259,7 @@ func NewSBAC(db *gorm.DB) *SBAC {
 func (s *SBAC) Allowed(ctx context.Context, principal authz.Principal, object authz.Object, action authz.Action) (bool, error) {
 	var allowed int64
 
-	site := s.db.WithContext(ctx).Model(&Site{}).Select("id").Where("slug = ?", object)
-
-	err := s.db.Raw("SELECT COUNT(1) FROM vw_user_site_permissions WHERE user_id = (SELECT id FROM users WHERE email = ?) AND site_id = (?) AND permission = ?", principal, site, action).Count(&allowed).Error
+	err := s.db.Raw("SELECT COUNT(1) FROM vw_user_site_permissions WHERE user_id = (SELECT id FROM users WHERE email = ?) AND site_id = (SELECT id FROM sites WHERE slug = ?) AND permission = ?", principal, object, action).Count(&allowed).Error
 	if err != nil {
 		return false, err
 	}

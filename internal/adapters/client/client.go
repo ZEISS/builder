@@ -116,3 +116,24 @@ func (c *client) DeleteSite(ctx context.Context, sitName string) error {
 
 	return nil
 }
+
+// AddOwner is a method that adds an owner to a site.
+func (c *client) AddOwner(ctx context.Context, siteName, email string) error {
+	body := apis.AddOwnerJSONRequestBody{Email: email}
+	resp, err := c.apis.AddOwner(ctx, siteName, body)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusConflict {
+		return ErrSiteExists
+	}
+
+	if resp.StatusCode > http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}

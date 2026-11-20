@@ -1,4 +1,4 @@
-package sites
+package owners
 
 import (
 	"fmt"
@@ -19,13 +19,19 @@ import (
 	"github.com/zeiss/pkg/cast"
 )
 
-var OwnersCmd = &cobra.Command{
-	Use:   "owners",
-	Short: "Lists the owners of a deployed site",
-	RunE:  runOwners,
+func init() {
+	RootCmd.AddCommand(AddCmd)
+
+	AddCmd.Flags().StringVar(&addCmdFlags.Email, "email", "", "Email of the owner to add")
 }
 
-func runOwners(cmd *cobra.Command, _ []string) error {
+var RootCmd = &cobra.Command{
+	Use:   "owners",
+	Short: "Lists the owners of a deployed site",
+	RunE:  runRoot,
+}
+
+func runRoot(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 	flags := config.DefaultFlags
 

@@ -25,6 +25,8 @@ type Sites interface {
 	ListOwners(ctx context.Context, name string) ([]*sbac.User, error)
 	// DeleteSiteByName deletes the site with the given name.
 	DeleteSite(ctx context.Context, siteName string) error
+	// AddOwner adds owners to the site with the given name.
+	AddOwner(ctx context.Context, siteName, email string) error
 }
 
 // Files is an interface for managing files.

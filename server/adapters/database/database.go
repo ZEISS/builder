@@ -79,6 +79,34 @@ func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, 
 	return site.Users, nil
 }
 
+// AddOwners adds owners to the site with the given name.
+func (db *Database) AddOwner(ctx context.Context, siteName, email string) error {
+	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		site, err := gorm.G[sbac.Site](tx).Where("slug = ?", siteName).First(ctx)
+		if err != nil {
+			return err
+		}
+
+		user := sbac.User{Email: email, Sites: []sbac.Site{site}}
+		if err := tx.Where(sbac.User{Email: email}).Attrs(sbac.User{Email: email}).FirstOrCreate(&user).Error; err != nil {
+			return err
+		}
+
+		role, err := gorm.G[sbac.Role](tx).Where("name = ?", sbac.RoleOwner).First(ctx)
+		if err != nil {
+			return err
+		}
+
+		userRole := sbac.UserRole{SiteID: site.ID, UserID: user.ID, RoleID: role.ID}
+		err = gorm.G[sbac.UserRole](tx).Create(ctx, &userRole)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 // TransferSite transfers the site with the given name to the given owner.
 func (db *Database) TransferSite(ctx context.Context, name, owner, newOwner string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {

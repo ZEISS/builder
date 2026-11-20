@@ -1,5 +1,21 @@
 components:
   schemas:
+    AddOwnerInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/AddOwnerInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        email:
+          description: The email of the owner to add.
+          example: user@example.com
+          type: string
+      required:
+        - email
+      type: object
     CreateSiteInputBody:
       additionalProperties: false
       properties:
@@ -380,6 +396,35 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: This endpoint uploads a new file to the site.
+      tags:
+        - Sites
+  /sites/{name}/owner:
+    patch:
+      description: Adds owners to a site by its name.
+      operationId: addOwner
+      parameters:
+        - description: The name of the site.
+          in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddOwnerInputBody"
+        required: true
+      responses:
+        "200":
+          description: The owners have been added to the site.
+        "401":
+          description: Unauthorized.
+        "404":
+          description: No site found.
+        "500":
+          description: An internal server error occurred.
+      summary: Add owners to a site
       tags:
         - Sites
   /sites/{name}/owners:

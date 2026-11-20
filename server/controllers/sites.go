@@ -59,6 +59,11 @@ func (c *SitesController) ListOwners(ctx context.Context, name string) ([]*sbac.
 	return c.db.ListOwners(ctx, name)
 }
 
+// AddOwner adds owners to the site with the given name.
+func (c *SitesController) AddOwner(ctx context.Context, siteName, email string) error {
+	return c.db.AddOwner(ctx, siteName, email)
+}
+
 // DeleteSite deletes the site with the given name.
 func (c *SitesController) DeleteSite(ctx context.Context, siteName string) error {
 	return c.db.DeleteSite(ctx, siteName)

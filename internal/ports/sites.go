@@ -26,6 +26,4 @@ type SitesService interface {
 	UpdateSite(ctx context.Context, site *sbac.Site) error
 	// DeleteSite deletes a site.
 	DeleteSite(ctx context.Context, site *sbac.Site) error
-	// UpdateSiteOwnedBy updates the owner of a site.
-	UpdateSiteOwnedBy(ctx context.Context, name, owner string) error
 }

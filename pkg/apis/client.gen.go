@@ -131,6 +131,24 @@ type ClientInterface interface {
 	// Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBody(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// AddOwnerWithBody Add owners to a site
+	//
+	// Adds owners to a site by its name.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+	AddOwnerWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AddOwner Add owners to a site
+	//
+	// Adds owners to a site by its name.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+	AddOwner(ctx context.Context, name string, body AddOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListOwners List owners of a site
 	//
 	// Lists the owners of a site by its name.
@@ -220,6 +238,44 @@ func (c *Client) DeleteSite(ctx context.Context, name string, reqEditors ...Requ
 // Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 func (c *Client) UploadFileWithBody(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUploadFileRequestWithBody(c.Server, name, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// AddOwnerWithBody Add owners to a site
+//
+// Adds owners to a site by its name.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+func (c *Client) AddOwnerWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddOwnerRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// AddOwner Add owners to a site
+//
+// Adds owners to a site by its name.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+func (c *Client) AddOwner(ctx context.Context, name string, body AddOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddOwnerRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -430,6 +486,53 @@ func NewUploadFileRequestWithBody(server string, name string, params *UploadFile
 	return req, nil
 }
 
+// NewAddOwnerRequest calls the generic AddOwner builder with application/json body
+func NewAddOwnerRequest(server string, name string, body AddOwnerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAddOwnerRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewAddOwnerRequestWithBody constructs an http.Request for the AddOwner method, with any body, and a specified content type
+func NewAddOwnerRequestWithBody(server string, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sites/%s/owner", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListOwnersRequest constructs an http.Request for the ListOwners method
 func NewListOwnersRequest(server string, name string) (*http.Request, error) {
 	var err error
@@ -552,6 +655,24 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBodyWithResponse(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
+
+	// AddOwnerWithBodyWithResponse Add owners to a site
+	//
+	// Adds owners to a site by its name.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+	AddOwnerWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddOwnerResponse, error)
+
+	// AddOwnerWithResponse Add owners to a site
+	//
+	// Adds owners to a site by its name.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+	AddOwnerWithResponse(ctx context.Context, name string, body AddOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*AddOwnerResponse, error)
 
 	// ListOwnersWithResponse List owners of a site
 	//
@@ -727,6 +848,40 @@ func (r UploadFileResponse) ContentType() string {
 	return ""
 }
 
+type AddOwnerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// GetBody returns the raw response body bytes
+func (r AddOwnerResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r AddOwnerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AddOwnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r AddOwnerResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListOwnersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -841,6 +996,36 @@ func (c *ClientWithResponses) UploadFileWithBodyWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseUploadFileResponse(rsp)
+}
+
+// AddOwnerWithBodyWithResponse Add owners to a site
+//
+// Adds owners to a site by its name.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+func (c *ClientWithResponses) AddOwnerWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddOwnerResponse, error) {
+	rsp, err := c.AddOwnerWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddOwnerResponse(rsp)
+}
+
+// AddOwnerWithResponse Add owners to a site
+//
+// Adds owners to a site by its name.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /sites/{name}/owner (the `AddOwner` operationId).
+func (c *ClientWithResponses) AddOwnerWithResponse(ctx context.Context, name string, body AddOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*AddOwnerResponse, error) {
+	rsp, err := c.AddOwner(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddOwnerResponse(rsp)
 }
 
 // ListOwnersWithResponse List owners of a site
@@ -969,6 +1154,22 @@ func ParseUploadFileResponse(rsp *http.Response) (*UploadFileResponse, error) {
 		}
 		response.ApplicationproblemJSONDefault = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseAddOwnerResponse parses an HTTP response from a AddOwnerWithResponse call
+func ParseAddOwnerResponse(rsp *http.Response) (*AddOwnerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AddOwnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil
