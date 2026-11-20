@@ -21,10 +21,10 @@ type Sites interface {
 	UpdateOwnedBy(ctx context.Context, name, newOwner string) error
 	// UpdateSite updates the site with the given name.
 	UpdateSite(ctx context.Context, site *sbac.Site) error
-	// DeleteSite deletes the site with the given name.
-	DeleteSite(ctx context.Context, site *sbac.Site) error
 	// ListOwners lists the owners of the site with the given name.
 	ListOwners(ctx context.Context, name string) ([]*sbac.User, error)
+	// DeleteSiteByName deletes the site with the given name.
+	DeleteSite(ctx context.Context, siteName string) error
 }
 
 // Files is an interface for managing files.
@@ -36,7 +36,7 @@ type Files interface {
 // Permissions is an interface for checking permissions.
 type Permissions interface {
 	// Allowed returns true if the user is allowed to perform the given permission on the site.
-	Allowed(ctx context.Context, siteName, userEmail string) error
+	Allowed(ctx context.Context, siteName, permission string) error
 }
 
 // Repo is an interface for managing repositories.

@@ -5,14 +5,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/golang-jwt/jwt/v5"
 	humax "github.com/zeiss/fiber-authz/v3/oas/huma"
-	"gorm.io/gorm"
 )
 
 type sitesHandler struct {
@@ -28,37 +25,6 @@ func NewSitesHandler(sitesCtrl ports.Sites, filesCtrl ports.Files, permissionsCt
 		filesCtrl:       filesCtrl,
 		permissionsCtrl: permissionsCtrl,
 	}
-}
-
-// CreateSiteInput is the input for the CreateSite operation.
-type CreateSiteInput struct {
-	Body struct {
-		Name string `body:"name" json:"name" example:"fizzy-buzzy" doc:"The name of the site (e.g. fizzy-buzzy)."`
-	}
-}
-
-// CreateSiteOutput is the output for the CreateSite operation.
-type CreateSiteOutput struct {
-	Body sbac.Site
-}
-
-// CreateSite creates a new site with the given name.
-func (h *sitesHandler) CreateSite(ctx context.Context, input *CreateSiteInput) (*CreateSiteOutput, error) {
-	email, err := humax.GetClaim(ctx, "email")
-	if err != nil {
-		return nil, err
-	}
-
-	site, err := h.sitesCtrl.CreateSite(ctx, input.Body.Name, email)
-	if errors.Is(err, gorm.ErrDuplicatedKey) {
-		return nil, huma.Error409Conflict("duplicate site", err)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &CreateSiteOutput{Body: site}, nil
 }
 
 // UpdateSiteOwnedByInput is the input for the UpdateSiteOwnedBy operation.
@@ -95,137 +61,8 @@ func (h *sitesHandler) UpdateSiteOwnedBy(ctx context.Context, input *UpdateSiteO
 	return &UpdateSiteOwnedByOutput{}, nil
 }
 
-// UploadFileInput is the input for the UploadFile operation.
-type UploadFileInput struct {
-	// Name is the name of the site.
-	SiteName string `path:"name" json:"name" example:"fizzy-buzzy" doc:"The name of the site."`
-	// Filename is the name of the file to upload.
-	Filename string `query:"fileName" json:"fileName" example:"index.html" doc:"The filename of the file."`
-	// RawBody is the raw body of the file to upload.
-	RawBody []byte
-}
-
-// UploadFileOutput is the output of the UploadFile operation.
-type UploadFileOutput struct {
-	Body string `json:"body"`
-}
-
-// UploadFile handles the upload of a file to the site.
-func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error) {
-	err := h.permissionsCtrl.Allowed(ctx, input.SiteName, "admin")
-	if err != nil {
-		return nil, err
-	}
-
-	file := &models.File{
-		Name: input.Filename,
-		Data: input.RawBody,
-	}
-
-	site, err := h.sitesCtrl.GetSiteByName(ctx, input.SiteName)
-	if err != nil {
-		return nil, err
-	}
-
-	err = h.filesCtrl.UploadFile(ctx, &site, file)
-	if err != nil {
-		return nil, err
-	}
-
-	return &UploadFileOutput{}, nil
-}
-
-// GetSiteInput is the input for the GetSite operation.
-type GetSiteInput struct {
-	// Name is the name of the site to retrieve.
-	Name string `json:"name" query:"name" example:"my-site" doc:"The name of the site to retrieve."`
-}
-
-// GetSiteOutput is the output for the GetSite operation.
-type GetSiteOutput struct {
-	Body GetSiteOutputBody `json:"body"`
-}
-
-// GetSiteOutputBody is the body of the GetSite output.
-type GetSiteOutputBody struct {
-	Site sbac.Site `json:"site"`
-}
-
-// GetSite retrieves a site by its name.
-func (h *sitesHandler) GetSite(ctx context.Context, input *GetSiteInput) (*GetSiteOutput, error) {
-	err := h.permissionsCtrl.Allowed(ctx, input.Name, "admin")
-	if err != nil {
-		return nil, err
-	}
-
-	site, err := h.sitesCtrl.GetSiteByName(ctx, input.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	body := GetSiteOutputBody{Site: site}
-
-	return &GetSiteOutput{Body: body}, nil
-}
-
-// ListOwnersInput is the input for the ListOwners operation.
-type ListOwnersInput struct {
-	Name string `json:"name" path:"name" example:"my-site" doc:"The name of the site to retrieve."`
-}
-
-// ListOwnersOutput is the output for the ListOwners operation.
-type ListOwnersOutput struct {
-	Body ListOwnersOutputBody `json:"body"`
-}
-
-// ListOwnersOutputBody is the body of the ListOwners output.
-type ListOwnersOutputBody struct {
-	Owners []*sbac.User `json:"owners"`
-}
-
-// ListOwners lists the owners of a site.
-func (h *sitesHandler) ListOwners(ctx context.Context, input *ListOwnersInput) (*ListOwnersOutput, error) {
-	err := h.permissionsCtrl.Allowed(ctx, input.Name, "admin")
-	if err != nil {
-		return nil, err
-	}
-
-	owners, err := h.sitesCtrl.ListOwners(ctx, input.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	body := ListOwnersOutputBody{Owners: owners}
-
-	return &ListOwnersOutput{Body: body}, nil
-}
-
 // Register registers the sites handler with the given Huma API.
 func Register(api huma.API, h *sitesHandler) {
-	huma.Register(api, huma.Operation{
-		OperationID:   "createSite",
-		DefaultStatus: 200,
-		Method:        "POST",
-		Path:          "/sites",
-		Summary:       "Create a new site",
-		Description:   "Creates a new site in the builder. This will create a new site folder.",
-		Tags:          []string{"Sites"},
-		Responses: map[string]*huma.Response{
-			"200": {
-				Description: "The site has been created.",
-			},
-			"400": {
-				Description: "The request was invalid.",
-			},
-			"409": {
-				Description: "The site already exists.",
-			},
-			"500": {
-				Description: "An internal server error occurred.",
-			},
-		},
-	}, h.CreateSite)
-
 	huma.Register(api, huma.Operation{
 		OperationID:   "patchSiteOwnedBy",
 		DefaultStatus: http.StatusOK,
@@ -266,118 +103,4 @@ func Register(api huma.API, h *sitesHandler) {
 			},
 		},
 	}, h.UpdateSiteOwnedBy)
-
-	// List owners of a site
-	huma.Register(api, huma.Operation{
-		OperationID:   "listOwners",
-		DefaultStatus: 200,
-		Method:        "GET",
-		Path:          "/sites/{name}/owners",
-		Summary:       "List owners of a site",
-		Description:   "Lists the owners of a site by its name.",
-		Tags:          []string{"Sites"},
-		Parameters: []*huma.Param{
-			{
-				Name:        "name",
-				In:          "path",
-				Description: "The name of the site.",
-				Required:    true,
-				Schema: &huma.Schema{
-					Type: "string",
-				},
-			},
-		},
-		Responses: map[string]*huma.Response{
-			"200": {
-				Description: "The sites have been queried.",
-			},
-			"404": {
-				Description: "No site found.",
-			},
-			"500": {
-				Description: "An internal server error occurred.",
-			},
-		},
-	}, h.ListOwners)
-
-	// Get a site
-	huma.Register(api, huma.Operation{
-		OperationID:   "getSite",
-		DefaultStatus: 200,
-		Method:        "GET",
-		Path:          "/sites",
-		Summary:       "Get a site",
-		Description:   "Gets a site by its name.",
-		Tags:          []string{"Sites"},
-		Parameters: []*huma.Param{
-			{
-				Name:        "name",
-				In:          "query",
-				Description: "The name of the site.",
-				Required:    true,
-				Schema: &huma.Schema{
-					Type: "string",
-				},
-			},
-		},
-		Responses: map[string]*huma.Response{
-			"200": {
-				Description: "The sites have been queried.",
-			},
-			"404": {
-				Description: "No site found.",
-			},
-			"500": {
-				Description: "An internal server error occurred.",
-			},
-		},
-	}, h.GetSite)
-
-	huma.Register(api, huma.Operation{
-		OperationID:   "uploadFile",
-		DefaultStatus: 200,
-		Method:        "POST",
-		Path:          "/sites/{name}/files/upload",
-		Summary:       "This endpoint uploads a new file to the site.",
-		Description:   "Upload a new file to the site.",
-		Tags:          []string{"Sites"},
-		MaxBodyBytes:  10 * 1024 * 1024, // 10 MiB,
-		Parameters: []*huma.Param{
-			{
-				Name:        "name",
-				In:          "path",
-				Description: "The name of the site.",
-				Required:    true,
-				Example:     "fizzy-buzzy",
-				Schema: &huma.Schema{
-					Type: "string",
-				},
-			},
-			{
-				Name:        "fileName",
-				In:          "query",
-				Description: "The name of the file.",
-				Required:    true,
-				Schema: &huma.Schema{
-					Type: "string",
-				},
-			},
-		},
-		RequestBody: &huma.RequestBody{
-			Required: true,
-			Content: map[string]*huma.MediaType{
-				"application/octet-stream": {
-					Schema: &huma.Schema{
-						Type:   "string",
-						Format: "binary",
-					},
-				},
-			},
-		},
-		Responses: map[string]*huma.Response{
-			"200": {
-				Description: "The file was uploaded successfully.",
-			},
-		},
-	}, h.UploadFile)
 }

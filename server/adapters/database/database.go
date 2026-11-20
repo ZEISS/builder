@@ -27,7 +27,7 @@ func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.
 	site := sbac.Site{Name: name, Slug: name}
 
 	err := db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		err := gorm.G[sbac.Site](db.conn).Create(ctx, &site)
+		err := gorm.G[sbac.Site](tx).Create(ctx, &site)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.
 			return err
 		}
 
-		role, err := gorm.G[sbac.Role](tx).Where("name = ?", "Owner").First(ctx)
+		role, err := gorm.G[sbac.Role](tx).Where("name = ?", sbac.RoleOwner).First(ctx)
 		if err != nil {
 			return err
 		}
@@ -47,6 +47,16 @@ func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.
 	})
 
 	return site, err
+}
+
+// DeleteSite deletes the site with the given name.
+func (db *Database) DeleteSite(ctx context.Context, siteName string) error {
+	_, err := gorm.G[sbac.Site](db.conn).Where("slug = ?", siteName).Delete(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetSiteByName returns the site with the given name.
@@ -103,10 +113,5 @@ func (db *Database) UpdateOwnedBy(ctx context.Context, name, newOwner string) er
 
 // UpdateSite updates the site with the given name.
 func (db *Database) UpdateSite(ctx context.Context, site *sbac.Site) error {
-	return nil
-}
-
-// DeleteSite deletes the site with the given name.
-func (db *Database) DeleteSite(ctx context.Context, site *sbac.Site) error {
 	return nil
 }

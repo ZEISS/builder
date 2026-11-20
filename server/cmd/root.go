@@ -250,6 +250,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
 		spec.UseMiddleware(humax.NewHumaMiddleware(spec, humax.WithWellknownConfig(wellknown), humax.WithAudience(configs.DefaultConfig.Flags.OIDCAudience), humax.WithValidators(humax.HasEmail)))
+		huma.AutoRegister(spec, sitesHandler)
 		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)

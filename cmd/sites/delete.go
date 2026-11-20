@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/term"
-	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
@@ -15,21 +12,20 @@ import (
 	"github.com/zeiss/builder/internal/ui/console"
 	"github.com/zeiss/builder/pkg/apis"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
+	"github.com/oapi-codegen/oapi-codegen/v2/pkg/securityprovider"
 	"github.com/spf13/cobra"
 	"github.com/zeiss/pkg/cast"
 )
 
-var ClaimCmd = &cobra.Command{
-	Use:   "claim",
-	Short: "Claims a site",
-	Long: `
-Claims a site that has no owner yet.
-This is to adopt legacy sites.
-`,
-	RunE: runClaim,
+var DeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Deletes a site",
+	RunE:  runDelete,
 }
 
-func runClaim(cmd *cobra.Command, _ []string) error {
+func runDelete(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
 	flags := config.DefaultFlags
 
@@ -83,12 +79,16 @@ func runClaim(cmd *cobra.Command, _ []string) error {
 
 	c := client.New(api)
 
-	if err := c.ClaimSite(ctx, spec.Sites.Name); err != nil {
+	if !flags.Force {
+		return fmt.Errorf("use --force to delete site %s", spec.Sites.Name)
+	}
+
+	if err := c.DeleteSite(ctx, spec.Sites.Name); err != nil {
 		return err
 	}
 
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
-	body := console.Render(tw, console.Success(fmt.Sprintf("%s claimed successfully", spec.Sites.Name)))
+	body := console.Render(tw, console.Success(fmt.Sprintf("%s created successfully", spec.Sites.Name)))
 	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
 	return nil

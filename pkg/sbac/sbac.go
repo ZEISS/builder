@@ -20,11 +20,20 @@ import (
 
 var (
 	// Admin is the admin action.
-	Admin = authz.Action("admin")
+	PermissionAdmin = "admin"
 	// Read is the read action.
-	Read = authz.Action("read")
+	PermissionRead = "read"
 	// Write is the write action.
-	Write = authz.Action("write")
+	PermissionWrite = "write"
+)
+
+var (
+	// RoleOwner is the owner role.
+	RoleOwner = "owner"
+	// RoleCollaborator is the collaborator role.
+	RoleCollaborator = "collaborator"
+	// RoleUser is the user role.
+	RoleUser = "user"
 )
 
 var seeds = seed.Seeds{
@@ -32,9 +41,9 @@ var seeds = seed.Seeds{
 		Name: "CreatePermissions",
 		Run: func(db *gorm.DB) error {
 			permissions := []Permission{
-				{Scope: "admin"},
-				{Scope: "write"},
-				{Scope: "read"},
+				{Scope: PermissionAdmin},
+				{Scope: PermissionWrite},
+				{Scope: PermissionRead},
 			}
 			return db.Clauses(clause.OnConflict{DoNothing: true}).Create(&permissions).Error
 		},
@@ -43,9 +52,9 @@ var seeds = seed.Seeds{
 		Name: "CreateRoles",
 		Run: func(db *gorm.DB) error {
 			roles := []Role{
-				{Name: "Owner"},
-				{Name: "Collaborator"},
-				{Name: "User"},
+				{Name: RoleOwner},
+				{Name: RoleCollaborator},
+				{Name: RoleUser},
 			}
 			return db.Clauses(clause.OnConflict{DoNothing: true}).Create(&roles).Error
 		},
@@ -54,11 +63,11 @@ var seeds = seed.Seeds{
 		Name: "AddAdminPermissionToOwner",
 		Run: func(db *gorm.DB) error {
 			var owner Role
-			if err := db.First(&owner, "name = ?", "Owner").Error; err != nil {
+			if err := db.First(&owner, "name = ?", RoleOwner).Error; err != nil {
 				return err
 			}
 			var adminPermission Permission
-			if err := db.First(&adminPermission, "scope = ?", "admin").Error; err != nil {
+			if err := db.First(&adminPermission, "scope = ?", PermissionAdmin).Error; err != nil {
 				return err
 			}
 

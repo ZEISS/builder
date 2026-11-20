@@ -4,9 +4,9 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/zeiss/builder/server/ports"
-	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/internal/models"
+	"github.com/zeiss/builder/pkg/sbac"
+	"github.com/zeiss/builder/server/ports"
 
 	"github.com/gofiber/fiber/v3"
 )

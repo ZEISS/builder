@@ -11,10 +11,8 @@ import (
 
 var _ ports.Permissions = (*PermissionsController)(nil)
 
-var (
-	// ErrNotAllowed is returned when the user is not allowed to perform the given action on the given resource.
-	ErrNotAllowed = errors.New("not allowed")
-)
+// ErrNotAllowed is returned when the user is not allowed to perform the given action on the given resource.
+var ErrNotAllowed = errors.New("not allowed")
 
 // PermissionsController is a controller for managing sites.
 type PermissionsController struct {

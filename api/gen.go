@@ -54,7 +54,7 @@ func main() {
 		}
 
 		api = humafiber.New(app, apiConfig)
-		handlers.Register(api, sitesHandler)
+		huma.AutoRegister(api, sitesHandler)
 
 		// Tell the CLI how to start your server.
 		hooks.OnStart(func() {

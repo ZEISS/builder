@@ -90,13 +90,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
-	// PatchSiteOwnedBy Change the owner of a site
-	//
-	// Changes the owner of a site to the given email.
-	//
-	// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
-	PatchSiteOwnedBy(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetSite Get a site
 	//
 	// Gets a site by its name.
@@ -122,6 +115,13 @@ type ClientInterface interface {
 	// Corresponds with POST /sites (the `CreateSite` operationId).
 	CreateSite(ctx context.Context, body CreateSiteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteSite Delete a site
+	//
+	// Deletes a site by its name.
+	//
+	// Corresponds with DELETE /sites/{name} (the `DeleteSite` operationId).
+	DeleteSite(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// UploadFileWithBody This endpoint uploads a new file to the site.
 	//
 	// Upload a new file to the site.
@@ -137,23 +137,6 @@ type ClientInterface interface {
 	//
 	// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
 	ListOwners(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-// PatchSiteOwnedBy Change the owner of a site
-//
-// Changes the owner of a site to the given email.
-//
-// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
-func (c *Client) PatchSiteOwnedBy(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPatchSiteOwnedByRequest(c.Server, name)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 // GetSite Get a site
@@ -211,6 +194,23 @@ func (c *Client) CreateSite(ctx context.Context, body CreateSiteJSONRequestBody,
 	return c.Client.Do(req)
 }
 
+// DeleteSite Delete a site
+//
+// Deletes a site by its name.
+//
+// Corresponds with DELETE /sites/{name} (the `DeleteSite` operationId).
+func (c *Client) DeleteSite(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteSiteRequest(c.Server, name)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // UploadFileWithBody This endpoint uploads a new file to the site.
 //
 // Upload a new file to the site.
@@ -245,40 +245,6 @@ func (c *Client) ListOwners(ctx context.Context, name string, reqEditors ...Requ
 		return nil, err
 	}
 	return c.Client.Do(req)
-}
-
-// NewPatchSiteOwnedByRequest constructs an http.Request for the PatchSiteOwnedBy method
-func NewPatchSiteOwnedByRequest(server string, name string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/site/%s/owner", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
 }
 
 // NewGetSiteRequest constructs an http.Request for the GetSite method
@@ -367,6 +333,40 @@ func NewCreateSiteRequestWithBody(server string, contentType string, body io.Rea
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteSiteRequest constructs an http.Request for the DeleteSite method
+func NewDeleteSiteRequest(server string, name string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sites/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	return req, nil
 }
@@ -508,15 +508,6 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
-	// PatchSiteOwnedByWithResponse Change the owner of a site
-	//
-	// Changes the owner of a site to the given email.
-	//
-	// Returns a wrapper object for the known response body format(s).
-	//
-	// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
-	PatchSiteOwnedByWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*PatchSiteOwnedByResponse, error)
-
 	// GetSiteWithResponse Get a site
 	//
 	// Gets a site by its name.
@@ -544,6 +535,15 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with POST /sites (the `CreateSite` operationId).
 	CreateSiteWithResponse(ctx context.Context, body CreateSiteJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSiteResponse, error)
 
+	// DeleteSiteWithResponse Delete a site
+	//
+	// Deletes a site by its name.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with DELETE /sites/{name} (the `DeleteSite` operationId).
+	DeleteSiteWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteSiteResponse, error)
+
 	// UploadFileWithBodyWithResponse This endpoint uploads a new file to the site.
 	//
 	// Upload a new file to the site.
@@ -561,40 +561,6 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /sites/{name}/owners (the `ListOwners` operationId).
 	ListOwnersWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*ListOwnersResponse, error)
-}
-
-type PatchSiteOwnedByResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// GetBody returns the raw response body bytes
-func (r PatchSiteOwnedByResponse) GetBody() []byte {
-	return r.Body
-}
-
-// Status returns HTTPResponse.Status
-func (r PatchSiteOwnedByResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PatchSiteOwnedByResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r PatchSiteOwnedByResponse) ContentType() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Header.Get("Content-Type")
-	}
-	return ""
 }
 
 type GetSiteResponse struct {
@@ -673,6 +639,40 @@ func (r CreateSiteResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r CreateSiteResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type DeleteSiteResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// GetBody returns the raw response body bytes
+func (r DeleteSiteResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteSiteResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteSiteResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteSiteResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -768,21 +768,6 @@ func (r ListOwnersResponse) ContentType() string {
 	return ""
 }
 
-// PatchSiteOwnedByWithResponse Change the owner of a site
-//
-// Changes the owner of a site to the given email.
-//
-// Returns a wrapper object for the known response body format(s).
-//
-// Corresponds with PATCH /site/{name}/owner (the `PatchSiteOwnedBy` operationId).
-func (c *ClientWithResponses) PatchSiteOwnedByWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*PatchSiteOwnedByResponse, error) {
-	rsp, err := c.PatchSiteOwnedBy(ctx, name, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePatchSiteOwnedByResponse(rsp)
-}
-
 // GetSiteWithResponse Get a site
 //
 // Gets a site by its name.
@@ -828,6 +813,21 @@ func (c *ClientWithResponses) CreateSiteWithResponse(ctx context.Context, body C
 	return ParseCreateSiteResponse(rsp)
 }
 
+// DeleteSiteWithResponse Delete a site
+//
+// Deletes a site by its name.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /sites/{name} (the `DeleteSite` operationId).
+func (c *ClientWithResponses) DeleteSiteWithResponse(ctx context.Context, name string, reqEditors ...RequestEditorFn) (*DeleteSiteResponse, error) {
+	rsp, err := c.DeleteSite(ctx, name, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteSiteResponse(rsp)
+}
+
 // UploadFileWithBodyWithResponse This endpoint uploads a new file to the site.
 //
 // Upload a new file to the site.
@@ -856,22 +856,6 @@ func (c *ClientWithResponses) ListOwnersWithResponse(ctx context.Context, name s
 		return nil, err
 	}
 	return ParseListOwnersResponse(rsp)
-}
-
-// ParsePatchSiteOwnedByResponse parses an HTTP response from a PatchSiteOwnedByWithResponse call
-func ParsePatchSiteOwnedByResponse(rsp *http.Response) (*PatchSiteOwnedByResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PatchSiteOwnedByResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
 }
 
 // ParseGetSiteResponse parses an HTTP response from a GetSiteWithResponse call
@@ -936,6 +920,22 @@ func ParseCreateSiteResponse(rsp *http.Response) (*CreateSiteResponse, error) {
 	case rsp.StatusCode == 500:
 		break // No content-type
 
+	}
+
+	return response, nil
+}
+
+// ParseDeleteSiteResponse parses an HTTP response from a DeleteSiteWithResponse call
+func ParseDeleteSiteResponse(rsp *http.Response) (*DeleteSiteResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteSiteResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil

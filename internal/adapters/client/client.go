@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/zeiss/builder/internal/ports"
-	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/pkg/apis"
+	"github.com/zeiss/builder/pkg/sbac"
 )
 
 var (
@@ -103,9 +103,9 @@ func (c *client) UploadFile(ctx context.Context, name, cwd, file string) error {
 	return nil
 }
 
-// ClaimSite is a method that claims a site.
-func (c *client) ClaimSite(ctx context.Context, name string) error {
-	res, err := c.apis.PatchSiteOwnedByWithResponse(ctx, name)
+// DeleteSite is a method that deletes a site by name.
+func (c *client) DeleteSite(ctx context.Context, sitName string) error {
+	res, err := c.apis.DeleteSiteWithResponse(ctx, sitName)
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,6 @@ func (c *SitesController) CreateSite(ctx context.Context, name, ownedBy string) 
 
 // GetSiteByName returns the site with the given name.
 func (c *SitesController) GetSiteByName(ctx context.Context, name string) (sbac.Site, error) {
-
 	return c.db.GetSiteByName(ctx, name)
 }
 
@@ -61,11 +60,6 @@ func (c *SitesController) ListOwners(ctx context.Context, name string) ([]*sbac.
 }
 
 // DeleteSite deletes the site with the given name.
-func (c *SitesController) DeleteSite(ctx context.Context, site *sbac.Site) error {
-	err := c.db.DeleteSite(ctx, site)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (c *SitesController) DeleteSite(ctx context.Context, siteName string) error {
+	return c.db.DeleteSite(ctx, siteName)
 }

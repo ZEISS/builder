@@ -8,7 +8,7 @@ func init() {
 	SitesCmd.AddCommand(DeployCmd)
 	SitesCmd.AddCommand(CheckCmd)
 	SitesCmd.AddCommand(CreateCmd)
-	SitesCmd.AddCommand(ClaimCmd)
+	SitesCmd.AddCommand(DeleteCmd)
 	SitesCmd.AddCommand(OwnersCmd)
 }
 

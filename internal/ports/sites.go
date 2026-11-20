@@ -12,8 +12,8 @@ type SitesRepository interface {
 	Create(ctx context.Context, site *sbac.Site) error
 	// GetSite is a method that gets a site by name.
 	GetSite(ctx context.Context, name string) (sbac.Site, error)
-	// ClaimSite is a method that claims a site.
-	ClaimSite(ctx context.Context, name string) error
+	// DeleteSite is a method that deletes a site.
+	DeleteSite(ctx context.Context, name string) error
 }
 
 // SitesService contains the methods for sites operations.
