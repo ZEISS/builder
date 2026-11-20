@@ -64,6 +64,11 @@ func (c *SitesController) AddOwner(ctx context.Context, siteName, email string) 
 	return c.db.AddOwner(ctx, siteName, email)
 }
 
+// RemoveOwner removes owners from the site with the given name.
+func (c *SitesController) RemoveOwner(ctx context.Context, siteName, email string) error {
+	return c.db.RemoveOwner(ctx, siteName, email)
+}
+
 // DeleteSite deletes the site with the given name.
 func (c *SitesController) DeleteSite(ctx context.Context, siteName string) error {
 	return c.db.DeleteSite(ctx, siteName)

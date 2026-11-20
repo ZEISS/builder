@@ -21,8 +21,10 @@ import (
 
 func init() {
 	RootCmd.AddCommand(AddCmd)
+	RootCmd.AddCommand(RemoveCmd)
 
 	AddCmd.Flags().StringVar(&addCmdFlags.Email, "email", "", "Email of the owner to add")
+	RemoveCmd.Flags().StringVar(&removeCmdFlags.Email, "email", "", "Email of the owner to remove")
 }
 
 var RootCmd = &cobra.Command{

@@ -107,6 +107,27 @@ func (db *Database) AddOwner(ctx context.Context, siteName, email string) error 
 	})
 }
 
+// RemoveOwner removes owners from the site with the given name.
+func (db *Database) RemoveOwner(ctx context.Context, siteName, email string) error {
+	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		site, err := gorm.G[sbac.Site](tx).Where("slug = ?", siteName).First(ctx)
+		if err != nil {
+			return err
+		}
+
+		user, err := gorm.G[sbac.User](tx).Where("email = ?", email).First(ctx)
+		if err != nil {
+			return err
+		}
+
+		if err := tx.Model(site).Association("Users").Delete(user); err != nil {
+			return err
+		}
+
+		return tx.Where("site_id = ? AND user_id = ?", site.ID, user.ID).Delete(&sbac.UserRole{}).Error
+	})
+}
+
 // TransferSite transfers the site with the given name to the given owner.
 func (db *Database) TransferSite(ctx context.Context, name, owner, newOwner string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {

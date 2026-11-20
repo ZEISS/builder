@@ -161,6 +161,22 @@ components:
         - UpdatedAt
         - DeletedAt
       type: object
+    RemoveOwnerInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          example: https://example.com/schemas/RemoveOwnerInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        email:
+          description: The email of the owner to add.
+          example: user@example.com
+          type: string
+      required:
+        - email
+      type: object
     Role:
       additionalProperties: false
       properties:
@@ -399,6 +415,34 @@ paths:
       tags:
         - Sites
   /sites/{name}/owner:
+    delete:
+      description: Removes owners from a site by its name.
+      operationId: removeOwner
+      parameters:
+        - description: The name of the site.
+          in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoveOwnerInputBody"
+        required: true
+      responses:
+        "200":
+          description: The owners have been removed from the site.
+        "401":
+          description: Unauthorized.
+        "404":
+          description: No site found.
+        "500":
+          description: An internal server error occurred.
+      summary: Remove owners from a site
+      tags:
+        - Sites
     patch:
       description: Adds owners to a site by its name.
       operationId: addOwner

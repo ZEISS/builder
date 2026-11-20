@@ -131,6 +131,24 @@ type ClientInterface interface {
 	// Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBody(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// RemoveOwnerWithBody Remove owners from a site
+	//
+	// Removes owners from a site by its name.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+	RemoveOwnerWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RemoveOwner Remove owners from a site
+	//
+	// Removes owners from a site by its name.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+	RemoveOwner(ctx context.Context, name string, body RemoveOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// AddOwnerWithBody Add owners to a site
 	//
 	// Adds owners to a site by its name.
@@ -238,6 +256,44 @@ func (c *Client) DeleteSite(ctx context.Context, name string, reqEditors ...Requ
 // Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 func (c *Client) UploadFileWithBody(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUploadFileRequestWithBody(c.Server, name, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// RemoveOwnerWithBody Remove owners from a site
+//
+// Removes owners from a site by its name.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+func (c *Client) RemoveOwnerWithBody(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveOwnerRequestWithBody(c.Server, name, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// RemoveOwner Remove owners from a site
+//
+// Removes owners from a site by its name.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+func (c *Client) RemoveOwner(ctx context.Context, name string, body RemoveOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRemoveOwnerRequest(c.Server, name, body)
 	if err != nil {
 		return nil, err
 	}
@@ -486,6 +542,53 @@ func NewUploadFileRequestWithBody(server string, name string, params *UploadFile
 	return req, nil
 }
 
+// NewRemoveOwnerRequest calls the generic RemoveOwner builder with application/json body
+func NewRemoveOwnerRequest(server string, name string, body RemoveOwnerJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewRemoveOwnerRequestWithBody(server, name, "application/json", bodyReader)
+}
+
+// NewRemoveOwnerRequestWithBody constructs an http.Request for the RemoveOwner method, with any body, and a specified content type
+func NewRemoveOwnerRequestWithBody(server string, name string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sites/%s/owner", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewAddOwnerRequest calls the generic AddOwner builder with application/json body
 func NewAddOwnerRequest(server string, name string, body AddOwnerJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -655,6 +758,24 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sites/{name}/files/upload (the `UploadFile` operationId).
 	UploadFileWithBodyWithResponse(ctx context.Context, name string, params *UploadFileParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadFileResponse, error)
+
+	// RemoveOwnerWithBodyWithResponse Remove owners from a site
+	//
+	// Removes owners from a site by its name.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+	RemoveOwnerWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveOwnerResponse, error)
+
+	// RemoveOwnerWithResponse Remove owners from a site
+	//
+	// Removes owners from a site by its name.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+	RemoveOwnerWithResponse(ctx context.Context, name string, body RemoveOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveOwnerResponse, error)
 
 	// AddOwnerWithBodyWithResponse Add owners to a site
 	//
@@ -848,6 +969,40 @@ func (r UploadFileResponse) ContentType() string {
 	return ""
 }
 
+type RemoveOwnerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// GetBody returns the raw response body bytes
+func (r RemoveOwnerResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r RemoveOwnerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RemoveOwnerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RemoveOwnerResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type AddOwnerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -996,6 +1151,36 @@ func (c *ClientWithResponses) UploadFileWithBodyWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseUploadFileResponse(rsp)
+}
+
+// RemoveOwnerWithBodyWithResponse Remove owners from a site
+//
+// Removes owners from a site by its name.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+func (c *ClientWithResponses) RemoveOwnerWithBodyWithResponse(ctx context.Context, name string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RemoveOwnerResponse, error) {
+	rsp, err := c.RemoveOwnerWithBody(ctx, name, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveOwnerResponse(rsp)
+}
+
+// RemoveOwnerWithResponse Remove owners from a site
+//
+// Removes owners from a site by its name.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /sites/{name}/owner (the `RemoveOwner` operationId).
+func (c *ClientWithResponses) RemoveOwnerWithResponse(ctx context.Context, name string, body RemoveOwnerJSONRequestBody, reqEditors ...RequestEditorFn) (*RemoveOwnerResponse, error) {
+	rsp, err := c.RemoveOwner(ctx, name, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRemoveOwnerResponse(rsp)
 }
 
 // AddOwnerWithBodyWithResponse Add owners to a site
@@ -1154,6 +1339,22 @@ func ParseUploadFileResponse(rsp *http.Response) (*UploadFileResponse, error) {
 		}
 		response.ApplicationproblemJSONDefault = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseRemoveOwnerResponse parses an HTTP response from a RemoveOwnerWithResponse call
+func ParseRemoveOwnerResponse(rsp *http.Response) (*RemoveOwnerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RemoveOwnerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
 	}
 
 	return response, nil

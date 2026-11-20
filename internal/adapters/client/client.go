@@ -137,3 +137,24 @@ func (c *client) AddOwner(ctx context.Context, siteName, email string) error {
 
 	return nil
 }
+
+// RemoveOwner is a method that removes an owner from a site.
+func (c *client) RemoveOwner(ctx context.Context, siteName, email string) error {
+	body := apis.RemoveOwnerJSONRequestBody{Email: email}
+	resp, err := c.apis.RemoveOwner(ctx, siteName, body)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusConflict {
+		return ErrSiteExists
+	}
+
+	if resp.StatusCode > http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}

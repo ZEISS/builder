@@ -27,6 +27,8 @@ type Sites interface {
 	DeleteSite(ctx context.Context, siteName string) error
 	// AddOwner adds owners to the site with the given name.
 	AddOwner(ctx context.Context, siteName, email string) error
+	// RemoveOwner removes owners from the site with the given name.
+	RemoveOwner(ctx context.Context, siteName, email string) error
 }
 
 // Files is an interface for managing files.
