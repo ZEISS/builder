@@ -19,7 +19,7 @@ tool (
 replace github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d => github.com/dprotaso/go-yit v0.0.0-20250513224043-18a80f8f6df4
 
 require (
-	charm.land/bubbles/v2 v2.2.1
+	charm.land/bubbles/v2 v2.2.2
 	charm.land/bubbletea/v2 v2.1.2
 	charm.land/glamour/v2 v2.0.1
 	charm.land/lipgloss/v2 v2.1.1
@@ -54,7 +54,7 @@ require (
 	github.com/oapi-codegen/runtime v1.9.1
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pkg/errors v0.9.1
-	github.com/rivo/uniseg v0.4.7
+	github.com/rivo/uniseg v0.4.8-0.20261110175422-3a370411ca06
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
