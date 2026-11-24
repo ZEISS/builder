@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/zeiss/builder/internal/models"
@@ -38,17 +37,13 @@ func (h *sitesHandler) UploadFile(ctx context.Context, input *UploadFileInput) (
 
 	site, err := h.sitesCtrl.GetSiteByName(ctx, input.SiteName)
 	if err != nil {
-		fmt.Printf("failed to get site: %v\n", err)
 		return nil, err
 	}
 
 	err = h.filesCtrl.UploadFile(ctx, &site, file)
 	if err != nil {
-		fmt.Println("failed to upload file", err)
 		return nil, err
 	}
-
-	fmt.Println(&site, file)
 
 	return &UploadFileOutput{}, nil
 }
