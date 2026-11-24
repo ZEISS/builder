@@ -2,12 +2,12 @@ package database
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/zeiss/builder/pkg/sbac"
 	"github.com/zeiss/builder/server/ports"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ ports.Sites = (*Database)(nil)
@@ -71,7 +71,7 @@ func (db *Database) GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site
 
 // ListOwners lists the owners of the site with the given name.
 func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, error) {
-	site, err := gorm.G[sbac.Site](db.conn).Preload("Users", nil).Where("slug = ?", name).First(ctx)
+	site, err := gorm.G[sbac.Site](db.conn).Preload("Users", nil).Where("slug = (?)", name).First(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -82,13 +82,15 @@ func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, 
 // AddOwners adds owners to the site with the given name.
 func (db *Database) AddOwner(ctx context.Context, siteName, email string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 1. Find the site
 		site, err := gorm.G[sbac.Site](tx).Where("slug = ?", siteName).First(ctx)
 		if err != nil {
 			return err
 		}
 
-		user := sbac.User{Email: email, Sites: []sbac.Site{site}}
-		if err := tx.Where(sbac.User{Email: email}).Attrs(sbac.User{Email: email}).FirstOrCreate(&user).Error; err != nil {
+		// 2. Find or create the user (populates user.ID whether found or newly created)
+		user := sbac.User{Email: email}
+		if err := tx.WithContext(ctx).Where(sbac.User{Email: email}).FirstOrCreate(&user).Error; err != nil {
 			return err
 		}
 
@@ -97,9 +99,16 @@ func (db *Database) AddOwner(ctx context.Context, siteName, email string) error 
 			return err
 		}
 
-		userRole := sbac.UserRole{SiteID: site.ID, UserID: user.ID, RoleID: role.ID}
-		err = gorm.G[sbac.UserRole](tx).Create(ctx, &userRole)
-		if err != nil {
+		if err := tx.WithContext(ctx).Model(&user).Association("Sites").Append(&site); err != nil {
+			return err
+		}
+
+		userRole := sbac.UserRole{
+			UserID: user.ID,
+			RoleID: role.ID,
+			SiteID: site.ID,
+		}
+		if err := gorm.G[sbac.UserRole](tx, clause.OnConflict{DoNothing: true}).Create(ctx, &userRole); err != nil {
 			return err
 		}
 
@@ -120,40 +129,14 @@ func (db *Database) RemoveOwner(ctx context.Context, siteName, email string) err
 			return err
 		}
 
-		if err := tx.Model(site).Association("Users").Delete(user); err != nil {
-			return err
-		}
-
-		return tx.Where("site_id = ? AND user_id = ?", site.ID, user.ID).Delete(&sbac.UserRole{}).Error
-	})
-}
-
-// TransferSite transfers the site with the given name to the given owner.
-func (db *Database) TransferSite(ctx context.Context, name, owner, newOwner string) error {
-	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		rows, err := gorm.G[sbac.Site](tx).Where("name = ? AND owned_by = ?", name, owner).Update(ctx, "owned_by", newOwner)
+		err = tx.Model(&user).Association("Sites").Delete(&site)
 		if err != nil {
 			return err
 		}
 
-		if rows == 0 {
-			return fmt.Errorf("site could not be transferred: no site found with name %s and owned by %s", name, owner)
-		}
-
-		return nil
-	})
-}
-
-// UpdateOwnedBy updates the owner of the site with the given name.
-func (db *Database) UpdateOwnedBy(ctx context.Context, name, newOwner string) error {
-	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		rows, err := gorm.G[sbac.Site](tx).Where("name = ? AND owned_by IS NULL", name).Update(ctx, "owned_by", newOwner)
+		err = tx.Model(&user).Association("Roles").Delete(&site)
 		if err != nil {
 			return err
-		}
-
-		if rows == 0 {
-			return fmt.Errorf("site owner could not be updated: %s", name)
 		}
 
 		return nil

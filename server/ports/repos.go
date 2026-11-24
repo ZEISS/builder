@@ -15,10 +15,6 @@ type Sites interface {
 	GetSiteByName(ctx context.Context, name string) (sbac.Site, error)
 	// GetSiteById returns the site with the given id.
 	GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error)
-	// TransferSite transfers the site with the given name to the given owner.
-	TransferSite(ctx context.Context, name, owner, newOwner string) error
-	// UpdateOwnedBy changes the owner of the site with the given name.
-	UpdateOwnedBy(ctx context.Context, name, newOwner string) error
 	// UpdateSite updates the site with the given name.
 	UpdateSite(ctx context.Context, site *sbac.Site) error
 	// ListOwners lists the owners of the site with the given name.

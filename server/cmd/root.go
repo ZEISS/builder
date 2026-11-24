@@ -35,6 +35,7 @@ import (
 	"github.com/zeiss/pkg/server"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -119,6 +120,7 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 
 		conn, err := gorm.Open(postgres.Open(dsn.FormatDSN()), &gorm.Config{
 			TranslateError: true,
+			Logger:         logger.Default.LogMode(logger.Info),
 		})
 		if err != nil {
 			return err
@@ -251,7 +253,6 @@ func (s *WebSrv) Start(ctx context.Context, ready server.ReadyFunc, run server.R
 		spec := humafiber.NewWithGroup(app, v1, apiConfig)
 		spec.UseMiddleware(humax.NewHumaMiddleware(spec, humax.WithWellknownConfig(wellknown), humax.WithAudience(configs.DefaultConfig.Flags.OIDCAudience), humax.WithValidators(humax.HasEmail)))
 		huma.AutoRegister(spec, sitesHandler)
-		handlers.Register(spec, sitesHandler)
 
 		err = app.Listen(s.cfg.Flags.Addr)
 		if err != nil {

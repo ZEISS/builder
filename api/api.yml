@@ -130,19 +130,11 @@ components:
     Permission:
       additionalProperties: false
       properties:
-        CreatedAt:
-          format: date-time
-          type: string
-        DeletedAt:
-          $ref: "#/components/schemas/DeletedAt"
         Roles:
           items:
             $ref: "#/components/schemas/Role"
           nullable: true
           type: array
-        UpdatedAt:
-          format: date-time
-          type: string
         description:
           nullable: true
           type: string
@@ -157,9 +149,6 @@ components:
         - scope
         - description
         - Roles
-        - CreatedAt
-        - UpdatedAt
-        - DeletedAt
       type: object
     RemoveOwnerInputBody:
       additionalProperties: false
@@ -180,11 +169,6 @@ components:
     Role:
       additionalProperties: false
       properties:
-        CreatedAt:
-          format: date-time
-          type: string
-        DeletedAt:
-          $ref: "#/components/schemas/DeletedAt"
         Description:
           type: string
         ID:
@@ -196,17 +180,11 @@ components:
             $ref: "#/components/schemas/Permission"
           nullable: true
           type: array
-        UpdatedAt:
-          format: date-time
-          type: string
       required:
         - ID
         - Name
         - Description
         - Permissions
-        - CreatedAt
-        - UpdatedAt
-        - DeletedAt
       type: object
     Site:
       additionalProperties: false
@@ -293,7 +271,6 @@ components:
             offline_access: ""
             openid: ""
             profile: ""
-          tokenUrl: ""
       in: header
       type: openIdConnect
 info:

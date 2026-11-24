@@ -44,16 +44,6 @@ func (c *SitesController) UpdateSite(ctx context.Context, site *sbac.Site) error
 	return nil
 }
 
-// TransferSite transfers the site with the given name to the given owner.
-func (c *SitesController) TransferSite(ctx context.Context, name, owner, newOwner string) error {
-	return c.db.TransferSite(ctx, name, owner, newOwner)
-}
-
-// UpdateOwnedBy changes the owner of the site with the given name.
-func (c *SitesController) UpdateOwnedBy(ctx context.Context, name, newOwner string) error {
-	return c.db.UpdateOwnedBy(ctx, name, newOwner)
-}
-
 // ListOwners lists the owners of the site with the given name.
 func (c *SitesController) ListOwners(ctx context.Context, name string) ([]*sbac.User, error) {
 	return c.db.ListOwners(ctx, name)
