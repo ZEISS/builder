@@ -23,7 +23,7 @@ func NewDatabase(conn *gorm.DB) *Database {
 }
 
 // CreateSite creates a new site with the given name.
-func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.Site, error) {
+func (db *Database) CreateSite(ctx context.Context, name, email string) (sbac.Site, error) {
 	site := sbac.Site{Name: name, Slug: name}
 
 	err := db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -32,8 +32,8 @@ func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.
 			return err
 		}
 
-		user := sbac.User{Email: ownedBy, Sites: []sbac.Site{site}}
-		if err := tx.Where(sbac.User{Email: ownedBy}).Attrs(sbac.User{Email: ownedBy}).FirstOrCreate(&user).Error; err != nil {
+		user := sbac.User{Email: email}
+		if err := tx.WithContext(ctx).Where(sbac.User{Email: email}).FirstOrCreate(&user).Error; err != nil {
 			return err
 		}
 
@@ -42,8 +42,20 @@ func (db *Database) CreateSite(ctx context.Context, name, ownedBy string) (sbac.
 			return err
 		}
 
-		userRole := sbac.UserRole{SiteID: site.ID, UserID: user.ID, RoleID: role.ID}
-		return gorm.G[sbac.UserRole](tx).Create(ctx, &userRole)
+		if err := tx.WithContext(ctx).Model(&user).Association("Sites").Append(&site); err != nil {
+			return err
+		}
+
+		userRole := sbac.UserRole{
+			UserID: user.ID,
+			RoleID: role.ID,
+			SiteID: site.ID,
+		}
+		if err := gorm.G[sbac.UserRole](tx, clause.OnConflict{DoNothing: true}).Create(ctx, &userRole); err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	return site, err
@@ -64,11 +76,6 @@ func (db *Database) GetSiteByName(ctx context.Context, name string) (sbac.Site, 
 	return gorm.G[sbac.Site](db.conn).Where("slug = ?", name).First(ctx)
 }
 
-// GetSiteById returns the site with the given id.
-func (db *Database) GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error) {
-	return gorm.G[sbac.Site](db.conn).Where("id = ?", site.ID).First(ctx)
-}
-
 // ListOwners lists the owners of the site with the given name.
 func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, error) {
 	site, err := gorm.G[sbac.Site](db.conn).Preload("Users", nil).Where("slug = (?)", name).First(ctx)
@@ -82,13 +89,11 @@ func (db *Database) ListOwners(ctx context.Context, name string) ([]*sbac.User, 
 // AddOwners adds owners to the site with the given name.
 func (db *Database) AddOwner(ctx context.Context, siteName, email string) error {
 	return db.conn.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// 1. Find the site
 		site, err := gorm.G[sbac.Site](tx).Where("slug = ?", siteName).First(ctx)
 		if err != nil {
 			return err
 		}
 
-		// 2. Find or create the user (populates user.ID whether found or newly created)
 		user := sbac.User{Email: email}
 		if err := tx.WithContext(ctx).Where(sbac.User{Email: email}).FirstOrCreate(&user).Error; err != nil {
 			return err

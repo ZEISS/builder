@@ -13,8 +13,6 @@ type Sites interface {
 	CreateSite(ctx context.Context, name, ownedBy string) (sbac.Site, error)
 	// GetSiteByName returns the site with the given name.
 	GetSiteByName(ctx context.Context, name string) (sbac.Site, error)
-	// GetSiteById returns the site with the given id.
-	GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error)
 	// UpdateSite updates the site with the given name.
 	UpdateSite(ctx context.Context, site *sbac.Site) error
 	// ListOwners lists the owners of the site with the given name.

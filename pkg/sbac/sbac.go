@@ -102,18 +102,6 @@ func RunMigrations(db *gorm.DB) error {
 	rolePermissionsTableName := db.NamingStrategy.TableName("role_permissions")
 	permissionsTableName := db.NamingStrategy.TableName("permissions")
 
-	// Delete `deleted_at`, `created_at`, `updated_at` columns from role and permission tables;
-	// if they exist.
-	db.Migrator().DropColumn(&Role{}, "deleted_at")
-	db.Migrator().DropColumn(&Role{}, "created_at")
-	db.Migrator().DropColumn(&Role{}, "updated_at")
-	db.Migrator().DropColumn(&Permission{}, "deleted_at")
-	db.Migrator().DropColumn(&Permission{}, "created_at")
-	db.Migrator().DropColumn(&Permission{}, "updated_at")
-	db.Migrator().DropColumn(&UserRole{}, "updated_at")
-	db.Migrator().DropColumn(&UserRole{}, "created_at")
-	db.Migrator().DropColumn(&UserRole{}, "deleted_at")
-
 	// View for user site permissions
 	query := db.Raw("SELECT A.user_id, A.site_id, C.scope as permission FROM " + userRolesTableName + " AS A LEFT JOIN " + rolePermissionsTableName + " AS B ON A.role_id = B.role_id LEFT JOIN " + permissionsTableName + " AS C on B.permission_id = C.id;")
 	err = db.Migrator().CreateView("vw_user_site_permissions", gorm.ViewOption{Query: query, Replace: true})

@@ -29,11 +29,6 @@ func (c *SitesController) GetSiteByName(ctx context.Context, name string) (sbac.
 	return c.db.GetSiteByName(ctx, name)
 }
 
-// GetSiteById returns the site with the given id.
-func (c *SitesController) GetSiteById(ctx context.Context, site *sbac.Site) (sbac.Site, error) {
-	return c.db.GetSiteById(ctx, site)
-}
-
 // UpdateSite updates the site with the given name.
 func (c *SitesController) UpdateSite(ctx context.Context, site *sbac.Site) error {
 	err := c.db.UpdateSite(ctx, site)
