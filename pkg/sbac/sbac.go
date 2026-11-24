@@ -102,6 +102,18 @@ func RunMigrations(db *gorm.DB) error {
 	rolePermissionsTableName := db.NamingStrategy.TableName("role_permissions")
 	permissionsTableName := db.NamingStrategy.TableName("permissions")
 
+	// Delete `deleted_at`, `created_at`, `updated_at` columns from role and permission tables;
+	// if they exist.
+	db.Migrator().DropColumn(&Role{}, "deleted_at")
+	db.Migrator().DropColumn(&Role{}, "created_at")
+	db.Migrator().DropColumn(&Role{}, "updated_at")
+	db.Migrator().DropColumn(&Permission{}, "deleted_at")
+	db.Migrator().DropColumn(&Permission{}, "created_at")
+	db.Migrator().DropColumn(&Permission{}, "updated_at")
+	db.Migrator().DropColumn(&UserRole{}, "updated_at")
+	db.Migrator().DropColumn(&UserRole{}, "created_at")
+	db.Migrator().DropColumn(&UserRole{}, "deleted_at")
+
 	// View for user site permissions
 	query := db.Raw("SELECT A.user_id, A.site_id, C.scope as permission FROM " + userRolesTableName + " AS A LEFT JOIN " + rolePermissionsTableName + " AS B ON A.role_id = B.role_id LEFT JOIN " + permissionsTableName + " AS C on B.permission_id = C.id;")
 	err = db.Migrator().CreateView("vw_user_site_permissions", gorm.ViewOption{Query: query, Replace: true})
@@ -122,12 +134,6 @@ type Role struct {
 	Description string `validate:"omitempty,max=255"`
 	// Permissions are the permissions that the role has.
 	Permissions []*Permission `gorm:"many2many:role_permissions;"`
-	// CreatedAt is the time the role was created.
-	CreatedAt time.Time
-	// UpdatedAt is the time the role was last updated.
-	UpdatedAt time.Time
-	// DeletedAt is the time the role was deleted.
-	DeletedAt gorm.DeletedAt
 }
 
 // Validate validates the role.
@@ -195,13 +201,6 @@ type UserRole struct {
 	// RoleID is the primary key of the role.
 	RoleID uuid.UUID `gorm:"primaryKey"`
 	Role   Role
-
-	// CreatedAt is the time the user role was created.
-	CreatedAt time.Time
-	// UpdatedAt is the time the user role was last updated.
-	UpdatedAt time.Time
-	// DeletedAt is the time the user role was deleted.
-	DeletedAt gorm.DeletedAt
 }
 
 // Validate validates the user.
@@ -221,12 +220,6 @@ type Permission struct {
 	Description *string `json:"description" validate:"omitempty,max=255"`
 	// Roles are the roles that have the permission.
 	Roles []Role `gorm:"many2many:role_permissions;"`
-	// CreatedAt is the time the permission was created.
-	CreatedAt time.Time
-	// UpdatedAt is the time the permission was last updated.
-	UpdatedAt time.Time
-	// DeletedAt is the time the permission was deleted.
-	DeletedAt gorm.DeletedAt
 }
 
 // Validate validates the permission.

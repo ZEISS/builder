@@ -136,10 +136,6 @@ func (c *client) AddOwner(ctx context.Context, siteName, email string) error {
 
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusConflict {
-		return ErrSiteExists
-	}
-
 	if resp.StatusCode > http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
@@ -174,10 +170,6 @@ func (c *client) RemoveOwner(ctx context.Context, siteName, email string) error 
 	}
 
 	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusConflict {
-		return ErrSiteExists
-	}
 
 	if resp.StatusCode > http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
