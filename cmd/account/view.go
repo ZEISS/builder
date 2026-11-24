@@ -10,7 +10,6 @@ import (
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
-	"github.com/zeiss/pkg/cast"
 
 	"github.com/spf13/cobra"
 )
@@ -47,7 +46,7 @@ func runShowCmd(cmd *cobra.Command, args []string) error {
 	tw, _, _ := term.GetSize(os.Stdout.Fd())
 	body := console.Render(tw,
 		console.Success(fmt.Sprintf("Your are logged in as: %s", account.Email)),
-		console.Success(fmt.Sprintf("That's your access token: \n\n%s", cast.Value(account.AccessToken))),
+		console.Success(fmt.Sprintf("That's your access token: \n\n%s", account.AccessToken)),
 	)
 	fmt.Fprintln(colorprofile.NewWriter(os.Stderr, os.Environ()), body)
 
