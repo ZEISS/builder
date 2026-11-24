@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
-	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
 
@@ -36,22 +36,13 @@ func runRefreshCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
+	_, err = client.SetupClient(ctx, srv, flags.URL)
 	if err != nil {
 		return err
 	}
 
 	account := &models.Account{Current: true}
 	if err := srv.GetAccount(ctx, account); err != nil {
-		return err
-	}
-
-	if err := oidcProvider.Refresh(ctx, account.ToToken()); err != nil {
-		return err
-	}
-
-	err = srv.UpdateAccount(ctx, account)
-	if err != nil {
 		return err
 	}
 

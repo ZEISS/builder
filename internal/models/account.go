@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/zeiss/builder/internal/oidc"
-	"github.com/zeiss/pkg/cast"
 	"gorm.io/gorm"
 )
 
@@ -36,17 +35,17 @@ type Account struct {
 	// Provider is the provider of the account.
 	Provider string `json:"provider" validate:"required"`
 	// RefreshToken is the refresh token of the account.
-	RefreshToken *string `json:"refresh_token"`
+	RefreshToken string `json:"refresh_token"`
 	// AccessToken is the access token of the account.
-	AccessToken *string `json:"access_token"`
+	AccessToken string `json:"access_token"`
 	// ExpiresAt is the expiry time of the account.
-	ExpiresAt *time.Time `json:"expires_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 	// TokenType is the token type of the account.
-	TokenType *string `json:"token_type"`
+	TokenType string `json:"token_type"`
 	// Scope is the scope of the account.
-	Scope *string `json:"scope"`
+	Scope string `json:"scope"`
 	// IDToken is the ID token of the account.
-	IDToken *string `json:"id_token"`
+	IDToken string `json:"id_token"`
 	// SessionState is the session state of the account.
 	SessionState string `json:"session_state"`
 	// Name is the name of the account.
@@ -76,12 +75,21 @@ func (a *Account) BeforeCreate(tx *gorm.DB) (err error) {
 func (a *Account) ToToken() *oidc.Token {
 	return &oidc.Token{
 		ProviderType: a.Provider,
-		AccessToken:  cast.Value(a.AccessToken),
-		RefreshToken: cast.Value(a.RefreshToken),
-		Expiry:       cast.Value(a.ExpiresAt),
-		TokenType:    cast.Value(a.TokenType),
-		IDToken:      cast.Value(a.IDToken),
+		AccessToken:  a.AccessToken,
+		RefreshToken: a.RefreshToken,
+		Expiry:       a.ExpiresAt,
+		TokenType:    a.TokenType,
+		IDToken:      a.IDToken,
 	}
+}
+
+// UpdateToken updates the token of the account.
+func (a *Account) UpdateToken(token *oidc.Token) {
+	a.AccessToken = token.AccessToken
+	a.RefreshToken = token.RefreshToken
+	a.ExpiresAt = token.Expiry
+	a.TokenType = token.TokenType
+	a.IDToken = token.IDToken
 }
 
 // FromToken creates an account from a token.
@@ -91,10 +99,10 @@ func FromToken(token *oidc.Token) *Account {
 		Email:        token.Claims.Email,
 		Name:         token.Claims.Name,
 		Provider:     token.ProviderType,
-		AccessToken:  cast.Ptr(token.AccessToken),
-		RefreshToken: cast.Ptr(token.RefreshToken),
-		ExpiresAt:    cast.Ptr(token.Expiry),
-		TokenType:    cast.Ptr(token.TokenType),
-		IDToken:      cast.Ptr(token.IDToken), // save id token for the API
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		ExpiresAt:    token.Expiry,
+		TokenType:    token.TokenType,
+		IDToken:      token.IDToken,
 	}
 }
