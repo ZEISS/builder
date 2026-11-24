@@ -12,6 +12,8 @@ type Flags struct {
 	Environment string `envconfig:"BUILDER_ENVIRONMENT" default:""`
 	// Domain is the domain name for the builder.
 	Domain string `envconfig:"BUILDER_DOMAIN" default:""`
+	// ApiURL is the URL for the builder API.
+	ApiURL string `envconfig:"BUILDER_API_URL" default:""`
 	// OIDCIssuer is the OIDC issuer URL.
 	OIDCIssuer string `envconfig:"BUILDER_OIDC_ISSUER" default:""`
 	// OIDCAudience is the OIDC audience.
