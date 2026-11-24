@@ -72,7 +72,7 @@ func init() {
 }
 
 func initConfig() {
-	cobra.CheckErr(godotenv.Load())
+	godotenv.Load()
 	cobra.CheckErr(envconfig.Process("", configs.DefaultConfig.Flags))
 }
 
