@@ -5,14 +5,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/term"
+	"github.com/zeiss/builder/internal/adapters/client"
 	"github.com/zeiss/builder/internal/config"
 	"github.com/zeiss/builder/internal/models"
 	"github.com/zeiss/builder/internal/oidc"
 	"github.com/zeiss/builder/internal/services"
 	"github.com/zeiss/builder/internal/ui/console"
 
+	"github.com/charmbracelet/colorprofile"
+	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,12 @@ func runLoginCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	oidcProvider, err := oidc.SetupOidcProvider(ctx, flags.URL, config.DefaultClientID)
+	wellknownCfg, err := client.GetWellknownConfig(ctx, flags.URL)
+	if err != nil {
+		return err
+	}
+
+	oidcProvider, err := oidc.SetupOidcProvider(ctx, wellknownCfg.OidcIssuer, config.DefaultClientID)
 	if err != nil {
 		return err
 	}

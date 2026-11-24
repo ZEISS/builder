@@ -188,15 +188,7 @@ func (c *client) RemoveOwner(ctx context.Context, siteName, email string) error 
 
 // SetupClient is a function that sets up the client for the application.
 func SetupClient(ctx context.Context, srv services.Service, uri string) (*client, error) {
-	wellknownCfg := &utils.WellknownConfig{}
-
-	uri, err := url.JoinPath(uri, ".well-known", "builder-configuration")
-	if err != nil {
-		return nil, err
-	}
-
-	discv := discovery.NewClient()
-	err = discv.Discover(ctx, uri, wellknownCfg)
+	wellknownCfg, err := GetWellknownConfig(ctx, uri)
 	if err != nil {
 		return nil, err
 	}
@@ -235,4 +227,22 @@ func SetupClient(ctx context.Context, srv services.Service, uri string) (*client
 	c := New(api)
 
 	return c, nil
+}
+
+// GetWellknownConfig discovers the well-known configuration for the given URI.
+func GetWellknownConfig(ctx context.Context, uri string) (*utils.WellknownConfig, error) {
+	wellknownCfg := &utils.WellknownConfig{}
+
+	uri, err := url.JoinPath(uri, ".well-known", "builder-configuration")
+	if err != nil {
+		return nil, err
+	}
+
+	discv := discovery.NewClient()
+	err = discv.Discover(ctx, uri, wellknownCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return wellknownCfg, nil
 }
