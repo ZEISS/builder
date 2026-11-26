@@ -25,7 +25,7 @@ func New(storage fiber.Storage) *Files {
 
 // UploadFile uploads a file to the filesystem.
 func (f *Files) UploadFile(ctx context.Context, site *sbac.Site, file *models.File) error {
-	key := filepath.Join(site.Name, file.Name)
+	key := filepath.Join(site.Name, filepath.ToSlash(file.Name))
 
 	err := f.storage.SetWithContext(ctx, key, file.Data, 0)
 	if err != nil {
