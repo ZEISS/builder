@@ -1,4 +1,4 @@
-name: Release nightly github action image
+name: Release nightly
 
 on:
   schedule:
