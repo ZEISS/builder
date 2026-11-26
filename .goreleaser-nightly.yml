@@ -25,8 +25,8 @@ builds:
         goarch: amd64
         env:
           - CGO_ENABLED=1
-          - CC=zig cc -x86_64-windows-gnu
-          - CXX=zig c++ -x86_64-windows-gnu
+          - CC=zig cc -target x86_64-windows-gnu
+          - CXX=zig c++ -target x86_64-windows-gnu
       - goos: windows
         goarch: arm64
         env:
