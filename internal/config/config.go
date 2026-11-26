@@ -130,18 +130,7 @@ func (f *Flags) Spec() (*specs.Spec, error) {
 
 // Abs returns the absolute path of the config file.
 func (f *Flags) ConfigPath() (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	path := filepath.Join(cwd, f.Config)
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Clean(abs), nil
+	return filepath.Abs(f.Config)
 }
 
 // AppDirPath returns the path to the main data directory for the application.
