@@ -25,14 +25,14 @@ builds:
         goarch: amd64
         env:
           - CGO_ENABLED=1
-          - CC=zig cc -target x86_64-windows-msvc
-          - CXX=zig c++ -target x86_64-windows-msvc
+          - CC=zig cc -x86_64-windows-gnu
+          - CXX=zig c++ -x86_64-windows-gnu
       - goos: windows
         goarch: arm64
         env:
           - CGO_ENABLED=1
-          - CC=zig cc -target aarch64-windows-msvc
-          - CXX=zig c++ -target aarch64-windows-msvc
+          - CC=zig cc -target aarch64-windows-gnu
+          - CXX=zig c++ -target aarch64-windows-gnu
       - goos: darwin
         goarch: amd64
         env:
