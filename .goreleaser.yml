@@ -12,6 +12,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - amd64
       - arm64
@@ -20,6 +21,18 @@ builds:
     ldflags:
       - -s -w -X github.com/zeiss/builder/internal/versions.Version={{.Version}} -X github.com/zeiss/builder/internal/versions.Commit={{.Commit}} -X github.com/zeiss/builder/internal/versions.Date={{.Date}}
     overrides:
+      - goos: windows
+        goarch: amd64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target x86_64-windows-msvc
+          - CXX=zig c++ -target x86_64-windows-msvc
+      - goos: windows
+        goarch: arm64
+        env:
+          - CGO_ENABLED=1
+          - CC=zig cc -target aarch64-windows-msvc
+          - CXX=zig c++ -target aarch64-windows-msvc
       - goos: darwin
         goarch: amd64
         env:
